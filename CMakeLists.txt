@@ -52,12 +52,6 @@ else()
   target_link_libraries(${CMAKE_PROJECT_NAME} ${GLEW_DIR}/lib/libGLEW.a)
 endif()
 
-# Set up Bullet
-include_directories(${CMAKE_SOURCE_DIR}/include)
-target_link_libraries(${CMAKE_PROJECT_NAME} ${CMAKE_SOURCE_DIR}/lib/libBulletDynamics.a)
-target_link_libraries(${CMAKE_PROJECT_NAME} ${CMAKE_SOURCE_DIR}/lib/libBulletCollision.a)
-target_link_libraries(${CMAKE_PROJECT_NAME} ${CMAKE_SOURCE_DIR}/lib/libLinearMath.a)
-
 # OS specific options and libraries
 if(WIN32)
   # c++0x is enabled by default.
@@ -71,8 +65,20 @@ else()
   if(APPLE)
     # Add required frameworks for GLFW.
     target_link_libraries(${CMAKE_PROJECT_NAME} "-framework OpenGL -framework Cocoa -framework IOKit -framework CoreVideo")
+
+    # Set up Bullet
+    include_directories(${CMAKE_SOURCE_DIR}/include)
+    target_link_libraries(${CMAKE_PROJECT_NAME} ${CMAKE_SOURCE_DIR}/lib/libBulletDynamics_gmake_x64_release.a)
+    target_link_libraries(${CMAKE_PROJECT_NAME} ${CMAKE_SOURCE_DIR}/lib/libBulletCollision_gmake_x64_release.a)
+    target_link_libraries(${CMAKE_PROJECT_NAME} ${CMAKE_SOURCE_DIR}/lib/libLinearMath_gmake_x64_release.a)
   else()
     #Link the Linux OpenGL library
     target_link_libraries(${CMAKE_PROJECT_NAME} "GL")
+
+    # Set up Bullet
+    include_directories(${CMAKE_SOURCE_DIR}/include)
+    target_link_libraries(${CMAKE_PROJECT_NAME} ${CMAKE_SOURCE_DIR}/lib/libBulletDynamics.a)
+    target_link_libraries(${CMAKE_PROJECT_NAME} ${CMAKE_SOURCE_DIR}/lib/libBulletCollision.a)
+    target_link_libraries(${CMAKE_PROJECT_NAME} ${CMAKE_SOURCE_DIR}/lib/libLinearMath.a)
   endif()
 endif()
