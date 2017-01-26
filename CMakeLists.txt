@@ -52,6 +52,15 @@ else()
   target_link_libraries(${CMAKE_PROJECT_NAME} ${GLEW_DIR}/lib/libGLEW.a)
 endif()
 
+set(BULLET "$ENV{BULLET}")
+if(NOT BULLET)
+    message(FATAL_ERROR "Please point the environment variable BULLET to the root directory of your Bullet installation.")
+endif()
+include_directories(${BULLET}/src)
+target_link_libraries(${CMAKE_PROJECT_NAME} ${CMAKE_SOURCE_DIR}/lib/libBulletDynamics.a)
+target_link_libraries(${CMAKE_PROJECT_NAME} ${CMAKE_SOURCE_DIR}/lib/libBulletCollision.a)
+target_link_libraries(${CMAKE_PROJECT_NAME} ${CMAKE_SOURCE_DIR}/lib/libLinearMath.a)
+
 # OS specific options and libraries
 if(WIN32)
   # c++0x is enabled by default.
