@@ -89,7 +89,7 @@ int main(int argc, char **argv)
         gameManager->processInputs();
         
         while (elapsedTime > 0) {
-            dt = min(elapsedTime, IDEAL_DT);
+            dt = glm::min(elapsedTime, IDEAL_DT);
             // Simulate movement/physics
             gameManager->updateGame(dt);
             elapsedTime -= dt;

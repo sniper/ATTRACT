@@ -16,6 +16,8 @@ class Program;
 class Material;
 class BoundingSphere;
 
+
+
 class GameObject
 {
 public:
@@ -35,6 +37,7 @@ public:
     
     bool isCollected() const {return collected;}
     glm::vec3 getPosition() const {return position;}
+    void setPosition(glm::vec3 pos);
     glm::vec3 getDirection() const {return direction;}
 private:
     bool collected;

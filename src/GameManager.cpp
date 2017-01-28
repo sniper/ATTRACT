@@ -67,13 +67,11 @@ RESOURCE_DIR(resourceDir)
     initScene();
 }
 
-GameManager::~GameManager()
-{
+GameManager::~GameManager() {
     
 }
 
-void GameManager::initScene()
-{
+void GameManager::initScene() {
     // Initialize time.
     glfwSetTime(0.0);
     
@@ -81,6 +79,9 @@ void GameManager::initScene()
     glClearColor(0.5f, 1.0f, 1.0f, 1.0f);
     // Enable z-buffer test.
     glEnable(GL_DEPTH_TEST);
+    
+
+    
     
     //
     // Objects
@@ -197,15 +198,29 @@ void GameManager::initScene()
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     
     GLSL::checkError(GET_FILE_LINE);
+    
+    // bullet stuff  TODO: JUST TRYING TO GET THIS TO WORK, FUNCTION THIS STUFF
+    bullet = new BulletManager();
+    bullet->createGroundPlane(0,1,0);
+    bullet->createSphere(3,10,3,1);
+    
+    shared_ptr<Material> material = make_shared<Material>(vec3(0.2f, 0.2f, 0.2f), vec3(1.0f, 0.0f, 1.0f), vec3(1.0f, 0.9f, 0.8f), 200.0f);
+    shared_ptr<BoundingSphere> boundingSphere = make_shared<BoundingSphere>(vec3(0,10,0), BUNNY_SPHERE_RADIUS);
+    playerObj = make_shared<GameObject>(vec3(0,10,0), vec3(1,0,0), 0, boundingSphere, shapes.at(0), material);
+    
+    
 }
 
-void GameManager::processInputs()
-{
+void GameManager::processInputs() {
     inputManager->processInputs();
 }
 
 void GameManager::updateGame(double dt)
 {
+    //step the bullet, update player obj
+    playerObj->setPosition(bullet->stepAndPrint(dt));
+    
+    
     // Spawn in a bunny every OBJ_SPAWN_INTERVAL seconds
     objIntervalCounter += dt;
     if (objIntervalCounter > OBJ_SPAWN_INTERVAL && objects.size() < MAX_NUM_OBJECTS) {
@@ -318,6 +333,9 @@ void GameManager::renderGame(int fps)
     for (unsigned int i = 0; i < objects.size(); i++) {
         objects.at(i)->draw(program);
     }
+    //draw playerobj
+    playerObj->draw(program);
+    
     program->unbind();
     
     // Render sun
