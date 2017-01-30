@@ -7,6 +7,7 @@
 //
 
 #include <vector>
+#include <iostream>
 
 #include "InputManager.hpp"
 #include "Camera.hpp"
@@ -30,6 +31,17 @@ void InputManager::processInputs()
 {
     // Move mouse.
     camera->mouseMoved(Mouse::getMouseX(), Mouse::getMouseY());
+    
+    bool leftMouse = Mouse::isLeftMouseButtonPressed();
+    bool rightMouse = Mouse::isRightMouseButtonPressed();
+    
+    // Handle if mouse buttons are pressed. Don't do anything if both are pressed.
+    if (leftMouse && !rightMouse) {
+        cout << "Left Mouse Button is pressed." << endl;
+    }
+    else if (rightMouse && !leftMouse) {
+        cout << "Right Mouse Button is pressed." << endl;
+    }
     
     // Create a vector to hold the keyboard inputs
     vector<char> pressedKeys;

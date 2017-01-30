@@ -10,9 +10,10 @@
 
 #include <iostream>
 #include <btBulletDynamicsCommon.h>
-#include <bullet/BulletCollision/Gimpact/btGImpactCollisionAlgorithm.h>
+#include <BulletCollision/Gimpact/btGImpactCollisionAlgorithm.h>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+
 using namespace std;
 using namespace glm;
 class BulletManager {
@@ -22,6 +23,7 @@ public:
     void createGroundPlane(double x, double y, double z);
     void createSphere(double x, double y, double z, double radius);
     vec3 stepAndPrint(float dt);
+    void rayTrace(glm::vec3 startLoc, glm::vec3 endLoc);
 private:
     /*Bullet stuff*/
     btBroadphaseInterface* broadphase;
