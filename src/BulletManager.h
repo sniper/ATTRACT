@@ -32,6 +32,8 @@ public:
     void setStepFlag(bool f);
     
     void setJumpDirection(vec3 dir, int key);
+    
+    
 private:
     /*Bullet stuff*/
     btBroadphaseInterface* broadphase;

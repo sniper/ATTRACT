@@ -36,6 +36,8 @@ BulletManager::BulletManager() {
     sphereRigidBody = NULL;
 
     stepFlag = false;
+    
+    createSphere(vec3(0,0,0), 2);
 }
 
 BulletManager::~BulletManager() {
@@ -78,7 +80,6 @@ void BulletManager::createSphere(vec3 pos, double radius) {
     sphereRigidBody = new btRigidBody(sphereRigidBodyCI);
 
     dynamicsWorld->addRigidBody(sphereRigidBody);
-
 }
 
 void BulletManager::setJumpDirection(vec3 dir, int key) {
@@ -164,6 +165,8 @@ void BulletManager::setStepFlag(bool f) {
         delete sphereShape;
 
         sphereRigidBody = NULL;
+        sphereMotionState = NULL;
+        sphereShape = NULL;
     }
 }
 
