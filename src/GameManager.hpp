@@ -49,7 +49,7 @@ private:
     std::string RESOURCE_DIR;
     
     BulletManager *bullet;
-    shared_ptr<GameObject> playerObj;
+    shared_ptr<GameObject> testObj;
     
     std::vector<std::shared_ptr<GameObject>> objects;
     double objIntervalCounter;
