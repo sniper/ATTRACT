@@ -117,7 +117,10 @@ void BulletManager::rayTrace(vec3 startLoc, vec3 endLoc) {
     
     // We will eventually have to do a check to make sure the object is a magnetic surface.
     // For now, just check to see if its looking at the bunny.
+    if (sphereRigidBody == NULL)
+        cout << "Oops" << endl;
     if (RayCallback.hasHit() && hitShape == sphereRigidBody) {
+        cout << "HIT" << endl;
         if (Mouse::isLeftMouseButtonPressed()) {
             sphereRigidBody->activate();
             sphereRigidBody->setGravity(start - end);

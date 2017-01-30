@@ -35,6 +35,7 @@ public:
     void setBoundingSphere(const std::shared_ptr<BoundingSphere> &sphere) {boundingSphere = sphere;}
     
     glm::vec3 getPosition() const {return position;}
+    glm::vec3 getDirection() const {return glm::normalize(glm::vec3(sin(yaw), sin(pitch), cos(yaw)));}
     std::shared_ptr<BoundingSphere> getPlayerSphere() const {return boundingSphere;}
 private:
     glm::vec3 position;

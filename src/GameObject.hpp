@@ -10,13 +10,13 @@
 #define GameObject_hpp
 
 #include <memory>
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 class Shape;
 class Program;
 class Material;
 class BoundingSphere;
-
-
 
 class GameObject
 {
