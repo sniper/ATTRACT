@@ -11,8 +11,12 @@
 #include <iostream>
 #include <btBulletDynamicsCommon.h>
 #include <BulletCollision/Gimpact/btGImpactCollisionAlgorithm.h>
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/rotate_vector.hpp>
+
+#define PI_F (3.14f)
 
 using namespace std;
 using namespace glm;
@@ -21,9 +25,15 @@ public:
     BulletManager();
     virtual ~BulletManager();
     void createGroundPlane(double x, double y, double z);
-    void createSphere(double x, double y, double z, double radius);
+    void createSphere(vec3 pos, double radius);
     vec3 stepAndPrint(float dt);
     void rayTrace(glm::vec3 startLoc, glm::vec3 endLoc);
+    
+    bool getStepFlag();
+    void setStepFlag(bool f);
+    
+    void setJumpDirection(vec3 dir, int key);
+    
 private:
     /*Bullet stuff*/
     btBroadphaseInterface* broadphase;
@@ -43,9 +53,8 @@ private:
     /*rigid bodies*/
     btRigidBody* groundRigidBody;
     btRigidBody* sphereRigidBody;
-
-
-
+    
+    bool stepFlag;
 };
 
 #endif /* BULLETMANAGER_H */

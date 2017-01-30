@@ -17,21 +17,18 @@
 using namespace std;
 
 InputManager::InputManager(shared_ptr<Camera> &camera) :
-camera(camera)
-{
-    
+camera(camera) {
+
 }
 
-InputManager::~InputManager()
-{
-    
+InputManager::~InputManager() {
+
 }
 
-void InputManager::processInputs()
-{
+void InputManager::processInputs() {
     // Move mouse.
     camera->mouseMoved(Mouse::getMouseX(), Mouse::getMouseY());
-    
+
     bool leftMouse = Mouse::isLeftMouseButtonPressed();
     bool rightMouse = Mouse::isRightMouseButtonPressed();
     
@@ -42,10 +39,10 @@ void InputManager::processInputs()
     else if (rightMouse && !leftMouse) {
         cout << "Right Mouse Button is pressed." << endl;
     }
-    
+
     // Create a vector to hold the keyboard inputs
     vector<char> pressedKeys;
-    
+
     if (Keyboard::isPressed(GLFW_KEY_W) || Keyboard::isPressed(GLFW_KEY_UP)) {
         pressedKeys.push_back('w');
     }
@@ -58,6 +55,9 @@ void InputManager::processInputs()
     if (Keyboard::isPressed(GLFW_KEY_D) || Keyboard::isPressed(GLFW_KEY_RIGHT)) {
         pressedKeys.push_back('d');
     }
-    
+    if (Keyboard::isPressed(GLFW_KEY_SPACE) ) {
+        pressedKeys.push_back(' ');
+    }
+
     camera->interpretPressedKeys(pressedKeys);
 }

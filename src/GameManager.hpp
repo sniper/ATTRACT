@@ -48,8 +48,8 @@ private:
     GLFWwindow *window;
     std::string RESOURCE_DIR;
     
-    BulletManager *bullet;
-    shared_ptr<GameObject> playerObj;
+    shared_ptr<BulletManager> bullet;
+    //shared_ptr<GameObject> playerObj;
     
     std::vector<std::shared_ptr<GameObject>> objects;
     double objIntervalCounter;

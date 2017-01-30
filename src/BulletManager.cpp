@@ -10,8 +10,6 @@
  * 
  * Created on January 27, 2017, 4:08 PM
  */
-//TODO: if you call the create functions again, it will create memleak. remember to make deconstructor functions too.
-// also find out how to remove stuff from the simulator?
 #include "BulletManager.h"
 #include "Mouse.hpp"
 
@@ -36,17 +34,21 @@ BulletManager::BulletManager() {
     sphereMotionState = NULL;
     groundRigidBody = NULL;
     sphereRigidBody = NULL;
+
+    stepFlag = false;
+    
+    createSphere(vec3(0,0,0), 2);
 }
 
 BulletManager::~BulletManager() {
     /*Bullet doesnt auto deallocate automatically*/
 
-    delete groundShape;
-    delete sphereShape;
-    delete groundMotionState;
-    delete groundRigidBody;
-    delete sphereRigidBody;
-    delete sphereMotionState;
+    //delete groundShape;
+    //delete sphereShape;
+    //delete groundMotionState;
+    //delete groundRigidBody;
+    //delete sphereRigidBody;
+    //delete sphereMotionState;
 
     delete dynamicsWorld;
     delete solver;
@@ -67,25 +69,76 @@ void BulletManager::createGroundPlane(double x, double y, double z) {
     dynamicsWorld->addRigidBody(groundRigidBody);
 }
 
-void BulletManager::createSphere(double x, double y, double z, double radius) {
-    btTransform trans;	//position and rotation
-    trans.setIdentity();
-    trans.setOrigin(btVector3(x,y,z));
+void BulletManager::createSphere(vec3 pos, double radius) {
     sphereShape = new btSphereShape(radius);
-    sphereMotionState = new btDefaultMotionState(trans);
-    btScalar mass = 1.0f;
-    btVector3 sphereInertia(0.0f, 0.0f, 0.0f);
+    sphereMotionState = new btDefaultMotionState(btTransform(
+            btQuaternion(0, 0, 0, 1), btVector3(pos.x, pos.y, pos.z)));
+    btScalar mass = 1;
+    btVector3 sphereInertia(0, 0, 0);
     sphereShape->calculateLocalInertia(mass, sphereInertia);
     btRigidBody::btRigidBodyConstructionInfo sphereRigidBodyCI(mass, sphereMotionState, sphereShape, sphereInertia);
     sphereRigidBodyCI.m_friction = 0.9f;
     sphereRigidBodyCI.m_restitution = 0.5f;
     sphereRigidBodyCI.m_rollingFriction = 0.1f;
     sphereRigidBody = new btRigidBody(sphereRigidBodyCI);
-    dynamicsWorld->addRigidBody(sphereRigidBody);
 
+    dynamicsWorld->addRigidBody(sphereRigidBody);
+}
+
+void BulletManager::setJumpDirection(vec3 dir, int key) {
+    vec3 newVec;
+    dir.y = 0;
+    dir = normalize(dir);
+    switch (key) {
+        case 'w':
+            cout << "jump forward" << endl;
+            sphereRigidBody->setLinearVelocity(btVector3(dir.x * 2, 3, dir.z * 2));
+            break;
+        case 'w' + 'a':
+            cout << "jump up left" << endl;
+            newVec = rotateY(dir, 45.0f * PI_F/180);
+            sphereRigidBody->setLinearVelocity(btVector3(newVec.x * 2, 3, newVec.z * 2));
+            break;
+        case 'a':
+            cout << "jump left" << endl;
+            newVec = rotateY(dir, PI_F/2.0f);
+            sphereRigidBody->setLinearVelocity(btVector3(newVec.x * 2, 3, newVec.z * 2));
+            break;
+        case 'a' + 's':
+            cout << "jump back left" << endl;
+            newVec = rotateY(dir, -225.0f * PI_F/180);
+            sphereRigidBody->setLinearVelocity(btVector3(newVec.x * 2, 3, newVec.z * 2));
+            break;
+
+        case 's':
+            cout << "jump backwords" << endl;
+            
+            sphereRigidBody->setLinearVelocity(btVector3(dir.x * -2, 3, dir.z * -2));
+            break;
+
+        case 's' + 'd':
+            newVec = rotateY(dir, 225.0f * PI_F/180);
+            sphereRigidBody->setLinearVelocity(btVector3(newVec.x * 2, 3, newVec.z * 2));
+            break;
+
+        case 'd':
+            newVec = rotateY(dir, -90.0f * PI_F/180);
+            sphereRigidBody->setLinearVelocity(btVector3(newVec.x * 2, 3, newVec.z * 2));
+            break;
+
+        case 'w' + 'd':
+            newVec = rotateY(dir, -45.0f * PI_F/180);
+            sphereRigidBody->setLinearVelocity(btVector3(newVec.x * 2, 3, newVec.z * 2));
+            break;
+        default:
+            newVec = rotateY(dir, 90.0f);
+            sphereRigidBody->setLinearVelocity(btVector3(0, 3, 0));
+            break;
+    }
 }
 
 vec3 BulletManager::stepAndPrint(float dt) {
+    /*error checking...*/
     if (sphereRigidBody == NULL) {
         cerr << "Bullet initialized incorrectly" << endl;
         exit(1);
@@ -135,5 +188,21 @@ void BulletManager::rayTrace(vec3 startLoc, vec3 endLoc) {
     }
 }
 
+bool BulletManager::getStepFlag() {
+    return stepFlag;
+}
 
+void BulletManager::setStepFlag(bool f) {
+    stepFlag = f;
+    if (f == false && sphereRigidBody != NULL) {
+        dynamicsWorld->removeRigidBody(sphereRigidBody);
+        delete sphereRigidBody;
+        delete sphereMotionState;
+        delete sphereShape;
+
+        sphereRigidBody = NULL;
+        sphereMotionState = NULL;
+        sphereShape = NULL;
+    }
+}
 
