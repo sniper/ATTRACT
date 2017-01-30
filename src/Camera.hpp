@@ -13,6 +13,8 @@
 #include <vector>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "BulletManager.h"
+
 class MatrixStack;
 class BoundingSphere;
 class GameObject;
@@ -21,7 +23,7 @@ class Camera
 {
 public:
     Camera();
-    Camera(int gridSize);
+    Camera(int gridSize, shared_ptr<BulletManager> bm);
     virtual ~Camera();
     
     void mouseMoved(double x, double y);
@@ -35,6 +37,11 @@ public:
     void setBoundingSphere(const std::shared_ptr<BoundingSphere> &sphere) {boundingSphere = sphere;}
     
     glm::vec3 getPosition() const {return position;}
+    glm::vec3 setPosition(vec3 inPos) { position = inPos;}
+    glm::vec3 getDirection() const {return glm::normalize(glm::vec3(sin(yaw), sin(pitch), cos(yaw)));}
+    
+    void setInputLockFlag(bool f) { inputLockFlag = f;}
+    
     std::shared_ptr<BoundingSphere> getPlayerSphere() const {return boundingSphere;}
 private:
     glm::vec3 position;
@@ -47,6 +54,9 @@ private:
     float zfar;
     glm::vec2 mousePrev;
     std::shared_ptr<BoundingSphere> boundingSphere;
+    
+    bool inputLockFlag;
+    shared_ptr<BulletManager> bullet;
 };
 
 
