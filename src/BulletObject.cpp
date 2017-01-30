@@ -14,6 +14,7 @@
 #include "BulletObject.h"
 
 BulletObject::BulletObject() {
+    
 }
 
 BulletObject::BulletObject(const BulletObject& orig) {

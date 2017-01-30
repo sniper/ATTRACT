@@ -199,26 +199,28 @@ void GameManager::initScene() {
 
     // bullet stuff  TODO: JUST TRYING TO GET THIS TO WORK, FUNCTION THIS STUFF
     bullet = new BulletManager();
-    bullet->createPlane("ground",0, -0.5, 0);
+    bullet->createPlane("ground", 0, -0.5, 0);
     bullet->createSphere("bunny", 0, 10, 0, 1);
+    bullet->createSphere("cam", 0, 0.49, 0, 1);
 
     shared_ptr<Material> material = make_shared<Material>(vec3(0.2f, 0.2f, 0.2f), vec3(0.0f, 0.5f, 0.5f), vec3(1.0f, 0.9f, 0.8f), 200.0f);
     shared_ptr<BoundingSphere> boundingSphere = make_shared<BoundingSphere>(vec3(0, 10, 0), BUNNY_SPHERE_RADIUS);
     testObj = make_shared<GameObject>(vec3(0, 10, 0), vec3(1, 0, 0), 0, boundingSphere, shapes.at(0), material);
-    objects.push_back(testObj);
+    //objects.push_back(testObj);
 }
 
 void GameManager::processInputs() {
-    inputManager->processInputs();
+    inputManager->processInputs(bullet->getBulletObject("cam"));
 }
 
 void GameManager::updateGame(double dt) {
 
-    
+
     bullet->rayTrace("bunny", camera->getPosition(), camera->getDirection() * 10.0f);
     //step the bullet, update test obj
     bullet->step(dt);
     testObj->setPosition(bullet->getBulletObjectState("bunny"));
+    camera->setPosition(bullet->getBulletObjectState("cam"));
 
     // Spawn in a bunny every OBJ_SPAWN_INTERVAL seconds
     //    objIntervalCounter += dt;
@@ -228,7 +230,7 @@ void GameManager::updateGame(double dt) {
     //    }
 
 
-
+    /*
     for (int i = 0; i < objects.size(); i++) {
         shared_ptr<GameObject> currObj = objects.at(i);
 
@@ -272,6 +274,7 @@ void GameManager::updateGame(double dt) {
             }
         }
     }
+     */
 }
 
 void GameManager::renderGame(int fps) {
@@ -331,6 +334,7 @@ void GameManager::renderGame(int fps) {
     for (unsigned int i = 0; i < objects.size(); i++) {
         objects.at(i)->draw(program);
     }
+    testObj->draw(program);
     //draw playerobj
     //playerObj->draw(program);
 

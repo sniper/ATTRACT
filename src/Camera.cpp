@@ -71,7 +71,7 @@ void Camera::mouseMoved(double x, double y) {
     mousePrev = mouseCurr;
 }
 
-void Camera::interpretPressedKeys(const vector<char> &pressedKeys) {
+void Camera::interpretPressedKeys(const vector<char> &pressedKeys, BulletObject *bulletCamObj) {
     vec3 forward = vec3(sin(yaw), sin(pitch), cos(yaw));
     vec3 right = vec3(-cos(yaw), 0.0f, sin(yaw));
     oldPosition = position;
@@ -80,15 +80,19 @@ void Camera::interpretPressedKeys(const vector<char> &pressedKeys) {
     // The keys that are held down are contained in the pressedKeys vector.
     if (find(pressedKeys.begin(), pressedKeys.end(), 'w') != pressedKeys.end()) {
         position += MOVEMENT_SPEED * forward;
+        bulletCamObj->getRigidBody()->applyCentralForce(btVector3(forward.x, forward.y, forward.z)*10   );
     }
     if (find(pressedKeys.begin(), pressedKeys.end(), 'a') != pressedKeys.end()) {
         position -= MOVEMENT_SPEED * right;
+         bulletCamObj->getRigidBody()->applyCentralForce(btVector3(right.x, right.y, right.z)*-10   );
     }
     if (find(pressedKeys.begin(), pressedKeys.end(), 's') != pressedKeys.end()) {
         position -= MOVEMENT_SPEED * forward;
+         bulletCamObj->getRigidBody()->applyCentralForce(btVector3(forward.x, forward.y, forward.z)*-10   );
     }
     if (find(pressedKeys.begin(), pressedKeys.end(), 'd') != pressedKeys.end()) {
         position += MOVEMENT_SPEED * right;
+         bulletCamObj->getRigidBody()->applyCentralForce(btVector3(right.x, right.y, right.z)*10   );
     }
 
 
@@ -115,4 +119,8 @@ bool Camera::checkForCollision(const std::shared_ptr<GameObject> &otherObj) {
 void Camera::resolveCollision() {
     position = oldPosition;
     boundingSphere->updateCenter(position);
+}
+
+void Camera::setPosition(vec3 inPos) {
+    position = inPos;
 }

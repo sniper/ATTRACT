@@ -27,6 +27,7 @@ BulletSphere::BulletSphere(double x, double y, double z, double radius) {
     rigidBodyCI.m_restitution = 0.5f;
     rigidBodyCI.m_rollingFriction = 0.1f;
     rigidBody = new btRigidBody(rigidBodyCI);
+    rigidBody->setActivationState(DISABLE_DEACTIVATION);
 }
 
 BulletSphere::BulletSphere(const BulletSphere& orig) {

@@ -10,6 +10,7 @@
 #define InputManager_hpp
 
 #include <memory>
+#include "BulletSphere.h"
 
 class Camera;
 
@@ -18,7 +19,7 @@ class InputManager
 public:
     InputManager(std::shared_ptr<Camera> &camera);
     virtual ~InputManager();
-    void processInputs();
+    void processInputs( BulletObject *bulletCamObj);
 private:
     std::shared_ptr<Camera> camera;
 };

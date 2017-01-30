@@ -12,6 +12,7 @@
 #include <memory>
 #include <vector>
 #include <glm/gtc/type_ptr.hpp>
+#include "BulletSphere.h"
 
 class MatrixStack;
 class BoundingSphere;
@@ -25,7 +26,7 @@ public:
     virtual ~Camera();
     
     void mouseMoved(double x, double y);
-    void interpretPressedKeys(const std::vector<char> &pressedKeys);
+    void interpretPressedKeys(const std::vector<char> &pressedKeys, BulletObject *bulletCamObj);
     void applyProjectionMatrix(std::shared_ptr<MatrixStack> P) const;
     void applyViewMatrix(std::shared_ptr<MatrixStack> MV) const;
     bool checkForCollision(const std::shared_ptr<GameObject> &otherObj);
@@ -34,9 +35,12 @@ public:
     void setAspect(float a) {aspect = a;}
     void setBoundingSphere(const std::shared_ptr<BoundingSphere> &sphere) {boundingSphere = sphere;}
     
+    void setPosition(vec3 inPos);
+    
     glm::vec3 getPosition() const {return position;}
     glm::vec3 getDirection() const {return glm::normalize(glm::vec3(sin(yaw), sin(pitch), cos(yaw)));}
     std::shared_ptr<BoundingSphere> getPlayerSphere() const {return boundingSphere;}
+    
 private:
     glm::vec3 position;
     glm::vec3 oldPosition;

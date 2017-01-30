@@ -97,6 +97,10 @@ void BulletManager::step(float dt) {
     dynamicsWorld->stepSimulation(dt);
 }
 
+BulletObject* BulletManager::getBulletObject(string name) {
+    return bulletObjects[name];
+}
+
 vec3 BulletManager::getBulletObjectState(string name) {
     btTransform trans;
     vec3 ret;

@@ -27,6 +27,7 @@ public:
     void createSphere(string name, double x, double y, double z, double radius);
     void step(float dt);
     void rayTrace(string obj, glm::vec3 startLoc, glm::vec3 endLoc);
+    BulletObject* getBulletObject(string name);
     vec3 getBulletObjectState(string name);
 private:
     /*Bullet stuff*/
