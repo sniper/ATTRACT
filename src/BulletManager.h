@@ -33,6 +33,7 @@ public:
     BulletObject* getBulletObject(std::string name);
     glm::vec3 getBulletObjectState(std::string name);
     btDiscreteDynamicsWorld* getDynamicsWorld() {return dynamicsWorld;};
+    std::map<std::string, BulletObject*> getBulletObjects() {return bulletObjects;};
 private:
     /*Bullet stuff*/
     btBroadphaseInterface* broadphase;

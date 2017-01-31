@@ -127,8 +127,11 @@ void Camera::interpretPressedKeys(const vector<char> &pressedKeys, BulletManager
 
         // Check if the ground was hit
         // TODO: check all objects which can be jumped off of
-        if (RayCB.hasHit() && hitShape == bullet->getBulletObject("ground")->getRigidBody()) {
-            movement += btVector3(0, JUMP_VELOCITY, 0);
+        std::map<std::string, BulletObject*> objects = bullet->getBulletObjects();
+        for (auto iter = objects.begin(); iter != objects.end(); ++iter) {
+            if (RayCB.hasHit() && hitShape == iter->second->getRigidBody()) {
+                movement += btVector3(0, JUMP_VELOCITY, 0);
+            }
         }
     }
     
