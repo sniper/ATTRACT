@@ -38,7 +38,7 @@
 #define GRID_SIZE 8
 #define OBJ_SPAWN_INTERVAL 2
 #define BUNNY_SPHERE_RADIUS 0.5f
-#define MAGNET_RANGE 15.0f
+#define MAGNET_RANGE 13.0f
 
 using namespace std;
 using namespace glm;
@@ -116,8 +116,8 @@ void GameManager::initScene() {
     cube->init();
     shapes.push_back(cube);
 
-    lightPos = vec4(0.0f, 10.0f, 0.0f, 1.0f);
-    lightIntensity = 0.8f;
+    //lightPos = vec4(0.0f, 10.0f, 0.0f, 1.0f);
+    lightIntensity = 0.6f;
 
     //
     // Sun
@@ -207,12 +207,11 @@ void GameManager::initScene() {
 
     GLSL::checkError(GET_FILE_LINE);
 
-    // bullet stuff  TODO: JUST TRYING TO GET THIS TO WORK, FUNCTION THIS STUFF
+    // Set up the bullet manager and create ground plane and camera.
     bullet = new BulletManager();
     bullet->createPlane("ground", 0, 0, 0);
 
-    //bullet->createSphere("cam", 0, 0.5, 0, 0.5);
-    bullet->createBox("cam", 0, 0.5, 0, vec3(0.5, 0.5, 0.5), vec3(1,1,1), 1);
+    bullet->createBox("cam", vec3(0, 0.5, 0), vec3(0.5, 0.5, 0.5), vec3(1,1,1), 1);
 
     //shared_ptr<Material> material = make_shared<Material>(vec3(0.2f, 0.2f, 0.2f), vec3(0.0f, 0.5f, 0.5f), vec3(1.0f, 0.9f, 0.8f), 200.0f);
     //shared_ptr<BoundingSphere> boundingSphere = make_shared<BoundingSphere>(vec3(0, 10, 0), BUNNY_SPHERE_RADIUS);
@@ -220,41 +219,181 @@ void GameManager::initScene() {
     //objects.push_back(testObj);
 }
 
-void GameManager::createLevel() {
+void GameManager::createLevel()
+{
+    shared_ptr<Material> building = make_shared<Material>(vec3(0.9f, 0.9f, 0.9f), vec3(1.0f, 1.0f, 1.0f), vec3(0.0f, 0.0f, 0.0f), 200.0f);
+    shared_ptr<Material> ground = make_shared<Material>(vec3(0.6f, 0.6f, 0.6f), vec3(0.7f, 0.7f, 0.7f), vec3(0.0f, 0.0f, 0.0f), 200.0f);
+    shared_ptr<Material> greyBox = make_shared<Material>(vec3(0.2f, 0.2f, 0.2f), vec3(0.4f, 0.4f, 0.4f), vec3(0.0f, 0.0f, 0.0f), 200.0f);
+    shared_ptr<Material> magnetSurface = make_shared<Material>(vec3(0.2f, 0.2f, 0.2f), vec3(1.0f, 0.0f, 0.0f), vec3(1.0f, 0.9f, 0.8f), 200.0f);
+    vec3 location, direction, scale, dimensions;
+    
+    // Ground Plane
+    location = vec3(20, 0, 0);
+    direction = vec3(1, 0, 0);
+    scale = vec3(100, 0.1, 10);
+    dimensions = vec3(0.5, 0.5, 0.5);
+    shared_ptr<GameObject> groundPlane = make_shared<GameObject>(location, direction, scale, 0, make_shared<BoundingSphere>(), shapes.at(1), ground);
+    objects.push_back(groundPlane);
+    bullet->createBox("groundPlane", location, dimensions, scale, 0);
+    
+    //
+    // Walls
+    //
+    location = vec3(20, 2, 3);
+    direction = vec3(1, 0, 0);
+    scale = vec3(70, 50, 1);
+    dimensions = vec3(0.5, 0.5, 0.5);
+    shared_ptr<GameObject> rightWall = make_shared<GameObject>(location, direction, scale, 0, make_shared<BoundingSphere>(), shapes.at(1), building);
+    objects.push_back(rightWall);
+    bullet->createBox("rightWall", location, dimensions, scale, 0);
 
-    shared_ptr<Material> material = make_shared<Material>(vec3(0.2f, 0.2f, 0.2f), vec3(0.0f, 0.5f, 0.5f), vec3(1.0f, 0.9f, 0.8f), 200.0f);
-    shared_ptr<Material> material2 = make_shared<Material>(vec3(0.2f, 0.2f, 0.2f), vec3(0.7f, 0.7f, 0.7f), vec3(1.0f, 0.9f, 0.8f), 200.0f);
-
-    shared_ptr<BoundingSphere> boundingSphere = make_shared<BoundingSphere>(vec3(-3, 0, 3), BUNNY_SPHERE_RADIUS);
-
-    shared_ptr<GameObject> rightCube = make_shared<GameObject>(vec3(-3, 0, 3), vec3(1, 0, 0), vec3(4, 8, 4), 0, boundingSphere, shapes.at(1), material);
-    objects.push_back(rightCube);
-    bullet->createBox("rightCube",-3,0,3, vec3(0.5,0.5,0.5), vec3(4,8,4), 0);
-
-    shared_ptr<BoundingSphere> boundingSphere2 = make_shared<BoundingSphere>(vec3(3, 0, 3), BUNNY_SPHERE_RADIUS);
-    shared_ptr<GameObject> leftCube = make_shared<GameObject>(vec3(3, 0, 3), vec3(1, 0, 0), vec3(4, 8, 4), 0, boundingSphere2, shapes.at(1), material);
-    objects.push_back(leftCube);
-    bullet->createBox("leftCube",3,0,3, vec3(0.5,0.5,0.5), vec3(4,8,4), 0);
-
-    shared_ptr<BoundingSphere> boundingSphere3 = make_shared<BoundingSphere>(vec3(-3, 0, -1), BUNNY_SPHERE_RADIUS);
-    shared_ptr<GameObject> rightPad = make_shared<GameObject>(vec3(-3, 0, -1), vec3(1, 0, 0), vec3(1, 0.2, 1), 0, boundingSphere3, shapes.at(1), material2);
-    objects.push_back(rightPad);
-    bullet->createMagneticBox("rightPad",-3,0,-1, vec3(0.5,0.5,0.5), vec3(1,0.2,1), 0);
-
-    shared_ptr<BoundingSphere> boundingSphere4 = make_shared<BoundingSphere>(vec3(3, 0, -1), BUNNY_SPHERE_RADIUS);
-    shared_ptr<GameObject> leftPad = make_shared<GameObject>(vec3(3, 0, -1), vec3(1, 0, 0), vec3(1, 0.2, 1), 0, boundingSphere4, shapes.at(1), material2);
-    objects.push_back(leftPad);
-    bullet->createMagneticBox("leftPad",3,0,-1, vec3(0.5,0.5,0.5), vec3(1,0.2,1), 0);
-
-    shared_ptr<BoundingSphere> boundingSphere5 = make_shared<BoundingSphere>(vec3(-4.7, 4.2, 3), BUNNY_SPHERE_RADIUS);
-    shared_ptr<GameObject> rightTopPad = make_shared<GameObject>(vec3(-4.7, 4.2, 3), vec3(1, 0, 0), vec3(0.5, 0.5, 1.5), 0, boundingSphere5, shapes.at(1), material2);
+    location = vec3(20, 2, -3);
+    direction = vec3(1, 0, 0);
+    scale = vec3(70, 50, 1);
+    dimensions = vec3(0.5, 0.5, 0.5);
+    shared_ptr<GameObject> leftWall = make_shared<GameObject>(location, direction, scale, 0, make_shared<BoundingSphere>(), shapes.at(1), building);
+    objects.push_back(leftWall);
+    bullet->createBox("leftWall", location, dimensions, scale, 0);
+    
+    location = vec3(-1, 2, 0);
+    direction = vec3(1, 0, 0);
+    scale = vec3(1, 50, 5);
+    dimensions = vec3(0.5, 0.5, 0.5);
+    shared_ptr<GameObject> behindWall = make_shared<GameObject>(location, direction, scale, 0, make_shared<BoundingSphere>(), shapes.at(1), building);
+    objects.push_back(behindWall);
+    bullet->createBox("behindWall", location, dimensions, scale, 0);
+    
+    location = vec3(53, 2, 0);
+    direction = vec3(1, 0, 0);
+    scale = vec3(1, 50, 5);
+    dimensions = vec3(0.5, 0.5, 0.5);
+    shared_ptr<GameObject> endWall = make_shared<GameObject>(location, direction, scale, 0, make_shared<BoundingSphere>(), shapes.at(1), building);
+    objects.push_back(endWall);
+    bullet->createBox("endWall", location, dimensions, scale, 0);
+    
+    //
+    // First Room
+    //
+    location = vec3(7, 1, 0);
+    direction = vec3(1, 0, 0);
+    scale = vec3(5, 3, 5);
+    dimensions = vec3(0.5, 0.5, 0.5);
+    shared_ptr<GameObject> firstPlatform = make_shared<GameObject>(location, direction, scale, 0, make_shared<BoundingSphere>(), shapes.at(1), building);
+    objects.push_back(firstPlatform);
+    bullet->createBox("firstPlatform", location, dimensions, scale, 0);
+    
+    location = vec3(3, 0.5, 0);
+    direction = vec3(1, 0, 0);
+    scale = vec3(1, 1, 1);
+    dimensions = vec3(0.5, 0.5, 0.5);
+    shared_ptr<GameObject> startingBox = make_shared<GameObject>(location, direction, scale, 0, make_shared<BoundingSphere>(), shapes.at(1), greyBox);
+    objects.push_back(startingBox);
+    bullet->createBox("startingBox", location, dimensions, scale, 0);
+    
+    location = vec3(4.7, 4.2, 3);
+    direction = vec3(1, 0, 0);
+    scale = vec3(1, 1, 1.5);
+    dimensions = vec3(0.5, 0.5, 0.5);
+    shared_ptr<GameObject> rightTopPad = make_shared<GameObject>(location, direction, scale, 0, make_shared<BoundingSphere>(), shapes.at(1), magnetSurface);
     objects.push_back(rightTopPad);
-    bullet->createMagneticBox("rightTopPad",-4.7,4.2,3, vec3(0.5,0.5,0.5), vec3(0.5,0.5,1.5), 0);
+    bullet->createMagneticBox("rightTopPad", location, dimensions, scale, 0);
 
-    shared_ptr<BoundingSphere> boundingSphere6 = make_shared<BoundingSphere>(vec3(-3, 4, 3), BUNNY_SPHERE_RADIUS);
-    shared_ptr<GameObject> leftTopPad = make_shared<GameObject>(vec3(4.7, 4.2, 3), vec3(1, 0, 0), vec3(0.5, 0.5, 1.5), 0, boundingSphere6, shapes.at(1), material2);
-    objects.push_back(leftTopPad);
-    bullet->createMagneticBox("leftTopPad",4.7,4.2,3, vec3(0.5,0.5,0.5), vec3(0.5,0.5,1.5), 0);
+    //
+    // Jump that you can make
+    //
+    location = vec3(14, 1, 0);
+    direction = vec3(1, 0, 0);
+    scale = vec3(5, 3, 5);
+    dimensions = vec3(0.5, 0.5, 0.5);
+    shared_ptr<GameObject> secondPlatform = make_shared<GameObject>(location, direction, scale, 0, make_shared<BoundingSphere>(), shapes.at(1), building);
+    objects.push_back(secondPlatform);
+    bullet->createBox("secondPlatform", location, dimensions, scale, 0);
+    
+    location = vec3(10, 0.5, 0);
+    direction = vec3(1, 0, 0);
+    scale = vec3(1, 1, 1);
+    dimensions = vec3(0.5, 0.5, 0.5);
+    shared_ptr<GameObject> pitBox = make_shared<GameObject>(location, direction, scale, 0, make_shared<BoundingSphere>(), shapes.at(1), greyBox);
+    objects.push_back(pitBox);
+    bullet->createBox("pitBox", location, dimensions, scale, 0);
+    
+    //
+    // Jump that you can't make but with magnet in pit
+    //
+    location = vec3(25, 1, 0);
+    direction = vec3(1, 0, 0);
+    scale = vec3(5, 3, 5);
+    dimensions = vec3(0.5, 0.5, 0.5);
+    shared_ptr<GameObject> thirdPlatform = make_shared<GameObject>(location, direction, scale, 0, make_shared<BoundingSphere>(), shapes.at(1), building);
+    objects.push_back(thirdPlatform);
+    bullet->createBox("thirdPlatform", location, dimensions, scale, 0);
+
+    location = vec3(20, 0, 0);
+    direction = vec3(1, 0, 0);
+    scale = vec3(1, 0.2, 1);
+    dimensions = vec3(0.5, 0.5, 0.5);
+    shared_ptr<GameObject> magnetPadInPit = make_shared<GameObject>(location, direction, scale, 0, make_shared<BoundingSphere>(), shapes.at(1), magnetSurface);
+    objects.push_back(magnetPadInPit);
+    bullet->createMagneticBox("magnetPadInPit", location, dimensions, scale, 0);
+    
+    //
+    // Long hallway with pull magnets
+    //
+    location = vec3(50, 2, 0);
+    direction = vec3(1, 0, 0);
+    scale = vec3(5, 4, 5);
+    dimensions = vec3(0.5, 0.5, 0.5);
+    shared_ptr<GameObject> finalPlatform = make_shared<GameObject>(location, direction, scale, 0, make_shared<BoundingSphere>(), shapes.at(1), building);
+    objects.push_back(finalPlatform);
+    bullet->createBox("finalPlatform", location, dimensions, scale, 0);
+    
+    location = vec3(29, 0.5, 0);
+    direction = vec3(1, 0, 0);
+    scale = vec3(1, 1, 1);
+    dimensions = vec3(0.5, 0.5, 0.5);
+    shared_ptr<GameObject> hallwayBox = make_shared<GameObject>(location, direction, scale, 0, make_shared<BoundingSphere>(), shapes.at(1), greyBox);
+    objects.push_back(hallwayBox);
+    bullet->createBox("hallwayBox", location, dimensions, scale, 0);
+    
+    location = vec3(30.7, 15, 3);
+    direction = vec3(1, 0, 0);
+    scale = vec3(1.5, 1.5, 1.5);
+    dimensions = vec3(0.5, 0.5, 0.5);
+    shared_ptr<GameObject> hallwayFirstPad = make_shared<GameObject>(location, direction, scale, 0, make_shared<BoundingSphere>(), shapes.at(1), magnetSurface);
+    objects.push_back(hallwayFirstPad);
+    bullet->createMagneticBox("hallwayFirstPad", location, dimensions, scale, 0);
+    
+    location = vec3(40.7, 15, -3);
+    direction = vec3(1, 0, 0);
+    scale = vec3(1.5, 1.5, 1.5);
+    dimensions = vec3(0.5, 0.5, 0.5);
+    shared_ptr<GameObject> hallwaySecondPad = make_shared<GameObject>(location, direction, scale, 0, make_shared<BoundingSphere>(), shapes.at(1), magnetSurface);
+    objects.push_back(hallwaySecondPad);
+    bullet->createMagneticBox("hallwaySecondPad", location, dimensions, scale, 0);
+    
+    location = vec3(52, 4, 0);
+    direction = vec3(1, 0, 0);
+    scale = vec3(0.1, 1.5, 1.5);
+    dimensions = vec3(0.5, 0.5, 0.5);
+    shared_ptr<GameObject> hallwayLastPad = make_shared<GameObject>(location, direction, scale, 0, make_shared<BoundingSphere>(), shapes.at(1), magnetSurface);
+    objects.push_back(hallwayLastPad);
+    bullet->createMagneticBox("hallwayLastPad", location, dimensions, scale, 0);
+
+//    location = vec3(3, 0, -1);
+//    direction = vec3(1, 0, 0);
+//    scale = vec3(1, 0.2, 1);
+//    dimensions = vec3(0.5, 0.5, 0.5);
+//    shared_ptr<GameObject> leftPad = make_shared<GameObject>(location, direction, scale, 0, make_shared<BoundingSphere>(), shapes.at(1), magnetSurface);
+//    objects.push_back(leftPad);
+//    bullet->createMagneticBox("leftPad", location, dimensions, scale, 0);
+
+//    location = vec3(-4.7, 4.2, 3);
+//    direction = vec3(1, 0, 0);
+//    scale = vec3(0.5, 0.5, 1.5);
+//    dimensions = vec3(0.5, 0.5, 0.5);
+//    shared_ptr<GameObject> rightTopPad = make_shared<GameObject>(location, direction, scale, 0, make_shared<BoundingSphere>(), shapes.at(1), magnetSurface);
+//    objects.push_back(rightTopPad);
+//    bullet->createMagneticBox("rightTopPad", location, dimensions, scale, 0);
 }
 
 void GameManager::processInputs() {
@@ -357,46 +496,43 @@ void GameManager::renderGame(int fps) {
     camera->applyViewMatrix(MV);
 
     // Render ground
-    ground->bind();
-    grass->bind(ground->getUniform("grassTexture"));
-    glUniformMatrix4fv(ground->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
-    glUniformMatrix4fv(ground->getUniform("MV"), 1, GL_FALSE, value_ptr(MV->topMatrix()));
-    glEnableVertexAttribArray(ground->getAttribute("aPos"));
-    glBindBuffer(GL_ARRAY_BUFFER, grassBufIDs["bPos"]);
-    glVertexAttribPointer(ground->getAttribute("aPos"), 3, GL_FLOAT, GL_FALSE, 0, (void *) 0);
-    glEnableVertexAttribArray(ground->getAttribute("aTex"));
-    glBindBuffer(GL_ARRAY_BUFFER, grassBufIDs["bTex"]);
-    glVertexAttribPointer(ground->getAttribute("aTex"), 2, GL_FLOAT, GL_FALSE, 0, (void *) 0);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, grassBufIDs["bInd"]);
-    glDrawElements(GL_TRIANGLES, grassIndCount, GL_UNSIGNED_INT, (void *) 0);
-    grass->unbind();
-    ground->unbind();
+//    ground->bind();
+//    grass->bind(ground->getUniform("grassTexture"));
+//    glUniformMatrix4fv(ground->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
+//    glUniformMatrix4fv(ground->getUniform("MV"), 1, GL_FALSE, value_ptr(MV->topMatrix()));
+//    glEnableVertexAttribArray(ground->getAttribute("aPos"));
+//    glBindBuffer(GL_ARRAY_BUFFER, grassBufIDs["bPos"]);
+//    glVertexAttribPointer(ground->getAttribute("aPos"), 3, GL_FLOAT, GL_FALSE, 0, (void *) 0);
+//    glEnableVertexAttribArray(ground->getAttribute("aTex"));
+//    glBindBuffer(GL_ARRAY_BUFFER, grassBufIDs["bTex"]);
+//    glVertexAttribPointer(ground->getAttribute("aTex"), 2, GL_FLOAT, GL_FALSE, 0, (void *) 0);
+//    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, grassBufIDs["bInd"]);
+//    glDrawElements(GL_TRIANGLES, grassIndCount, GL_UNSIGNED_INT, (void *) 0);
+//    grass->unbind();
+//    ground->unbind();
 
     // Render objects
     program->bind();
     glUniformMatrix4fv(program->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
     glUniformMatrix4fv(program->getUniform("MV"), 1, GL_FALSE, value_ptr(MV->topMatrix()));
+    lightPos = vec4(camera->getPosition(), 1.0);
     vec4 l = MV->topMatrix() * lightPos;
     glUniform4f(program->getUniform("lightPos"), l[0], l[1], l[2], l[3]);
     glUniform1f(program->getUniform("lightIntensity"), lightIntensity);
     for (unsigned int i = 0; i < objects.size(); i++) {
         objects.at(i)->draw(program);
     }
-    //->draw(program);
-    //draw playerobj
-    //playerObj->draw(program);
-
     program->unbind();
 
     // Render sun
-    sunProg->bind();
-    MV->pushMatrix();
-    MV->translate(vec3(0.0f, 10.0f, 0.0f));
-    glUniformMatrix4fv(sunProg->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
-    glUniformMatrix4fv(sunProg->getUniform("MV"), 1, GL_FALSE, value_ptr(MV->topMatrix()));
-    sun->draw(sunProg);
-    MV->popMatrix();
-    sunProg->unbind();
+//    sunProg->bind();
+//    MV->pushMatrix();
+//    MV->translate(vec3(0.0f, 10.0f, 0.0f));
+//    glUniformMatrix4fv(sunProg->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
+//    glUniformMatrix4fv(sunProg->getUniform("MV"), 1, GL_FALSE, value_ptr(MV->topMatrix()));
+//    sun->draw(sunProg);
+//    MV->popMatrix();
+//    sunProg->unbind();
 
     printStringToScreen(0.0f, 0.0f, "+", 0.0f, 0.0f, 0.0f);
 
@@ -419,67 +555,6 @@ void GameManager::renderGame(int fps) {
 void GameManager::resize_callback(GLFWwindow *window, int width, int height) {
     glViewport(0, 0, width, height);
 }
-
-/*
-void GameManager::createBunny() {
-    vec3 position, direction;
-    float velocity;
-    shared_ptr<BoundingSphere> boundingSphere;
-    shared_ptr<Shape> shape;
-    shared_ptr<Material> material;
-
-    srand(time(NULL));
-
-    bool objectPlaced = false;
-    while (!objectPlaced) {
-        bool placementConflict = false;
-        // Place the object in some random spot on the grid (with y==0.49f so it is touching the ground).
-        vec3 objPos = vec3(randFloat(-GRID_SIZE + 1, GRID_SIZE - 1),
-                0.49f,
-                randFloat(-GRID_SIZE + 1, GRID_SIZE - 1));
-
-        boundingSphere = make_shared<BoundingSphere>(objPos, BUNNY_SPHERE_RADIUS);
-
-        for (int i = 0; i < objects.size(); i++) {
-            // Check if this object collides with another object or with the player.
-            // If so, find somewhere else to place the object.
-            if (objects.at(i)->isCollidingWithBoundingSphere(boundingSphere)
-                    || boundingSphere->isColliding(camera->getPlayerSphere())) {
-                placementConflict = true;
-                break;
-            }
-        }
-
-        // If the position doesn't conflict with other objects or the player, then set
-        // the object there.
-        if (!placementConflict) {
-            position = objPos;
-            objectPlaced = true;
-        }
-    }
-
-    // (-1, 0, 0) points in the "forward" direction for the bunny model.
-    // We use a normal vector so we don't have to normalize it later.
-    direction = vec3(-1.0f, 0.0f, 0.0f);
-    // We want to rotate the bunny to some random direction.
-    float radiansRotated = randFloat(0, 2 * M_PI);
-    // These steps rotate the direction vector. Since we aren't altering the scale of the vector,
-    // the direction vector stays normalized.
-    mat3 mat = mat3();
-    mat[0][0] = cos(radiansRotated);
-    mat[2][0] = sin(radiansRotated);
-    mat[0][2] = -sin(radiansRotated);
-    mat[2][2] = cos(radiansRotated);
-    direction = mat * direction;
-
-    // Set the velocity, change the object material to pink, and set the object's shape to bunny.
-    velocity = 1.5f;
-    material = make_shared<Material>(vec3(0.2f, 0.2f, 0.2f), vec3(1.0f, 0.0f, 1.0f), vec3(1.0f, 0.9f, 0.8f), 200.0f);
-    shape = shapes.at(0);
-
-    objects.push_back(make_shared<GameObject>(position, direction, velocity, boundingSphere, shape, material));
-}
- */
 
 void GameManager::printStringToScreen(float x, float y, const string &text, float r, float g, float b) {
     static char buffer[99999]; // ~500 chars

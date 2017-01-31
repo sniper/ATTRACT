@@ -24,9 +24,9 @@ public:
     virtual ~BulletManager();
     void createPlane(std::string name, double x, double y, double z);
     void createSphere(std::string name, double x, double y, double z, double radius);
-    void createBox(std::string name, double x, double y, double z, glm::vec3 dims,
+    void createBox(std::string name, glm::vec3 loc, glm::vec3 dims,
                    glm::vec3 scale, float mass);
-    void createMagneticBox(std::string name, double x, double y, double z, glm::vec3 dims,
+    void createMagneticBox(std::string name, glm::vec3 loc, glm::vec3 dims,
                            glm::vec3 scale, float mass);
     void step(float dt);
     void rayTrace(glm::vec3 startLoc, glm::vec3 endLoc);

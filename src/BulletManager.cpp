@@ -98,14 +98,14 @@ void BulletManager::createSphere(string name, double x, double y, double z, doub
 
 }
 
-void BulletManager::createBox(string name, double x, double y, double z, vec3 dims, vec3 scale, float mass) {
-    BulletObject *box = new BulletBox(x, y, z, dims, scale, mass);
+void BulletManager::createBox(string name, vec3 loc, vec3 dims, vec3 scale, float mass) {
+    BulletObject *box = new BulletBox(loc, dims, scale, mass);
     dynamicsWorld->addRigidBody(box->getRigidBody());
     bulletObjects.insert(make_pair(name, box));
 }
 
-void BulletManager::createMagneticBox(string name, double x, double y, double z, vec3 dims, vec3 scale, float mass) {
-    BulletObject *box = new BulletBox(x, y, z, dims, scale, mass);
+void BulletManager::createMagneticBox(string name, vec3 loc, vec3 dims, vec3 scale, float mass) {
+    BulletObject *box = new BulletBox(loc, dims, scale, mass);
     dynamicsWorld->addRigidBody(box->getRigidBody());
     bulletObjects.insert(make_pair(name, box));
     magneticObjects.push_back(box->getRigidBody());
@@ -146,7 +146,7 @@ void BulletManager::rayTrace(vec3 startLoc, vec3 endLoc) {
     // For now, just check to see if its looking at the bunny.
     if (RayCallback.hasHit() &&
         find(magneticObjects.begin(), magneticObjects.end(), hitShape) != magneticObjects.end()) {
-        cout << "HIT" << endl;
+        //cout << "HIT" << endl;
         if (Mouse::isLeftMouseButtonPressed()) {
             vec3 dir = normalize(endLoc - startLoc);
             btVector3 bulletDir = btVector3(dir.x, dir.y, dir.z);

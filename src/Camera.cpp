@@ -24,7 +24,7 @@
 #define MOVEMENT_SPEED 3.0f
 #define PITCH_CUTOFF 1.57
 #define JUMP_CUTOFF 1
-#define JUMP_VELOCITY 0.6f
+#define JUMP_VELOCITY 0.4f
 
 using namespace std;
 using namespace glm;
@@ -129,7 +129,7 @@ void Camera::interpretPressedKeys(const vector<char> &pressedKeys, BulletManager
             }
         }
     }
-    
+
     bulletCamObj->getRigidBody()->setLinearVelocity(movement);
 
     boundingSphere->updateCenter(position);
