@@ -18,6 +18,8 @@
 #include "BulletSphere.h"
 #include "BulletBox.hpp"
 
+#define MAGNET_STRENGTH 50.0f
+
 BulletManager::BulletManager() {
 
     /* Initialize all the bullet stuff*/
@@ -125,12 +127,7 @@ void BulletManager::rayTrace(string obj, vec3 startLoc, vec3 endLoc) {
     // Converting glm vectors to bullet vectors.
     btVector3 start = btVector3(startLoc[0], startLoc[1], startLoc[2]);
     btVector3 end = btVector3(endLoc[0], endLoc[1], endLoc[2]);
-
-    vec3 test = normalize(startLoc - endLoc);
-    btVector3 t = btVector3(test.x, test.y, test.z);
-
-    vec3 test2 = normalize(endLoc - startLoc);
-    btVector3 t2 = btVector3(test2.x, test2.y, test2.z);
+    
     // Finds the closest object from the start location to the end location.
     btCollisionWorld::ClosestRayResultCallback RayCallback(start, end);
     dynamicsWorld->rayTest(start, end, RayCallback);
@@ -140,21 +137,28 @@ void BulletManager::rayTrace(string obj, vec3 startLoc, vec3 endLoc) {
 
     // We will eventually have to do a check to make sure the object is a magnetic surface.
     // For now, just check to see if its looking at the bunny.
-    if (rigidBody == NULL)
-        cout << "Oops" << endl;
     if (RayCallback.hasHit() && hitShape == rigidBody) {
         cout << "HIT" << endl;
         if (Mouse::isLeftMouseButtonPressed()) {
-            rigidBody->activate();
-            rigidBody->setGravity(t * 3);
-        } else if (Mouse::isRightMouseButtonPressed()) {
-            rigidBody->activate();
-            rigidBody->setGravity(t2 * 3);
-        } else {
-            rigidBody->setGravity(dynamicsWorld->getGravity());
+            vec3 dir = normalize(startLoc - endLoc);
+            btVector3 bulletDir = btVector3(dir.x, dir.y, dir.z);
+            bulletObjects["cam"]->getRigidBody()->setFriction(0.0f);
+            bulletObjects["cam"]->getRigidBody()->setGravity(bulletDir * MAGNET_STRENGTH);
         }
-    } else {
-        rigidBody->setGravity(dynamicsWorld->getGravity());
+        else if (Mouse::isRightMouseButtonPressed()) {
+            vec3 dir = normalize(endLoc - startLoc);
+            btVector3 bulletDir = btVector3(dir.x, dir.y, dir.z);
+            bulletObjects["cam"]->getRigidBody()->setFriction(0.0f);
+            bulletObjects["cam"]->getRigidBody()->setGravity(bulletDir * MAGNET_STRENGTH);
+        }
+        else {
+            bulletObjects["cam"]->getRigidBody()->setFriction(0.9f);
+            bulletObjects["cam"]->getRigidBody()->setGravity(dynamicsWorld->getGravity());
+        }
+    }
+    else {
+        bulletObjects["cam"]->getRigidBody()->setFriction(0.9f);
+        bulletObjects["cam"]->getRigidBody()->setGravity(dynamicsWorld->getGravity());
     }
 }
 
