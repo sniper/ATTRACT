@@ -1,7 +1,5 @@
 /*
- * Handles the Bullet Physics library:
- * Will not handle collision, we just use this to
- * simulate motion. 
+ * Handles the Bullet Physics library
  */
 
 /* 
@@ -20,7 +18,7 @@
 
 #include <algorithm>
 
-#define MAGNET_STRENGTH 5.0f
+#define MAGNET_STRENGTH 7.0f
 
 BulletManager::BulletManager() {
 
@@ -146,6 +144,7 @@ void BulletManager::rayTrace(vec3 startLoc, vec3 endLoc) {
     // For now, just check to see if its looking at the bunny.
     if (RayCallback.hasHit() &&
         find(magneticObjects.begin(), magneticObjects.end(), hitShape) != magneticObjects.end()) {
+        lookingAtMagnet = true;
         //cout << "HIT" << endl;
         if (Mouse::isLeftMouseButtonPressed()) {
             vec3 dir = normalize(endLoc - startLoc);
@@ -164,6 +163,7 @@ void BulletManager::rayTrace(vec3 startLoc, vec3 endLoc) {
         }
     }
     else {
+        lookingAtMagnet = false;
         bulletObjects["cam"]->getRigidBody()->setGravity(dynamicsWorld->getGravity());
     }
 }

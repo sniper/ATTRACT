@@ -34,6 +34,7 @@ public:
     glm::vec3 getBulletObjectState(std::string name);
     btDiscreteDynamicsWorld* getDynamicsWorld() {return dynamicsWorld;};
     std::map<std::string, BulletObject*> getBulletObjects() {return bulletObjects;};
+    bool isLookingAtMagnetMaterial() const {return lookingAtMagnet;}
 private:
     /*Bullet stuff*/
     btBroadphaseInterface* broadphase;
@@ -44,6 +45,8 @@ private:
     
     std::map<std::string, BulletObject*> bulletObjects;
     std::vector<btRigidBody*> magneticObjects;
+    
+    bool lookingAtMagnet;
 };
 
 #endif /* BULLETMANAGER_H */

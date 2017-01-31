@@ -539,8 +539,14 @@ void GameManager::renderGame(int fps) {
     //
     // stb_easy_font.h is used for printing fonts to the screen.
     //
-    // Prints a crosshair to the center of the screen.
-    printStringToScreen(0.0f, 0.0f, "+", 0.0f, 0.0f, 0.0f);
+    
+    // Prints a crosshair to the center of the screen. Color depends on if you're looking at a magnet surface.
+    if (bullet->isLookingAtMagnetMaterial()) {
+        printStringToScreen(0.0f, 0.0f, "+", 0.0f, 0.0f, 1.0f);
+    }
+    else {
+        printStringToScreen(0.0f, 0.0f, "+", 0.0f, 0.0f, 0.0f);
+    }
     // Prints the frame rate to the screen.
     printStringToScreen(60.0f, 90.0f, to_string(fps) + " FPS", 0.0f, 0.0f, 0.0f);
 
