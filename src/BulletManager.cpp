@@ -18,7 +18,7 @@
 #include "BulletSphere.h"
 #include "BulletBox.hpp"
 
-#define MAGNET_STRENGTH 50.0f
+#define MAGNET_STRENGTH 5.0f
 
 BulletManager::BulletManager() {
 
@@ -100,7 +100,13 @@ void BulletManager::createBox(string name, double x, double y, double z, vec3 di
     BulletObject *box = new BulletBox(x, y, z, dims, scale, mass);
     dynamicsWorld->addRigidBody(box->getRigidBody());
     bulletObjects.insert(make_pair(name, box));
-    
+}
+
+void BulletManager::createMagneticBox(string name, double x, double y, double z, vec3 dims, vec3 scale, float mass) {
+    BulletObject *box = new BulletBox(x, y, z, dims, scale, mass);
+    dynamicsWorld->addRigidBody(box->getRigidBody());
+    bulletObjects.insert(make_pair(name, box));
+    magneticObjects.push_back(box->getRigidBody());
 }
 
 void BulletManager::step(float dt) {
@@ -122,8 +128,7 @@ vec3 BulletManager::getBulletObjectState(string name) {
     return ret;
 }
 
-void BulletManager::rayTrace(string obj, vec3 startLoc, vec3 endLoc) {
-    btRigidBody *rigidBody = bulletObjects[obj]->getRigidBody();
+void BulletManager::rayTrace(vec3 startLoc, vec3 endLoc) {
     // Converting glm vectors to bullet vectors.
     btVector3 start = btVector3(startLoc[0], startLoc[1], startLoc[2]);
     btVector3 end = btVector3(endLoc[0], endLoc[1], endLoc[2]);
@@ -137,27 +142,26 @@ void BulletManager::rayTrace(string obj, vec3 startLoc, vec3 endLoc) {
 
     // We will eventually have to do a check to make sure the object is a magnetic surface.
     // For now, just check to see if its looking at the bunny.
-    if (RayCallback.hasHit() && hitShape == rigidBody) {
+    if (RayCallback.hasHit() &&
+        find(magneticObjects.begin(), magneticObjects.end(), hitShape) != magneticObjects.end()) {
         cout << "HIT" << endl;
         if (Mouse::isLeftMouseButtonPressed()) {
-            vec3 dir = normalize(startLoc - endLoc);
-            btVector3 bulletDir = btVector3(dir.x, dir.y, dir.z);
-            bulletObjects["cam"]->getRigidBody()->setFriction(0.0f);
-            bulletObjects["cam"]->getRigidBody()->setGravity(bulletDir * MAGNET_STRENGTH);
-        }
-        else if (Mouse::isRightMouseButtonPressed()) {
             vec3 dir = normalize(endLoc - startLoc);
             btVector3 bulletDir = btVector3(dir.x, dir.y, dir.z);
-            bulletObjects["cam"]->getRigidBody()->setFriction(0.0f);
-            bulletObjects["cam"]->getRigidBody()->setGravity(bulletDir * MAGNET_STRENGTH);
+            bulletObjects["cam"]->getRigidBody()->setLinearVelocity(bulletDir * MAGNET_STRENGTH);
+            //bulletObjects["cam"]->getRigidBody()->setGravity(btVector3(0.0f, 0.0f, 0.0f));
+        }
+        else if (Mouse::isRightMouseButtonPressed()) {
+            vec3 dir = normalize(startLoc - endLoc);
+            btVector3 bulletDir = btVector3(dir.x, dir.y, dir.z);
+            bulletObjects["cam"]->getRigidBody()->setLinearVelocity(bulletDir * MAGNET_STRENGTH);
+            //bulletObjects["cam"]->getRigidBody()->setGravity(btVector3(0.0f, 0.0f, 0.0f));
         }
         else {
-            bulletObjects["cam"]->getRigidBody()->setFriction(0.9f);
             bulletObjects["cam"]->getRigidBody()->setGravity(dynamicsWorld->getGravity());
         }
     }
     else {
-        bulletObjects["cam"]->getRigidBody()->setFriction(0.9f);
         bulletObjects["cam"]->getRigidBody()->setGravity(dynamicsWorld->getGravity());
     }
 }
