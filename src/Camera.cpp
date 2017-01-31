@@ -15,11 +15,15 @@
 #include "GameObject.hpp"
 #include "InputManager.hpp"
 #include "GameManager.hpp"
+#include "BulletManager.h"
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <BulletCollision/Gimpact/btGImpactCollisionAlgorithm.h>
 
 #define MOUSE_SENSITIVITY 0.07f
 #define MOVEMENT_SPEED 3.0f
+#define JUMP_CUTOFF 1
+#define JUMP_VELOCITY 0.6f
 
 using namespace std;
 using namespace glm;
@@ -71,29 +75,48 @@ void Camera::mouseMoved(double x, double y) {
     mousePrev = mouseCurr;
 }
 
-void Camera::interpretPressedKeys(const vector<char> &pressedKeys, BulletObject *bulletCamObj) {
+void Camera::interpretPressedKeys(const vector<char> &pressedKeys, BulletManager *bullet) {
+    BulletObject *bulletCamObj = bullet->getBulletObject("cam");
     vec3 forward = vec3(sin(yaw), 0.0f, cos(yaw));
     vec3 right = vec3(-cos(yaw), 0.0f, sin(yaw));
-    btVector3 movement = btVector3(0.0f, 0.0f, 0.0f);
+    btVector3 movement = btVector3(0.0f, bulletCamObj->getRigidBody()->getLinearVelocity().y(), 0.0f);
     oldPosition = position;
 
     // Calculates the new camera position based on what keys are held down.
     // The keys that are held down are contained in the pressedKeys vector.
     if (find(pressedKeys.begin(), pressedKeys.end(), 'w') != pressedKeys.end()) {
         position += MOVEMENT_SPEED * forward;
-        movement = movement + (btVector3(forward.x, forward.y, forward.z) * MOVEMENT_SPEED);
+        movement += (btVector3(forward.x, 0, forward.z) * MOVEMENT_SPEED);
     }
     if (find(pressedKeys.begin(), pressedKeys.end(), 'a') != pressedKeys.end()) {
         position -= MOVEMENT_SPEED * right;
-        movement = movement + (btVector3(right.x, right.y, right.z) * -MOVEMENT_SPEED);
+        movement += (btVector3(right.x, 0, right.z) * -MOVEMENT_SPEED);
     }
     if (find(pressedKeys.begin(), pressedKeys.end(), 's') != pressedKeys.end()) {
         position -= MOVEMENT_SPEED * forward;
-        movement = movement + (btVector3(forward.x, forward.y, forward.z) * -MOVEMENT_SPEED);
+        movement += (btVector3(forward.x, 0, forward.z) * -MOVEMENT_SPEED);
     }
     if (find(pressedKeys.begin(), pressedKeys.end(), 'd') != pressedKeys.end()) {
         position += MOVEMENT_SPEED * right;
-        movement = movement + (btVector3(right.x, right.y, right.z) * MOVEMENT_SPEED);
+        movement += (btVector3(right.x, 0, right.z) * MOVEMENT_SPEED);
+    }
+    if (find(pressedKeys.begin(), pressedKeys.end(), ' ') != pressedKeys.end()) {
+        vec3 startV = bullet->getBulletObjectState("cam");
+        btVector3 start = btVector3(startV.x, startV.y, startV.z);
+        btVector3 end = btVector3(startV.x, startV.y - JUMP_CUTOFF, startV.z);
+
+        // Finds the closest object from the start location to the end location.
+        btCollisionWorld::ClosestRayResultCallback RayCallback(start, end);
+        bullet->getDynamicsWorld()->rayTest(start, end, RayCallback);
+
+        // Get the object that is hit.
+        const btRigidBody *hitShape = (btRigidBody *) RayCallback.m_collisionObject;
+
+        // Check if the ground was hit
+        // TODO: check all objects which can be jumped off of
+        if (RayCallback.hasHit() && hitShape == bullet->getBulletObject("ground")->getRigidBody()) {
+            movement += btVector3(0, JUMP_VELOCITY, 0);
+        }
     }
     
     bulletCamObj->getRigidBody()->setLinearVelocity(movement);

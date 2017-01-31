@@ -27,7 +27,7 @@ InputManager::~InputManager()
     
 }
 
-void InputManager::processInputs(BulletObject *bulletCamObj)
+void InputManager::processInputs(BulletManager *bullet)
 {
     // Move mouse.
     camera->mouseMoved(Mouse::getMouseX(), Mouse::getMouseY());
@@ -58,6 +58,9 @@ void InputManager::processInputs(BulletObject *bulletCamObj)
     if (Keyboard::isPressed(GLFW_KEY_D) || Keyboard::isPressed(GLFW_KEY_RIGHT)) {
         pressedKeys.push_back('d');
     }
+    if (Keyboard::isPressed(GLFW_KEY_SPACE)) {
+        pressedKeys.push_back(' ');
+    }
     
-    camera->interpretPressedKeys(pressedKeys, bulletCamObj);
+    camera->interpretPressedKeys(pressedKeys, bullet);
 }

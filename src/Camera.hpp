@@ -17,6 +17,7 @@
 class MatrixStack;
 class BoundingSphere;
 class GameObject;
+class BulletManager;
 
 class Camera
 {
@@ -26,7 +27,7 @@ public:
     virtual ~Camera();
     
     void mouseMoved(double x, double y);
-    void interpretPressedKeys(const std::vector<char> &pressedKeys, BulletObject *bulletCamObj);
+    void interpretPressedKeys(const std::vector<char> &pressedKeys, BulletManager *bullet);
     void applyProjectionMatrix(std::shared_ptr<MatrixStack> P) const;
     void applyViewMatrix(std::shared_ptr<MatrixStack> MV) const;
     bool checkForCollision(const std::shared_ptr<GameObject> &otherObj);

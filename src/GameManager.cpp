@@ -212,7 +212,7 @@ void GameManager::initScene() {
 }
 
 void GameManager::processInputs() {
-    inputManager->processInputs(bullet->getBulletObject("cam"));
+    inputManager->processInputs(bullet);
 }
 
 void GameManager::updateGame(double dt) {

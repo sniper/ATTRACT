@@ -13,13 +13,14 @@
 #include "BulletSphere.h"
 
 class Camera;
+class BulletManager;
 
 class InputManager
 {
 public:
     InputManager(std::shared_ptr<Camera> &camera);
     virtual ~InputManager();
-    void processInputs( BulletObject *bulletCamObj);
+    void processInputs(BulletManager *bullet);
 private:
     std::shared_ptr<Camera> camera;
 };

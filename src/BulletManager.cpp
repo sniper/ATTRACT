@@ -116,7 +116,7 @@ vec3 BulletManager::getBulletObjectState(string name) {
     ret.x = trans.getOrigin().getX();
     ret.y = trans.getOrigin().getY();
     ret.z = trans.getOrigin().getZ();
-    cout << "x:" << ret.x << " y:" << ret.y << " z:" << ret.z << endl;
+    //cout << "x:" << ret.x << " y:" << ret.y << " z:" << ret.z << endl;
     return ret;
 }
 

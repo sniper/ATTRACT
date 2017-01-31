@@ -23,7 +23,7 @@ BulletBox::BulletBox(double x, double y, double z, vec3 dims) {
     btRigidBody::btRigidBodyConstructionInfo rigidBodyCI(mass, motionState, shape, inertia);
     rigidBodyCI.m_friction = 0.9f;
     rigidBodyCI.m_angularDamping = 1000.0f;
-    rigidBodyCI.m_restitution = 0.5f;
+    rigidBodyCI.m_restitution = 0.0f;
     rigidBody = new btRigidBody(rigidBodyCI);
     rigidBody->setActivationState(DISABLE_DEACTIVATION);
 }

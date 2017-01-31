@@ -28,6 +28,7 @@ public:
     void rayTrace(std::string obj, glm::vec3 startLoc, glm::vec3 endLoc);
     BulletObject* getBulletObject(std::string name);
     glm::vec3 getBulletObjectState(std::string name);
+    btDiscreteDynamicsWorld* getDynamicsWorld() {return dynamicsWorld;};
 private:
     /*Bullet stuff*/
     btBroadphaseInterface* broadphase;
