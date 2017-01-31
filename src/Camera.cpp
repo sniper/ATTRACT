@@ -97,19 +97,15 @@ void Camera::interpretPressedKeys(const vector<char> &pressedKeys, BulletManager
     // Calculates the new camera position based on what keys are held down.
     // The keys that are held down are contained in the pressedKeys vector.
     if (find(pressedKeys.begin(), pressedKeys.end(), 'w') != pressedKeys.end()) {
-        position += MOVEMENT_SPEED * forward;
         movement += (btVector3(forward.x, 0, forward.z) * MOVEMENT_SPEED);
     }
     if (find(pressedKeys.begin(), pressedKeys.end(), 'a') != pressedKeys.end()) {
-        position -= MOVEMENT_SPEED * right;
         movement += (btVector3(right.x, 0, right.z) * -MOVEMENT_SPEED);
     }
     if (find(pressedKeys.begin(), pressedKeys.end(), 's') != pressedKeys.end()) {
-        position -= MOVEMENT_SPEED * forward;
         movement += (btVector3(forward.x, 0, forward.z) * -MOVEMENT_SPEED);
     }
     if (find(pressedKeys.begin(), pressedKeys.end(), 'd') != pressedKeys.end()) {
-        position += MOVEMENT_SPEED * right;
         movement += (btVector3(right.x, 0, right.z) * MOVEMENT_SPEED);
     }
     if (find(pressedKeys.begin(), pressedKeys.end(), ' ') != pressedKeys.end()) {
@@ -135,8 +131,6 @@ void Camera::interpretPressedKeys(const vector<char> &pressedKeys, BulletManager
     }
     
     bulletCamObj->getRigidBody()->setLinearVelocity(movement);
-
-    position[1] = 0.49f;
 
     boundingSphere->updateCenter(position);
 }

@@ -38,6 +38,7 @@
 #define GRID_SIZE 8
 #define OBJ_SPAWN_INTERVAL 2
 #define BUNNY_SPHERE_RADIUS 0.5f
+#define MAGNET_RANGE 15.0f
 
 using namespace std;
 using namespace glm;
@@ -262,7 +263,7 @@ void GameManager::processInputs() {
 
 void GameManager::updateGame(double dt) {
 
-    bullet->rayTrace(camera->getPosition(), camera->getPosition() + (camera->getDirection() * 10.0f));
+    bullet->rayTrace(camera->getPosition(), camera->getPosition() + (camera->getDirection() * MAGNET_RANGE));
 
     //step the bullet, update test obj
     bullet->step(dt);
