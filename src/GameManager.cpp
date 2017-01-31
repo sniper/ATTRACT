@@ -355,7 +355,7 @@ void GameManager::createLevel()
     objects.push_back(hallwayBox);
     bullet->createBox("hallwayBox", location, dimensions, scale, 0);
     
-    location = vec3(30.7, 15, 3);
+    location = vec3(30.7, 13, 3);
     direction = vec3(1, 0, 0);
     scale = vec3(1.5, 1.5, 1.5);
     dimensions = vec3(0.5, 0.5, 0.5);
@@ -363,7 +363,7 @@ void GameManager::createLevel()
     objects.push_back(hallwayFirstPad);
     bullet->createMagneticBox("hallwayFirstPad", location, dimensions, scale, 0);
     
-    location = vec3(40.7, 15, -3);
+    location = vec3(40.7, 13, -3);
     direction = vec3(1, 0, 0);
     scale = vec3(1.5, 1.5, 1.5);
     dimensions = vec3(0.5, 0.5, 0.5);
