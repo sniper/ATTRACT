@@ -39,7 +39,7 @@ public:
     void setPosition(vec3 inPos);
     
     glm::vec3 getPosition() const {return position;}
-    glm::vec3 getDirection() const {return glm::normalize(glm::vec3(sin(yaw), sin(pitch), cos(yaw)));}
+    glm::vec3 getDirection() const {return glm::normalize(glm::vec3(cos(pitch) * cos(yaw), sin(pitch), cos(pitch) * cos((3.14/2) - yaw)));}
     std::shared_ptr<BoundingSphere> getPlayerSphere() const {return boundingSphere;}
     
 private:
