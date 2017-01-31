@@ -145,7 +145,6 @@ void Camera::applyProjectionMatrix(shared_ptr<MatrixStack> P) const {
 }
 
 void Camera::applyViewMatrix(shared_ptr<MatrixStack> MV) const {
-    vec3 f = vec3(sin(yaw), sin(pitch), cos(yaw));
     vec3 rot = vec3(cos(pitch) * cos(yaw), sin(pitch), cos(pitch) * cos((3.14/2) - yaw));
     vec3 lap = position + rot;
     vec3 up;

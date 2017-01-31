@@ -18,6 +18,8 @@
 #include "BulletSphere.h"
 #include "BulletBox.hpp"
 
+#include <algorithm>
+
 #define MAGNET_STRENGTH 5.0f
 
 BulletManager::BulletManager() {
