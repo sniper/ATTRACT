@@ -22,7 +22,7 @@
 
 #define MOUSE_SENSITIVITY 0.07f
 #define MOVEMENT_SPEED 3.0f
-#define PITCH_CUTOFF 1.55334f
+#define PITCH_CUTOFF 1.57
 #define JUMP_CUTOFF 1
 #define JUMP_VELOCITY 0.6f
 
@@ -62,14 +62,14 @@ void Camera::mouseMoved(double x, double y) {
     vec2 dv = mouseCurr - mousePrev;
 
     if (dv[0] < 0.0f) {
-        yaw += MOUSE_SENSITIVITY;
-    } else if (dv[0] > 0.0f) {
         yaw -= MOUSE_SENSITIVITY;
+    } else if (dv[0] > 0.0f) {
+        yaw += MOUSE_SENSITIVITY;
     }
 
-    if (dv[1] > 0.0f && pitch > -PITCH_CUTOFF) {
+    if (dv[1] > 0.0f && pitch >= -PITCH_CUTOFF) {
         pitch -= MOUSE_SENSITIVITY;
-    } else if (dv[1] < 0.0f && pitch < PITCH_CUTOFF) {
+    } else if (dv[1] < 0.0f && pitch <= PITCH_CUTOFF) {
         pitch += MOUSE_SENSITIVITY;
     }
 
@@ -78,8 +78,20 @@ void Camera::mouseMoved(double x, double y) {
 
 void Camera::interpretPressedKeys(const vector<char> &pressedKeys, BulletManager *bullet) {
     BulletObject *bulletCamObj = bullet->getBulletObject("cam");
-    vec3 forward = vec3(sin(yaw), 0.0f, cos(yaw));
-    vec3 right = vec3(-cos(yaw), 0.0f, sin(yaw));
+    vec3 rot = vec3(cos(yaw), 0, cos((3.14/2) - yaw));
+    vec3 lap = position + rot;
+    vec3 forward = lap - position;
+    forward.y = position.y;
+    forward = normalize(forward);
+    vec3 up;
+    vec3 right;
+    if (cos(pitch) < 0) {
+        up = vec3(0.0, -1.0, 0.0);
+        right = cross(up, forward);
+    } else {
+        up = vec3(0.0, 1.0, 0.0);
+        right = -1.0f * cross(up, forward);
+    }
     btVector3 movement = btVector3(0.0f, bulletCamObj->getRigidBody()->getLinearVelocity().y(), 0.0f);
     oldPosition = position;
 
@@ -107,15 +119,15 @@ void Camera::interpretPressedKeys(const vector<char> &pressedKeys, BulletManager
         btVector3 end = btVector3(startV.x, startV.y - JUMP_CUTOFF, startV.z);
 
         // Finds the closest object from the start location to the end location.
-        btCollisionWorld::ClosestRayResultCallback RayCallback(start, end);
-        bullet->getDynamicsWorld()->rayTest(start, end, RayCallback);
+        btCollisionWorld::ClosestRayResultCallback RayCB(start, end);
+        bullet->getDynamicsWorld()->rayTest(start, end, RayCB);
 
         // Get the object that is hit.
-        const btRigidBody *hitShape = (btRigidBody *) RayCallback.m_collisionObject;
+        const btRigidBody *hitShape = (btRigidBody *) RayCB.m_collisionObject;
 
         // Check if the ground was hit
         // TODO: check all objects which can be jumped off of
-        if (RayCallback.hasHit() && hitShape == bullet->getBulletObject("ground")->getRigidBody()) {
+        if (RayCB.hasHit() && hitShape == bullet->getBulletObject("ground")->getRigidBody()) {
             movement += btVector3(0, JUMP_VELOCITY, 0);
         }
     }
@@ -134,7 +146,15 @@ void Camera::applyProjectionMatrix(shared_ptr<MatrixStack> P) const {
 
 void Camera::applyViewMatrix(shared_ptr<MatrixStack> MV) const {
     vec3 f = vec3(sin(yaw), sin(pitch), cos(yaw));
-    MV->lookAt(position, position + f, vec3(0.0f, 1.0f, 0.0f));
+    vec3 rot = vec3(cos(pitch) * cos(yaw), sin(pitch), cos(pitch) * cos((3.14/2) - yaw));
+    vec3 lap = position + rot;
+    vec3 up;
+    if (cos(pitch) < 0) {
+        up = vec3(0.0, -1.0, 0.0);
+    } else {
+        up = vec3(0.0, 1.0, 0.0);
+    }
+    MV->lookAt(position, lap, up);
 }
 
 bool Camera::checkForCollision(const std::shared_ptr<GameObject> &otherObj) {
