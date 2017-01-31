@@ -82,7 +82,6 @@ void Camera::interpretPressedKeys(const vector<char> &pressedKeys, BulletManager
     vec3 lap = position + rot;
     vec3 forward = lap - position;
     forward.y = position.y;
-    forward = normalize(forward);
     vec3 up;
     vec3 right;
     if (cos(pitch) < 0) {
