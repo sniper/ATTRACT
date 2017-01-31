@@ -19,7 +19,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #define MOUSE_SENSITIVITY 0.07f
-#define MOVEMENT_SPEED 0.05f
+#define MOVEMENT_SPEED 3.0f
 
 using namespace std;
 using namespace glm;
@@ -72,32 +72,33 @@ void Camera::mouseMoved(double x, double y) {
 }
 
 void Camera::interpretPressedKeys(const vector<char> &pressedKeys, BulletObject *bulletCamObj) {
-    vec3 forward = vec3(sin(yaw), sin(pitch), cos(yaw));
+    vec3 forward = vec3(sin(yaw), 0.0f, cos(yaw));
     vec3 right = vec3(-cos(yaw), 0.0f, sin(yaw));
+    btVector3 movement = btVector3(0.0f, 0.0f, 0.0f);
     oldPosition = position;
 
     // Calculates the new camera position based on what keys are held down.
     // The keys that are held down are contained in the pressedKeys vector.
     if (find(pressedKeys.begin(), pressedKeys.end(), 'w') != pressedKeys.end()) {
         position += MOVEMENT_SPEED * forward;
-        bulletCamObj->getRigidBody()->applyCentralForce(btVector3(forward.x, forward.y, forward.z)*10   );
+        movement = movement + (btVector3(forward.x, forward.y, forward.z) * MOVEMENT_SPEED);
     }
     if (find(pressedKeys.begin(), pressedKeys.end(), 'a') != pressedKeys.end()) {
         position -= MOVEMENT_SPEED * right;
-         bulletCamObj->getRigidBody()->applyCentralForce(btVector3(right.x, right.y, right.z)*-10   );
+        movement = movement + (btVector3(right.x, right.y, right.z) * -MOVEMENT_SPEED);
     }
     if (find(pressedKeys.begin(), pressedKeys.end(), 's') != pressedKeys.end()) {
         position -= MOVEMENT_SPEED * forward;
-         bulletCamObj->getRigidBody()->applyCentralForce(btVector3(forward.x, forward.y, forward.z)*-10   );
+        movement = movement + (btVector3(forward.x, forward.y, forward.z) * -MOVEMENT_SPEED);
     }
     if (find(pressedKeys.begin(), pressedKeys.end(), 'd') != pressedKeys.end()) {
         position += MOVEMENT_SPEED * right;
-         bulletCamObj->getRigidBody()->applyCentralForce(btVector3(right.x, right.y, right.z)*10   );
+        movement = movement + (btVector3(right.x, right.y, right.z) * MOVEMENT_SPEED);
     }
-
+    
+    bulletCamObj->getRigidBody()->setLinearVelocity(movement);
 
     position[1] = 0.49f;
-
 
     boundingSphere->updateCenter(position);
 }

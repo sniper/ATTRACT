@@ -32,6 +32,7 @@
 #include "Texture.h"
 #include "Keyboard.hpp"
 #include "Mouse.hpp"
+#include "BulletManager.h"
 
 #define MAX_NUM_OBJECTS 15
 #define GRID_SIZE 8
@@ -199,9 +200,10 @@ void GameManager::initScene() {
 
     // bullet stuff  TODO: JUST TRYING TO GET THIS TO WORK, FUNCTION THIS STUFF
     bullet = new BulletManager();
-    bullet->createPlane("ground", 0, -0.5, 0);
-    bullet->createSphere("bunny", 0, 10, 0, 1);
-    bullet->createSphere("cam", 0, 0.49, 0, 1);
+    bullet->createPlane("ground", 0, 0, 0);
+    bullet->createSphere("bunny", 0, 10, 0, 0.5);
+    //bullet->createSphere("cam", 0, 0.5, 0, 0.5);
+    bullet->createBox("cam", 0, 0.5, 0, vec3(0.5, 0.5, 0.5));
 
     shared_ptr<Material> material = make_shared<Material>(vec3(0.2f, 0.2f, 0.2f), vec3(0.0f, 0.5f, 0.5f), vec3(1.0f, 0.9f, 0.8f), 200.0f);
     shared_ptr<BoundingSphere> boundingSphere = make_shared<BoundingSphere>(vec3(0, 10, 0), BUNNY_SPHERE_RADIUS);
@@ -350,22 +352,15 @@ void GameManager::renderGame(int fps) {
     MV->popMatrix();
     sunProg->unbind();
 
+    printStringToScreen(0.0f, 0.0f, "+", 0.0f, 0.0f, 0.0f);
+    
     //
     // stb_easy_font.h is used for printing fonts to the screen.
     //
-    if (!gameWon) {
-        // Prints objects collected to screen.
-        printStringToScreen(-95.0f, -95.0f, "Score: " + to_string(numObjCollected), 0.0f, 0.0f, 0.0f);
-
-        // Prints current number of objects to screen.
-        printStringToScreen(10.0f, -95.0f, "# of Objects: " + to_string(objects.size()), 0.0f, 0.0f, 0.0f);
-
-        // Prints the frame rate to the screen.
-        printStringToScreen(60.0f, 90.0f, to_string(fps) + " FPS", 0.0f, 0.0f, 0.0f);
-    } else {
-        // Prints the winning message to screen.
-        printStringToScreen(-40.0f, -10.0f, "Congratulations!\n   You won!", 0.0f, 0.0f, 0.0f);
-    }
+    // Prints a crosshair to the center of the screen.
+    printStringToScreen(0.0f, 0.0f, "+", 0.0f, 0.0f, 0.0f);
+    // Prints the frame rate to the screen.
+    printStringToScreen(60.0f, 90.0f, to_string(fps) + " FPS", 0.0f, 0.0f, 0.0f);
 
     MV->popMatrix();
     P->popMatrix();

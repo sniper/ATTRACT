@@ -17,14 +17,13 @@
 #include <GLFW/glfw3.h>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "BulletManager.h"
-
 class InputManager;
 class Camera;
 class Program;
 class Shape;
 class GameObject;
 class Texture;
+class BulletManager;
 
 class GameManager
 {
@@ -49,7 +48,7 @@ private:
     std::string RESOURCE_DIR;
     
     BulletManager *bullet;
-    shared_ptr<GameObject> testObj;
+    std::shared_ptr<GameObject> testObj;
     
     std::vector<std::shared_ptr<GameObject>> objects;
     double objIntervalCounter;

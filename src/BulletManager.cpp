@@ -14,6 +14,9 @@
 // also find out how to remove stuff from the simulator?
 #include "BulletManager.h"
 #include "Mouse.hpp"
+#include "BulletPlane.h"
+#include "BulletSphere.h"
+#include "BulletBox.hpp"
 
 BulletManager::BulletManager() {
 
@@ -28,8 +31,6 @@ BulletManager::BulletManager() {
 
     /*set gravity*/
     dynamicsWorld->setGravity(btVector3(0, -10, 0));
-
-
 }
 
 BulletManager::~BulletManager() {
@@ -65,7 +66,7 @@ void BulletManager::createPlane(string name, double x, double y, double z) {
     groundRigidBody = new btRigidBody(groundRigidBodyCI);
     dynamicsWorld->addRigidBody(groundRigidBody);
     */
-    BulletObject *ground = new BulletPlane( x, y, z); 
+    BulletObject *ground = new BulletPlane(x, y, z); 
     dynamicsWorld->addRigidBody(ground->getRigidBody());
     bulletObjects.insert(make_pair(name, ground));
 }
@@ -87,10 +88,17 @@ void BulletManager::createSphere(string name, double x, double y, double z, doub
     sphereRigidBody = new btRigidBody(sphereRigidBodyCI);
     dynamicsWorld->addRigidBody(sphereRigidBody);
      */
-    BulletObject *sphere = new BulletSphere(x, y, z , radius);
+    BulletObject *sphere = new BulletSphere(x, y, z, radius);
     dynamicsWorld->addRigidBody(sphere->getRigidBody());
     bulletObjects.insert(make_pair(name, sphere));
 
+}
+
+void BulletManager::createBox(string name, double x, double y, double z, vec3 dims) {
+    BulletObject *box = new BulletBox(x, y, z, dims);
+    dynamicsWorld->addRigidBody(box->getRigidBody());
+    bulletObjects.insert(make_pair(name, box));
+    
 }
 
 void BulletManager::step(float dt) {
