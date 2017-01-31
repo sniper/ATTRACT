@@ -41,6 +41,7 @@ public:
     int getNumObj() const {return objects.size();}
 private:
     void createBunny();
+    void createLevel(); 
     void printStringToScreen(float x, float y, const std::string &text, float r, float g, float b);
     float randFloat(float l, float h);
     

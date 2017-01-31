@@ -96,8 +96,8 @@ void BulletManager::createSphere(string name, double x, double y, double z, doub
 
 }
 
-void BulletManager::createBox(string name, double x, double y, double z, vec3 dims) {
-    BulletObject *box = new BulletBox(x, y, z, dims);
+void BulletManager::createBox(string name, double x, double y, double z, vec3 dims, vec3 scale, float mass) {
+    BulletObject *box = new BulletBox(x, y, z, dims, scale, mass);
     dynamicsWorld->addRigidBody(box->getRigidBody());
     bulletObjects.insert(make_pair(name, box));
     

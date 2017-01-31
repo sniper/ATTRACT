@@ -26,15 +26,14 @@ direction(vec3(0.0f, 0.0f, 0.0f)),
 velocity(0.0f),
 boundingSphere(make_shared<BoundingSphere>()),
 shape(make_shared<Shape>()),
-material(make_shared<Material>())
-{
+material(make_shared<Material>()) {
 
 }
 
-GameObject::GameObject(const glm::vec3 &position, const glm::vec3 &direction, float velocity,
-                       const std::shared_ptr<BoundingSphere> &sphere,
-                       const std::shared_ptr<Shape> &shape,
-                       const std::shared_ptr<Material> &material) :
+GameObject::GameObject(const glm::vec3 &position, const glm::vec3 &direction, const glm::vec3 &scale, float velocity,
+        const std::shared_ptr<BoundingSphere> &sphere,
+        const std::shared_ptr<Shape> &shape,
+        const std::shared_ptr<Material> &material) :
 collected(false),
 position(position),
 oldPosition(position),
@@ -42,28 +41,24 @@ direction(direction),
 velocity(velocity),
 boundingSphere(sphere),
 shape(shape),
-material(material)
-{
-    
+material(material),
+scale(scale) {
+
 }
 
-GameObject::~GameObject()
-{
-    
+GameObject::~GameObject() {
+
 }
 
-bool GameObject::isCollidingWithBoundingSphere(const std::shared_ptr<BoundingSphere> &otherSphere)
-{
+bool GameObject::isCollidingWithBoundingSphere(const std::shared_ptr<BoundingSphere> &otherSphere) {
     return boundingSphere->isColliding(otherSphere);
 }
 
-bool GameObject::isCollidingWithOtherObject(const std::shared_ptr<GameObject> &otherObj)
-{
+bool GameObject::isCollidingWithOtherObject(const std::shared_ptr<GameObject> &otherObj) {
     return otherObj->isCollidingWithBoundingSphere(boundingSphere);
 }
 
-void GameObject::update(float dt)
-{
+void GameObject::update(float dt) {
     oldPosition = position;
     position += direction * velocity * dt;
     boundingSphere->updateCenter(position);
@@ -73,29 +68,27 @@ void GameObject::setPosition(vec3 pos) {
     position = pos;
 }
 
-void GameObject::draw(const shared_ptr<Program> &prog)
-{
+void GameObject::draw(const shared_ptr<Program> &prog) {
     material->setUniforms(prog);
-    
+
     auto transMat = make_shared<MatrixStack>();
     transMat->translate(position);
     transMat->rotate(M_PI - atan2(direction[2], direction[0]), vec3(0.0f, 1.0f, 0.0f));
+    transMat->scale(scale);
     glUniformMatrix4fv(prog->getUniform("objTransMatrix"), 1, GL_FALSE, value_ptr(transMat->topMatrix()));
-    
+
     shape->draw(prog);
 }
 
-void GameObject::resolveCollision(bool collidedWithPlayer)
-{
+void GameObject::resolveCollision(bool collidedWithPlayer) {
     position = oldPosition;
     boundingSphere->updateCenter(position);
-    
+
     if (collidedWithPlayer) {
         collected = true;
         material = make_shared<Material>(vec3(0.2f, 0.2f, 0.2f), vec3(0.8f, 0.8f, 0.8f), vec3(1.0f, 0.9f, 0.8f), 200.0f);
         velocity = 0.0f;
-    }
-    else if (!collected) {
+    } else if (!collected) {
         direction *= -1;
     }
 }

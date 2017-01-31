@@ -13,7 +13,7 @@
 
 class BulletBox : public BulletObject {
 public:
-    BulletBox(double x, double y, double z, glm::vec3 dims);
+    BulletBox(double x, double y, double z, glm::vec3 dims, glm::vec3 scale, float mass);
     BulletBox(const BulletBox& orig);
     virtual ~BulletBox();
 };

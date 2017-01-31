@@ -22,7 +22,7 @@ class GameObject
 {
 public:
     GameObject();
-    GameObject(const glm::vec3 &position, const glm::vec3 &direction, float velocity,
+    GameObject(const glm::vec3 &position, const glm::vec3 &direction, const glm::vec3 &scale, float velocity,
                const std::shared_ptr<BoundingSphere> &sphere,
                const std::shared_ptr<Shape> &shape,
                const std::shared_ptr<Material> &material);
@@ -42,6 +42,7 @@ public:
 private:
     bool collected;
     glm::vec3 position;
+    glm::vec3 scale;
     glm::vec3 oldPosition;
     glm::vec3 direction;
     float velocity;

@@ -11,13 +11,14 @@
 using namespace std;
 using namespace glm;
 
-BulletBox::BulletBox(double x, double y, double z, vec3 dims) {
+BulletBox::BulletBox(double x, double y, double z, vec3 dims, vec3 scale, float mass) {
     btTransform trans; //position and rotation
     trans.setIdentity();
     trans.setOrigin(btVector3(x, y, z));
     shape = new btBoxShape(btVector3(dims.x, dims.y, dims.z));
+    shape->setLocalScaling(btVector3(scale.x,scale.y,scale.z));
     motionState = new btDefaultMotionState(trans);
-    btScalar mass = 1.0f;
+
     btVector3 inertia(0.0f, 0.0f, 0.0f);
     shape->calculateLocalInertia(mass, inertia);
     btRigidBody::btRigidBodyConstructionInfo rigidBodyCI(mass, motionState, shape, inertia);

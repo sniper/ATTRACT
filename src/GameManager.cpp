@@ -67,6 +67,8 @@ RESOURCE_DIR(resourceDir) {
     inputManager = make_shared<InputManager>(camera);
     // Initialize the scene.
     initScene();
+    //create the level
+    createLevel();
 }
 
 GameManager::~GameManager() {
@@ -106,6 +108,12 @@ void GameManager::initScene() {
     bunny->fitToUnitBox();
     bunny->init();
     shapes.push_back(bunny);
+
+    shared_ptr<Shape> cube = make_shared<Shape>();
+    cube->loadMesh(RESOURCE_DIR + "cube.obj");
+    cube->fitToUnitBox();
+    cube->init();
+    shapes.push_back(cube);
 
     lightPos = vec4(0.0f, 10.0f, 0.0f, 1.0f);
     lightIntensity = 0.8f;
@@ -201,14 +209,51 @@ void GameManager::initScene() {
     // bullet stuff  TODO: JUST TRYING TO GET THIS TO WORK, FUNCTION THIS STUFF
     bullet = new BulletManager();
     bullet->createPlane("ground", 0, 0, 0);
-    bullet->createSphere("bunny", 0, 10, 0, 0.5);
+
     //bullet->createSphere("cam", 0, 0.5, 0, 0.5);
-    bullet->createBox("cam", 0, 0.5, 0, vec3(0.5, 0.5, 0.5));
+    bullet->createBox("cam", 0, 0.5, 0, vec3(0.5, 0.5, 0.5), vec3(1,1,1), 1);
+
+    //shared_ptr<Material> material = make_shared<Material>(vec3(0.2f, 0.2f, 0.2f), vec3(0.0f, 0.5f, 0.5f), vec3(1.0f, 0.9f, 0.8f), 200.0f);
+    //shared_ptr<BoundingSphere> boundingSphere = make_shared<BoundingSphere>(vec3(0, 10, 0), BUNNY_SPHERE_RADIUS);
+    //testObj = make_shared<GameObject>(vec3(0, 10, 0), vec3(1, 0, 0), 0, boundingSphere, shapes.at(0), material);
+    //objects.push_back(testObj);
+}
+
+void GameManager::createLevel() {
 
     shared_ptr<Material> material = make_shared<Material>(vec3(0.2f, 0.2f, 0.2f), vec3(0.0f, 0.5f, 0.5f), vec3(1.0f, 0.9f, 0.8f), 200.0f);
-    shared_ptr<BoundingSphere> boundingSphere = make_shared<BoundingSphere>(vec3(0, 10, 0), BUNNY_SPHERE_RADIUS);
-    testObj = make_shared<GameObject>(vec3(0, 10, 0), vec3(1, 0, 0), 0, boundingSphere, shapes.at(0), material);
-    //objects.push_back(testObj);
+    shared_ptr<Material> material2 = make_shared<Material>(vec3(0.2f, 0.2f, 0.2f), vec3(0.7f, 0.7f, 0.7f), vec3(1.0f, 0.9f, 0.8f), 200.0f);
+
+    shared_ptr<BoundingSphere> boundingSphere = make_shared<BoundingSphere>(vec3(-3, 0, 3), BUNNY_SPHERE_RADIUS);
+
+    shared_ptr<GameObject> rightCube = make_shared<GameObject>(vec3(-3, 0, 3), vec3(1, 0, 0), vec3(4, 8, 4), 0, boundingSphere, shapes.at(1), material);
+    objects.push_back(rightCube);
+    bullet->createBox("rightCube",-3,0,3, vec3(0.5,0.5,0.5), vec3(4,8,4), 0);
+
+    shared_ptr<BoundingSphere> boundingSphere2 = make_shared<BoundingSphere>(vec3(3, 0, 3), BUNNY_SPHERE_RADIUS);
+    shared_ptr<GameObject> leftCube = make_shared<GameObject>(vec3(3, 0, 3), vec3(1, 0, 0), vec3(4, 8, 4), 0, boundingSphere2, shapes.at(1), material);
+    objects.push_back(leftCube);
+    bullet->createBox("leftCube",3,0,3, vec3(0.5,0.5,0.5), vec3(4,8,4), 0);
+
+    shared_ptr<BoundingSphere> boundingSphere3 = make_shared<BoundingSphere>(vec3(-3, 0, -1), BUNNY_SPHERE_RADIUS);
+    shared_ptr<GameObject> rightPad = make_shared<GameObject>(vec3(-3, 0, -1), vec3(1, 0, 0), vec3(1, 0.2, 1), 0, boundingSphere3, shapes.at(1), material2);
+    objects.push_back(rightPad);
+    bullet->createBox("rightPad",-3,0,-1, vec3(0.5,0.5,0.5), vec3(1,0.2,1), 0);
+
+    shared_ptr<BoundingSphere> boundingSphere4 = make_shared<BoundingSphere>(vec3(3, 0, -1), BUNNY_SPHERE_RADIUS);
+    shared_ptr<GameObject> leftPad = make_shared<GameObject>(vec3(3, 0, -1), vec3(1, 0, 0), vec3(1, 0.2, 1), 0, boundingSphere4, shapes.at(1), material2);
+    objects.push_back(leftPad);
+    bullet->createBox("leftPad",3,0,-1, vec3(0.5,0.5,0.5), vec3(1,0.2,1), 0);
+
+    shared_ptr<BoundingSphere> boundingSphere5 = make_shared<BoundingSphere>(vec3(-4.7, 4.2, 3), BUNNY_SPHERE_RADIUS);
+    shared_ptr<GameObject> rightTopPad = make_shared<GameObject>(vec3(-4.7, 4.2, 3), vec3(1, 0, 0), vec3(0.5, 0.5, 1.5), 0, boundingSphere5, shapes.at(1), material2);
+    objects.push_back(rightTopPad);
+    bullet->createBox("rightTopPad",-4.7,4.2,3, vec3(0.5,0.5,0.5), vec3(0.5,0.5,1.5), 0);
+
+    shared_ptr<BoundingSphere> boundingSphere6 = make_shared<BoundingSphere>(vec3(-3, 4, 3), BUNNY_SPHERE_RADIUS);
+    shared_ptr<GameObject> leftTopPad = make_shared<GameObject>(vec3(4.7, 4.2, 3), vec3(1, 0, 0), vec3(0.5, 0.5, 1.5), 0, boundingSphere6, shapes.at(1), material2);
+    objects.push_back(leftTopPad);
+    bullet->createBox("leftTopPad",4.7,4.2,3, vec3(0.5,0.5,0.5), vec3(0.5,0.5,1.5), 0);
 }
 
 void GameManager::processInputs() {
@@ -218,10 +263,10 @@ void GameManager::processInputs() {
 void GameManager::updateGame(double dt) {
 
 
-    bullet->rayTrace("bunny", camera->getPosition(), camera->getDirection() * 10.0f);
+
     //step the bullet, update test obj
     bullet->step(dt);
-    testObj->setPosition(bullet->getBulletObjectState("bunny"));
+
     camera->setPosition(bullet->getBulletObjectState("cam"));
 
     // Spawn in a bunny every OBJ_SPAWN_INTERVAL seconds
@@ -336,7 +381,7 @@ void GameManager::renderGame(int fps) {
     for (unsigned int i = 0; i < objects.size(); i++) {
         objects.at(i)->draw(program);
     }
-    testObj->draw(program);
+    //->draw(program);
     //draw playerobj
     //playerObj->draw(program);
 
@@ -353,7 +398,7 @@ void GameManager::renderGame(int fps) {
     sunProg->unbind();
 
     printStringToScreen(0.0f, 0.0f, "+", 0.0f, 0.0f, 0.0f);
-    
+
     //
     // stb_easy_font.h is used for printing fonts to the screen.
     //
@@ -374,6 +419,7 @@ void GameManager::resize_callback(GLFWwindow *window, int width, int height) {
     glViewport(0, 0, width, height);
 }
 
+/*
 void GameManager::createBunny() {
     vec3 position, direction;
     float velocity;
@@ -432,6 +478,7 @@ void GameManager::createBunny() {
 
     objects.push_back(make_shared<GameObject>(position, direction, velocity, boundingSphere, shape, material));
 }
+ */
 
 void GameManager::printStringToScreen(float x, float y, const string &text, float r, float g, float b) {
     static char buffer[99999]; // ~500 chars
