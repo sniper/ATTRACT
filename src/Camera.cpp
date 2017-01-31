@@ -22,6 +22,7 @@
 
 #define MOUSE_SENSITIVITY 0.07f
 #define MOVEMENT_SPEED 3.0f
+#define PITCH_CUTOFF 1.55334f
 #define JUMP_CUTOFF 1
 #define JUMP_VELOCITY 0.6f
 
@@ -66,9 +67,9 @@ void Camera::mouseMoved(double x, double y) {
         yaw -= MOUSE_SENSITIVITY;
     }
 
-    if (dv[1] > 0.0f && pitch > -1) {
+    if (dv[1] > 0.0f && pitch > -PITCH_CUTOFF) {
         pitch -= MOUSE_SENSITIVITY;
-    } else if (dv[1] < 0.0f && pitch < 1) {
+    } else if (dv[1] < 0.0f && pitch < PITCH_CUTOFF) {
         pitch += MOUSE_SENSITIVITY;
     }
 
