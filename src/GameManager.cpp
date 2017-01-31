@@ -542,7 +542,15 @@ void GameManager::renderGame(int fps) {
     
     // Prints a crosshair to the center of the screen. Color depends on if you're looking at a magnet surface.
     if (bullet->isLookingAtMagnetMaterial()) {
-        printStringToScreen(0.0f, 0.0f, "+", 0.0f, 0.0f, 1.0f);
+        if (Mouse::isLeftMouseButtonPressed()) {
+            printStringToScreen(0.0f, 0.0f, "+", 0.0f, 1.0f, 1.0f);
+        }
+        else if (Mouse::isRightMouseButtonPressed()) {
+            printStringToScreen(0.0f, 0.0f, "+", 1.0f, 0.6f, 0.0f);
+        }
+        else {
+            printStringToScreen(0.0f, 0.0f, "+", 0.0f, 1.0f, 0.0f);
+        }
     }
     else {
         printStringToScreen(0.0f, 0.0f, "+", 0.0f, 0.0f, 0.0f);
