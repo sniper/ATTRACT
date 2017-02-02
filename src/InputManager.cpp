@@ -17,21 +17,18 @@
 using namespace std;
 
 InputManager::InputManager(shared_ptr<Camera> &camera) :
-camera(camera)
-{
-    
+camera(camera) {
+
 }
 
-InputManager::~InputManager()
-{
-    
+InputManager::~InputManager() {
+
 }
 
-void InputManager::processInputs(BulletManager *bullet)
-{
+void InputManager::processInputs(BulletManager *bullet) {
     // Move mouse.
     camera->mouseMoved(Mouse::getMouseX(), Mouse::getMouseY());
-    
+
     /*
     // Handle if mouse buttons are pressed. Don't do anything if both are pressed.
     bool leftMouse = Mouse::isLeftMouseButtonPressed();
@@ -43,10 +40,10 @@ void InputManager::processInputs(BulletManager *bullet)
         cout << "Right Mouse Button is pressed." << endl;
     }
      */
-    
+
     // Create a vector to hold the keyboard inputs
     vector<char> pressedKeys;
-    
+
     if (Keyboard::isPressed(GLFW_KEY_W) || Keyboard::isPressed(GLFW_KEY_UP)) {
         pressedKeys.push_back('w');
     }
@@ -62,6 +59,15 @@ void InputManager::processInputs(BulletManager *bullet)
     if (Keyboard::isPressed(GLFW_KEY_SPACE)) {
         pressedKeys.push_back(' ');
     }
-    
+    if (Keyboard::isPressed(GLFW_KEY_P)) {
+        pressedKeys.push_back('p');
+    }
+    if (Keyboard::isPressed(GLFW_KEY_I)) {
+        pressedKeys.push_back('i');
+    }
+    if (Keyboard::isPressed(GLFW_KEY_O)) {
+        pressedKeys.push_back('o');
+    }
+
     camera->interpretPressedKeys(pressedKeys, bullet);
 }

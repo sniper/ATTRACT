@@ -16,6 +16,7 @@
 
 #include <GLFW/glfw3.h>
 #include <glm/gtc/type_ptr.hpp>
+#include "GameObject.hpp"
 
 class InputManager;
 class Camera;
@@ -52,6 +53,8 @@ private:
     std::shared_ptr<GameObject> testObj;
     
     std::vector<std::shared_ptr<GameObject>> objects;
+    
+
     double objIntervalCounter;
     int numObjCollected;
     int gameWon;

@@ -78,7 +78,7 @@ void Camera::mouseMoved(double x, double y) {
 
 void Camera::interpretPressedKeys(const vector<char> &pressedKeys, BulletManager *bullet) {
     BulletObject *bulletCamObj = bullet->getBulletObject("cam");
-    vec3 rot = vec3(cos(yaw), 0, cos((3.14/2) - yaw));
+    vec3 rot = vec3(cos(yaw), 0, cos((3.14 / 2) - yaw));
     vec3 lap = position + rot;
     vec3 forward = lap - position;
     forward.y = position.y;
@@ -93,6 +93,18 @@ void Camera::interpretPressedKeys(const vector<char> &pressedKeys, BulletManager
     }
     btVector3 movement = btVector3(0.0f, bulletCamObj->getRigidBody()->getLinearVelocity().y(), 0.0f);
     oldPosition = position;
+
+    /*debug stuff*/
+    if (find(pressedKeys.begin(), pressedKeys.end(), 'p') != pressedKeys.end()) {
+        bullet->setDebugFlag(!bullet->getDebugFlag());
+    }
+
+    if (find(pressedKeys.begin(), pressedKeys.end(), 'i') != pressedKeys.end()) {
+        bullet->setDebugMode(btIDebugDraw::DBG_DrawWireframe);
+    }
+    if (find(pressedKeys.begin(), pressedKeys.end(), 'o') != pressedKeys.end()) {
+        bullet->setDebugMode(btIDebugDraw::DBG_DrawAabb);
+    }
 
     // Calculates the new camera position based on what keys are held down.
     // The keys that are held down are contained in the pressedKeys vector.
@@ -141,7 +153,7 @@ void Camera::applyProjectionMatrix(shared_ptr<MatrixStack> P) const {
 }
 
 void Camera::applyViewMatrix(shared_ptr<MatrixStack> MV) const {
-    vec3 rot = vec3(cos(pitch) * cos(yaw), sin(pitch), cos(pitch) * cos((3.14/2) - yaw));
+    vec3 rot = vec3(cos(pitch) * cos(yaw), sin(pitch), cos(pitch) * cos((3.14 / 2) - yaw));
     vec3 lap = position + rot;
     vec3 up;
     if (cos(pitch) < 0) {

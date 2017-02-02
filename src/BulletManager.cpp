@@ -33,6 +33,12 @@ BulletManager::BulletManager() {
 
     /*set gravity*/
     dynamicsWorld->setGravity(btVector3(0, -10, 0));
+    
+    /*create debug*/
+    debug = new BulletDebugDraw();
+    debugFlag = false;
+    debug->setDebugMode(btIDebugDraw::DBG_DrawWireframe);
+    dynamicsWorld->setDebugDrawer(debug);
 }
 
 BulletManager::~BulletManager() {
@@ -48,6 +54,23 @@ BulletManager::~BulletManager() {
     delete dispatcher;
     delete collisionConfiguration;
     delete broadphase;
+}
+
+bool BulletManager::getDebugFlag() {
+    return debugFlag;
+}
+
+void BulletManager::setDebugFlag(bool f) {
+    debugFlag = f;
+}
+
+void BulletManager::setDebugMode(int mode) {
+    debug->setDebugMode(mode);
+}
+
+void BulletManager::renderDebug(mat4 p, mat4 v) {
+    ((BulletDebugDraw*)debug)->setPV(p,v);
+    dynamicsWorld->debugDrawWorld();
 }
 
 void BulletManager::createPlane(string name, double x, double y, double z) {

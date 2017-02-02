@@ -211,7 +211,7 @@ void GameManager::initScene() {
     bullet = new BulletManager();
     bullet->createPlane("ground", 0, 0, 0);
 
-    bullet->createBox("cam", vec3(0, 0.5, 0), vec3(0.5, 0.5, 0.5), vec3(1,1,1), 1);
+    bullet->createBox("cam", vec3(0, 0.5, 0), vec3(0.5, 0.5, 0.5), vec3(1, 1, 1), 1);
 
     //shared_ptr<Material> material = make_shared<Material>(vec3(0.2f, 0.2f, 0.2f), vec3(0.0f, 0.5f, 0.5f), vec3(1.0f, 0.9f, 0.8f), 200.0f);
     //shared_ptr<BoundingSphere> boundingSphere = make_shared<BoundingSphere>(vec3(0, 10, 0), BUNNY_SPHERE_RADIUS);
@@ -219,14 +219,13 @@ void GameManager::initScene() {
     //objects.push_back(testObj);
 }
 
-void GameManager::createLevel()
-{
+void GameManager::createLevel() {
     shared_ptr<Material> building = make_shared<Material>(vec3(0.9f, 0.9f, 0.9f), vec3(1.0f, 1.0f, 1.0f), vec3(0.0f, 0.0f, 0.0f), 200.0f);
     shared_ptr<Material> ground = make_shared<Material>(vec3(0.6f, 0.6f, 0.6f), vec3(0.7f, 0.7f, 0.7f), vec3(0.0f, 0.0f, 0.0f), 200.0f);
     shared_ptr<Material> greyBox = make_shared<Material>(vec3(0.2f, 0.2f, 0.2f), vec3(0.4f, 0.4f, 0.4f), vec3(0.0f, 0.0f, 0.0f), 200.0f);
     shared_ptr<Material> magnetSurface = make_shared<Material>(vec3(0.2f, 0.2f, 0.2f), vec3(1.0f, 0.0f, 0.0f), vec3(1.0f, 0.9f, 0.8f), 200.0f);
     vec3 location, direction, scale, dimensions;
-    
+
     // Ground Plane
     location = vec3(20, 0, 0);
     direction = vec3(1, 0, 0);
@@ -235,7 +234,7 @@ void GameManager::createLevel()
     shared_ptr<GameObject> groundPlane = make_shared<GameObject>(location, direction, scale, 0, make_shared<BoundingSphere>(), shapes.at(1), ground);
     objects.push_back(groundPlane);
     bullet->createBox("groundPlane", location, dimensions, scale, 0);
-    
+
     //
     // Walls
     //
@@ -254,7 +253,7 @@ void GameManager::createLevel()
     shared_ptr<GameObject> leftWall = make_shared<GameObject>(location, direction, scale, 0, make_shared<BoundingSphere>(), shapes.at(1), building);
     objects.push_back(leftWall);
     bullet->createBox("leftWall", location, dimensions, scale, 0);
-    
+
     location = vec3(-1, 2, 0);
     direction = vec3(1, 0, 0);
     scale = vec3(1, 50, 5);
@@ -262,7 +261,7 @@ void GameManager::createLevel()
     shared_ptr<GameObject> behindWall = make_shared<GameObject>(location, direction, scale, 0, make_shared<BoundingSphere>(), shapes.at(1), building);
     objects.push_back(behindWall);
     bullet->createBox("behindWall", location, dimensions, scale, 0);
-    
+
     location = vec3(53, 2, 0);
     direction = vec3(1, 0, 0);
     scale = vec3(1, 50, 5);
@@ -270,7 +269,7 @@ void GameManager::createLevel()
     shared_ptr<GameObject> endWall = make_shared<GameObject>(location, direction, scale, 0, make_shared<BoundingSphere>(), shapes.at(1), building);
     objects.push_back(endWall);
     bullet->createBox("endWall", location, dimensions, scale, 0);
-    
+
     //
     // First Room
     //
@@ -281,7 +280,7 @@ void GameManager::createLevel()
     shared_ptr<GameObject> firstPlatform = make_shared<GameObject>(location, direction, scale, 0, make_shared<BoundingSphere>(), shapes.at(1), building);
     objects.push_back(firstPlatform);
     bullet->createBox("firstPlatform", location, dimensions, scale, 0);
-    
+
     location = vec3(3, 0.5, 0);
     direction = vec3(1, 0, 0);
     scale = vec3(1, 1, 1);
@@ -289,7 +288,7 @@ void GameManager::createLevel()
     shared_ptr<GameObject> startingBox = make_shared<GameObject>(location, direction, scale, 0, make_shared<BoundingSphere>(), shapes.at(1), greyBox);
     objects.push_back(startingBox);
     bullet->createBox("startingBox", location, dimensions, scale, 0);
-    
+
     location = vec3(4.7, 4.2, 3);
     direction = vec3(1, 0, 0);
     scale = vec3(1, 1, 1.5);
@@ -308,7 +307,7 @@ void GameManager::createLevel()
     shared_ptr<GameObject> secondPlatform = make_shared<GameObject>(location, direction, scale, 0, make_shared<BoundingSphere>(), shapes.at(1), building);
     objects.push_back(secondPlatform);
     bullet->createBox("secondPlatform", location, dimensions, scale, 0);
-    
+
     location = vec3(10, 0.5, 0);
     direction = vec3(1, 0, 0);
     scale = vec3(1, 1, 1);
@@ -316,7 +315,7 @@ void GameManager::createLevel()
     shared_ptr<GameObject> pitBox = make_shared<GameObject>(location, direction, scale, 0, make_shared<BoundingSphere>(), shapes.at(1), greyBox);
     objects.push_back(pitBox);
     bullet->createBox("pitBox", location, dimensions, scale, 0);
-    
+
     //
     // Jump that you can't make but with magnet in pit
     //
@@ -335,7 +334,7 @@ void GameManager::createLevel()
     shared_ptr<GameObject> magnetPadInPit = make_shared<GameObject>(location, direction, scale, 0, make_shared<BoundingSphere>(), shapes.at(1), magnetSurface);
     objects.push_back(magnetPadInPit);
     bullet->createMagneticBox("magnetPadInPit", location, dimensions, scale, 0);
-    
+
     //
     // Long hallway with pull magnets
     //
@@ -346,7 +345,7 @@ void GameManager::createLevel()
     shared_ptr<GameObject> finalPlatform = make_shared<GameObject>(location, direction, scale, 0, make_shared<BoundingSphere>(), shapes.at(1), building);
     objects.push_back(finalPlatform);
     bullet->createBox("finalPlatform", location, dimensions, scale, 0);
-    
+
     location = vec3(29, 0.5, 0);
     direction = vec3(1, 0, 0);
     scale = vec3(1, 1, 1);
@@ -354,7 +353,7 @@ void GameManager::createLevel()
     shared_ptr<GameObject> hallwayBox = make_shared<GameObject>(location, direction, scale, 0, make_shared<BoundingSphere>(), shapes.at(1), greyBox);
     objects.push_back(hallwayBox);
     bullet->createBox("hallwayBox", location, dimensions, scale, 0);
-    
+
     location = vec3(30.7, 13, 3);
     direction = vec3(1, 0, 0);
     scale = vec3(1.5, 1.5, 1.5);
@@ -362,7 +361,7 @@ void GameManager::createLevel()
     shared_ptr<GameObject> hallwayFirstPad = make_shared<GameObject>(location, direction, scale, 0, make_shared<BoundingSphere>(), shapes.at(1), magnetSurface);
     objects.push_back(hallwayFirstPad);
     bullet->createMagneticBox("hallwayFirstPad", location, dimensions, scale, 0);
-    
+
     location = vec3(40.7, 13, -3);
     direction = vec3(1, 0, 0);
     scale = vec3(1.5, 1.5, 1.5);
@@ -370,7 +369,7 @@ void GameManager::createLevel()
     shared_ptr<GameObject> hallwaySecondPad = make_shared<GameObject>(location, direction, scale, 0, make_shared<BoundingSphere>(), shapes.at(1), magnetSurface);
     objects.push_back(hallwaySecondPad);
     bullet->createMagneticBox("hallwaySecondPad", location, dimensions, scale, 0);
-    
+
     location = vec3(52, 4, 0);
     direction = vec3(1, 0, 0);
     scale = vec3(0.1, 1.5, 1.5);
@@ -379,21 +378,21 @@ void GameManager::createLevel()
     objects.push_back(hallwayLastPad);
     bullet->createMagneticBox("hallwayLastPad", location, dimensions, scale, 0);
 
-//    location = vec3(3, 0, -1);
-//    direction = vec3(1, 0, 0);
-//    scale = vec3(1, 0.2, 1);
-//    dimensions = vec3(0.5, 0.5, 0.5);
-//    shared_ptr<GameObject> leftPad = make_shared<GameObject>(location, direction, scale, 0, make_shared<BoundingSphere>(), shapes.at(1), magnetSurface);
-//    objects.push_back(leftPad);
-//    bullet->createMagneticBox("leftPad", location, dimensions, scale, 0);
+    //    location = vec3(3, 0, -1);
+    //    direction = vec3(1, 0, 0);
+    //    scale = vec3(1, 0.2, 1);
+    //    dimensions = vec3(0.5, 0.5, 0.5);
+    //    shared_ptr<GameObject> leftPad = make_shared<GameObject>(location, direction, scale, 0, make_shared<BoundingSphere>(), shapes.at(1), magnetSurface);
+    //    objects.push_back(leftPad);
+    //    bullet->createMagneticBox("leftPad", location, dimensions, scale, 0);
 
-//    location = vec3(-4.7, 4.2, 3);
-//    direction = vec3(1, 0, 0);
-//    scale = vec3(0.5, 0.5, 1.5);
-//    dimensions = vec3(0.5, 0.5, 0.5);
-//    shared_ptr<GameObject> rightTopPad = make_shared<GameObject>(location, direction, scale, 0, make_shared<BoundingSphere>(), shapes.at(1), magnetSurface);
-//    objects.push_back(rightTopPad);
-//    bullet->createMagneticBox("rightTopPad", location, dimensions, scale, 0);
+    //    location = vec3(-4.7, 4.2, 3);
+    //    direction = vec3(1, 0, 0);
+    //    scale = vec3(0.5, 0.5, 1.5);
+    //    dimensions = vec3(0.5, 0.5, 0.5);
+    //    shared_ptr<GameObject> rightTopPad = make_shared<GameObject>(location, direction, scale, 0, make_shared<BoundingSphere>(), shapes.at(1), magnetSurface);
+    //    objects.push_back(rightTopPad);
+    //    bullet->createMagneticBox("rightTopPad", location, dimensions, scale, 0);
 }
 
 void GameManager::processInputs() {
@@ -496,20 +495,20 @@ void GameManager::renderGame(int fps) {
     camera->applyViewMatrix(MV);
 
     // Render ground
-//    ground->bind();
-//    grass->bind(ground->getUniform("grassTexture"));
-//    glUniformMatrix4fv(ground->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
-//    glUniformMatrix4fv(ground->getUniform("MV"), 1, GL_FALSE, value_ptr(MV->topMatrix()));
-//    glEnableVertexAttribArray(ground->getAttribute("aPos"));
-//    glBindBuffer(GL_ARRAY_BUFFER, grassBufIDs["bPos"]);
-//    glVertexAttribPointer(ground->getAttribute("aPos"), 3, GL_FLOAT, GL_FALSE, 0, (void *) 0);
-//    glEnableVertexAttribArray(ground->getAttribute("aTex"));
-//    glBindBuffer(GL_ARRAY_BUFFER, grassBufIDs["bTex"]);
-//    glVertexAttribPointer(ground->getAttribute("aTex"), 2, GL_FLOAT, GL_FALSE, 0, (void *) 0);
-//    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, grassBufIDs["bInd"]);
-//    glDrawElements(GL_TRIANGLES, grassIndCount, GL_UNSIGNED_INT, (void *) 0);
-//    grass->unbind();
-//    ground->unbind();
+    //    ground->bind();
+    //    grass->bind(ground->getUniform("grassTexture"));
+    //    glUniformMatrix4fv(ground->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
+    //    glUniformMatrix4fv(ground->getUniform("MV"), 1, GL_FALSE, value_ptr(MV->topMatrix()));
+    //    glEnableVertexAttribArray(ground->getAttribute("aPos"));
+    //    glBindBuffer(GL_ARRAY_BUFFER, grassBufIDs["bPos"]);
+    //    glVertexAttribPointer(ground->getAttribute("aPos"), 3, GL_FLOAT, GL_FALSE, 0, (void *) 0);
+    //    glEnableVertexAttribArray(ground->getAttribute("aTex"));
+    //    glBindBuffer(GL_ARRAY_BUFFER, grassBufIDs["bTex"]);
+    //    glVertexAttribPointer(ground->getAttribute("aTex"), 2, GL_FLOAT, GL_FALSE, 0, (void *) 0);
+    //    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, grassBufIDs["bInd"]);
+    //    glDrawElements(GL_TRIANGLES, grassIndCount, GL_UNSIGNED_INT, (void *) 0);
+    //    grass->unbind();
+    //    ground->unbind();
 
     // Render objects
     program->bind();
@@ -522,37 +521,39 @@ void GameManager::renderGame(int fps) {
     for (unsigned int i = 0; i < objects.size(); i++) {
         objects.at(i)->draw(program);
     }
+
     program->unbind();
 
+    if(bullet->getDebugFlag())
+        bullet->renderDebug(P->topMatrix(), MV->topMatrix());
+
+
     // Render sun
-//    sunProg->bind();
-//    MV->pushMatrix();
-//    MV->translate(vec3(0.0f, 10.0f, 0.0f));
-//    glUniformMatrix4fv(sunProg->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
-//    glUniformMatrix4fv(sunProg->getUniform("MV"), 1, GL_FALSE, value_ptr(MV->topMatrix()));
-//    sun->draw(sunProg);
-//    MV->popMatrix();
-//    sunProg->unbind();
+    //    sunProg->bind();
+    //    MV->pushMatrix();
+    //    MV->translate(vec3(0.0f, 10.0f, 0.0f));
+    //    glUniformMatrix4fv(sunProg->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
+    //    glUniformMatrix4fv(sunProg->getUniform("MV"), 1, GL_FALSE, value_ptr(MV->topMatrix()));
+    //    sun->draw(sunProg);
+    //    MV->popMatrix();
+    //    sunProg->unbind();
 
     printStringToScreen(0.0f, 0.0f, "+", 0.0f, 0.0f, 0.0f);
 
     //
     // stb_easy_font.h is used for printing fonts to the screen.
     //
-    
+
     // Prints a crosshair to the center of the screen. Color depends on if you're looking at a magnet surface.
     if (bullet->isLookingAtMagnetMaterial()) {
         if (Mouse::isLeftMouseButtonPressed()) {
             printStringToScreen(0.0f, 0.0f, "+", 0.0f, 1.0f, 1.0f);
-        }
-        else if (Mouse::isRightMouseButtonPressed()) {
+        } else if (Mouse::isRightMouseButtonPressed()) {
             printStringToScreen(0.0f, 0.0f, "+", 1.0f, 0.6f, 0.0f);
-        }
-        else {
+        } else {
             printStringToScreen(0.0f, 0.0f, "+", 0.0f, 1.0f, 0.0f);
         }
-    }
-    else {
+    } else {
         printStringToScreen(0.0f, 0.0f, "+", 0.0f, 0.0f, 0.0f);
     }
     // Prints the frame rate to the screen.
@@ -562,6 +563,8 @@ void GameManager::renderGame(int fps) {
     P->popMatrix();
 
     GLSL::checkError(GET_FILE_LINE);
+
+
 }
 
 // If the window is resized, capture the new size and reset the viewport

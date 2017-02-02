@@ -14,6 +14,7 @@
 #include <BulletCollision/Gimpact/btGImpactCollisionAlgorithm.h>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include "BulletDebugDraw.hpp"
 #include <map>
 
 class BulletObject;
@@ -35,6 +36,10 @@ public:
     btDiscreteDynamicsWorld* getDynamicsWorld() {return dynamicsWorld;};
     std::map<std::string, BulletObject*> getBulletObjects() {return bulletObjects;};
     bool isLookingAtMagnetMaterial() const {return lookingAtMagnet;}
+    void renderDebug(mat4 p, mat4 v);
+    bool getDebugFlag(); 
+    void setDebugFlag(bool f);
+    void setDebugMode(int mode);
 private:
     /*Bullet stuff*/
     btBroadphaseInterface* broadphase;
@@ -45,6 +50,9 @@ private:
     
     std::map<std::string, BulletObject*> bulletObjects;
     std::vector<btRigidBody*> magneticObjects;
+    
+    btIDebugDraw *debug;
+    bool debugFlag;
     
     bool lookingAtMagnet;
 };
