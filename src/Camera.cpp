@@ -142,6 +142,33 @@ void Camera::interpretPressedKeys(const vector<char> &pressedKeys, BulletManager
         }
     }
 
+    // ray test to see if you're in the air. If you are, don't have any friction
+    vec3 startV = bullet->getBulletObjectState("cam");
+    btVector3 start = btVector3(startV.x, startV.y, startV.z);
+    btVector3 end = btVector3(startV.x, startV.y - 0.1, startV.z);
+
+    // Finds the closest object from the start location to the end location.
+    btCollisionWorld::ClosestRayResultCallback RayCB(start, end);
+    bullet->getDynamicsWorld()->rayTest(start, end, RayCB);
+
+    // Get the object that is hit.
+    const btRigidBody *hitShape = (btRigidBody *) RayCB.m_collisionObject;
+
+    bool jumping = true;
+    // Check if the ground was hit
+    // TODO: check all objects which can be jumped off of
+    std::map<std::string, BulletObject*> objects = bullet->getBulletObjects();
+    for (auto iter = objects.begin(); iter != objects.end(); ++iter) {
+        if (RayCB.hasHit() && hitShape == iter->second->getRigidBody()) {
+            jumping = false;
+        }
+    }
+    if (jumping) {
+        bulletCamObj->getRigidBody()->setFriction(0.0f);
+    } else {
+        bulletCamObj->getRigidBody()->setFriction(0.9f);
+    }
+
     bulletCamObj->getRigidBody()->setLinearVelocity(movement);
 
     boundingSphere->updateCenter(position);
