@@ -41,8 +41,8 @@ public:
     int getNumObjCollected() const {return numObjCollected;}
     int getNumObj() const {return objects.size();}
 private:
-    void createBunny();
-    void createLevel(); 
+    void createLevel();
+    void resolveMagneticInteractions();
     void printStringToScreen(float x, float y, const std::string &text, float r, float g, float b);
     float randFloat(float l, float h);
     
@@ -53,7 +53,6 @@ private:
     std::shared_ptr<GameObject> testObj;
     
     std::vector<std::shared_ptr<GameObject>> objects;
-    
 
     double objIntervalCounter;
     int numObjCollected;

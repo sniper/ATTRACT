@@ -12,30 +12,35 @@
 #include <memory>
 #include <glm/gtc/type_ptr.hpp>
 
+class BoundingSphere;
+
 class AABoundingBox
 {
 public:
     AABoundingBox();
-    AABoundingBox(const glm::vec3 mins, const glm::vec3 maxes);
+    AABoundingBox(const glm::vec3 position, const glm::vec3 halfExtents);
     virtual ~AABoundingBox();
     
-    bool isColliding(const std::shared_ptr<AABoundingBox> otherBox);
+    bool isCollidingWithSphere(const std::shared_ptr<BoundingSphere> sphere);
+    bool isCollidingWithAABox(const std::shared_ptr<AABoundingBox> box);
     
-    void setMinX(float x) {min.x = x;}
-    void setMaxX(float x) {max.x = x;}
-    void setMinY(float y) {min.y = y;}
-    void setMaxY(float y) {max.y = y;}
-    void setMinZ(float z) {min.z = z;}
-    void setMaxZ(float z) {max.z = z;}
+    void setPosition(const glm::vec3 newPos) {position = newPos;}
     
-    float getMinX() {return min.x;}
-    float getMaxX() {return max.x;}
-    float getMinY() {return min.y;}
-    float getMaxY() {return max.y;}
-    float getMinZ() {return min.z;}
-    float getMaxZ() {return max.z;}
+    glm::vec3 getPosition() const {return position;}
+    float getXHalfExtent() const {return halfExtents.x;}
+    float getYHalfExtent() const {return halfExtents.y;}
+    float getZHalfExtent() const {return halfExtents.z;}
+    glm::vec3 getMins() const {return glm::vec3(position.x - halfExtents.x,
+                                                position.y - halfExtents.y,
+                                                position.z - halfExtents.z);}
+    glm::vec3 getMaxes() const {return glm::vec3(position.x + halfExtents.x,
+                                                 position.y + halfExtents.y,
+                                                 position.z + halfExtents.z);}
 private:
-    glm::vec3 min, max;
+    glm::vec3 position;
+    glm::vec3 halfExtents;  // How far the center is from the edge of the
+                            // cuboid; i.e. the length of the x dimension is
+                            // halfExtents.x * 2
 };
 
 #endif /* AABoundingBox_hpp */

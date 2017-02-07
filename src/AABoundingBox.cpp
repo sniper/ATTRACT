@@ -6,24 +6,25 @@
 //
 //
 
-#include "AABoundingBox.hpp"
-
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+
+#include "AABoundingBox.hpp"
+#include "BoundingSphere.hpp"
 
 using namespace std;
 using namespace glm;
 
 AABoundingBox::AABoundingBox() :
-min(vec3(0.0f, 0.0f, 0.0f)),
-max(vec3(0.0f, 0.0f, 0.0f))
+position(vec3(0.0f, 0.0f, 0.0f)),
+halfExtents(vec3(0.0f, 0.0f, 0.0f))
 {
     
 }
 
-AABoundingBox::AABoundingBox(const vec3 mins, const vec3 maxes) :
-min(mins),
-max(maxes)
+AABoundingBox::AABoundingBox(const vec3 position, const vec3 halfExtents) :
+position(position),
+halfExtents(halfExtents)
 {
     
 }
@@ -33,11 +34,17 @@ AABoundingBox::~AABoundingBox()
     
 }
 
-bool AABoundingBox::isColliding(const shared_ptr<AABoundingBox> otherBox)
+bool AABoundingBox::isCollidingWithSphere(const std::shared_ptr<BoundingSphere> sphere)
 {
-    if ((min.x <= otherBox->getMaxX() && max.x >= otherBox->getMinX()) &&
-        (min.y <= otherBox->getMaxY() && max.y >= otherBox->getMinY()) &&
-        (min.z <= otherBox->getMaxZ() && max.z >= otherBox->getMinZ())) {
+    // Needs implementation at some point.
+    return false;
+}
+
+bool AABoundingBox::isCollidingWithAABox(const std::shared_ptr<AABoundingBox> box)
+{
+    if ((getMins().x <= box->getMaxes().x && getMaxes().x >= box->getMins().x) &&
+        (getMins().y <= box->getMaxes().y && getMaxes().y >= box->getMins().y) &&
+        (getMins().z <= box->getMaxes().z && getMaxes().z >= box->getMins().z)) {
         return true;
     }
     return false;

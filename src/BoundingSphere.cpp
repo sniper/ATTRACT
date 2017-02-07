@@ -6,11 +6,12 @@
 //
 //
 
-#include <iostream>
-
-#include "BoundingSphere.hpp"
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+
+#include "BoundingSphere.hpp"
+#include "AABoundingBox.hpp"
+#include "Calculations.hpp"
 
 using namespace std;
 using namespace glm;
@@ -34,16 +35,13 @@ BoundingSphere::~BoundingSphere()
     
 }
 
-bool BoundingSphere::isColliding(const std::shared_ptr<BoundingSphere> &otherSphere)
+bool BoundingSphere::isCollidingWithSphere(const std::shared_ptr<BoundingSphere> sphere)
 {
-    return findDistance(center, otherSphere->getCenter()) <= radius + otherSphere->getRadius();
+    return Calculations::findDistance(center, sphere->getCenter()) <= radius + sphere->getRadius();
 }
 
-float BoundingSphere::findDistance(const glm::vec3 &p1, const glm::vec3 &p2)
+bool BoundingSphere::isCollidingWithAABox(const std::shared_ptr<AABoundingBox> box)
 {
-    float diffX = p2[0] - p1[0];
-    float diffY = p2[1] - p1[1];
-    float diffZ = p2[2] - p1[2];
-    
-    return sqrt((diffX * diffX) + (diffY * diffY) + (diffZ * diffZ));
+    // Needs implementation at some point.
+    return false;
 }

@@ -10,15 +10,13 @@
  */
 //TODO: if you call the create functions again, it will create memleak. remember to make deconstructor functions too.
 // also find out how to remove stuff from the simulator?
-#include "BulletManager.h"
+#include "BulletManager.hpp"
 #include "Mouse.hpp"
 #include "BulletPlane.h"
 #include "BulletSphere.h"
 #include "BulletBox.hpp"
 
 #include <algorithm>
-
-#define MAGNET_STRENGTH 7.0f
 
 BulletManager::BulletManager() {
 
@@ -151,6 +149,7 @@ vec3 BulletManager::getBulletObjectState(string name) {
     return ret;
 }
 
+/*
 void BulletManager::rayTrace(vec3 startLoc, vec3 endLoc) {
     // Converting glm vectors to bullet vectors.
     btVector3 start = btVector3(startLoc[0], startLoc[1], startLoc[2]);
@@ -190,6 +189,6 @@ void BulletManager::rayTrace(vec3 startLoc, vec3 endLoc) {
         bulletObjects["cam"]->getRigidBody()->setGravity(dynamicsWorld->getGravity());
     }
 }
-
+*/
 
 

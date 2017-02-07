@@ -15,7 +15,7 @@
 #include "GameObject.hpp"
 #include "InputManager.hpp"
 #include "GameManager.hpp"
-#include "BulletManager.h"
+#include "BulletManager.hpp"
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <BulletCollision/Gimpact/btGImpactCollisionAlgorithm.h>
@@ -37,7 +37,9 @@ aspect(1.0f),
 fovy(45.0f),
 znear(0.1f),
 zfar(1000.0f),
-boundingSphere(make_shared<BoundingSphere>(position, 0.25f)) {
+boundingSphere(make_shared<BoundingSphere>(position, 0.25f)),
+lookingAtMagnet(false)
+{
 
 }
 
@@ -49,15 +51,19 @@ aspect(1.0f),
 fovy(45.0f),
 znear(0.1f),
 zfar(1000.0f),
-boundingSphere(make_shared<BoundingSphere>(position, 0.25f)) {
+boundingSphere(make_shared<BoundingSphere>(position, 0.25f)),
+lookingAtMagnet(false)
+{
 
 }
 
-Camera::~Camera() {
+Camera::~Camera()
+{
 
 }
 
-void Camera::mouseMoved(double x, double y) {
+void Camera::mouseMoved(double x, double y)
+{
     vec2 mouseCurr(x, y);
     vec2 dv = mouseCurr - mousePrev;
 
@@ -76,7 +82,9 @@ void Camera::mouseMoved(double x, double y) {
     mousePrev = mouseCurr;
 }
 
-void Camera::interpretPressedKeys(const vector<char> &pressedKeys, BulletManager *bullet) {
+void Camera::interpretPressedKeys(const vector<char> &pressedKeys,
+                                  BulletManager *bullet)
+{
     BulletObject *bulletCamObj = bullet->getBulletObject("cam");
     vec3 rot = vec3(cos(yaw), 0, cos((3.14 / 2) - yaw));
     vec3 lap = position + rot;
@@ -132,6 +140,9 @@ void Camera::interpretPressedKeys(const vector<char> &pressedKeys, BulletManager
         // Get the object that is hit.
         const btRigidBody *hitShape = (btRigidBody *) RayCB.m_collisionObject;
 
+        /****** NOTE: IF AN OBJECT INTERRUPTS THE JUMPING PROCESS (GETS IN THE WAY) AND
+         THE PLAYER HOLDS DOWN SPACE BAR, THE CHARACTER FLOATS ******/
+        
         // Check if the ground was hit
         // TODO: check all objects which can be jumped off of
         std::map<std::string, BulletObject*> objects = bullet->getBulletObjects();
@@ -174,12 +185,14 @@ void Camera::interpretPressedKeys(const vector<char> &pressedKeys, BulletManager
     boundingSphere->updateCenter(position);
 }
 
-void Camera::applyProjectionMatrix(shared_ptr<MatrixStack> P) const {
+void Camera::applyProjectionMatrix(shared_ptr<MatrixStack> P) const
+{
     // Modify provided MatrixStack
     P->perspective(fovy, aspect, znear, zfar);
 }
 
-void Camera::applyViewMatrix(shared_ptr<MatrixStack> MV) const {
+void Camera::applyViewMatrix(shared_ptr<MatrixStack> MV) const
+{
     vec3 rot = vec3(cos(pitch) * cos(yaw), sin(pitch), cos(pitch) * cos((3.14 / 2) - yaw));
     vec3 lap = position + rot;
     vec3 up;
@@ -191,15 +204,18 @@ void Camera::applyViewMatrix(shared_ptr<MatrixStack> MV) const {
     MV->lookAt(position, lap, up);
 }
 
-bool Camera::checkForCollision(const std::shared_ptr<GameObject> &otherObj) {
+bool Camera::checkForCollision(const std::shared_ptr<GameObject> &otherObj)
+{
     return otherObj->isCollidingWithBoundingSphere(boundingSphere);
 }
 
-void Camera::resolveCollision() {
+void Camera::resolveCollision()
+{
     position = oldPosition;
     boundingSphere->updateCenter(position);
 }
 
-void Camera::setPosition(vec3 inPos) {
+void Camera::setPosition(vec3 inPos)
+{
     position = inPos;
 }

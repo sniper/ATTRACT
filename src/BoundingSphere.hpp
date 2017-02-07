@@ -12,6 +12,8 @@
 #include <memory>
 #include <glm/gtc/type_ptr.hpp>
 
+class AABoundingBox;
+
 class BoundingSphere
 {
 public:
@@ -19,14 +21,15 @@ public:
     BoundingSphere(const glm::vec3 &center, float radius);
     virtual ~BoundingSphere();
     
-    bool isColliding(const std::shared_ptr<BoundingSphere> &otherBox);
+    bool isCollidingWithSphere(const std::shared_ptr<BoundingSphere> sphere);
+    bool isCollidingWithAABox(const std::shared_ptr<AABoundingBox> box);
+    bool isPointInsideSphere(const glm::vec3 point);
     
     void updateCenter(const glm::vec3 &newCenter) {center = newCenter;}
     void updateRadius(float newRadius) {radius = newRadius;}
     glm::vec3 getCenter() const {return center;}
     float getRadius() const {return radius;}
 private:
-    float findDistance(const glm::vec3 &p1, const glm::vec3 &p2);
     glm::vec3 center;
     float radius;
 };

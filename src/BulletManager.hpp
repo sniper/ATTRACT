@@ -5,8 +5,8 @@
  * Created on January 27, 2017, 4:08 PM
  */
 
-#ifndef BULLETMANAGER_H
-#define BULLETMANAGER_H
+#ifndef BULLETMANAGER_HPP
+#define BULLETMANAGER_HPP
 
 #include <iostream>
 #include <vector>
@@ -35,7 +35,6 @@ public:
     glm::vec3 getBulletObjectState(std::string name);
     btDiscreteDynamicsWorld* getDynamicsWorld() {return dynamicsWorld;};
     std::map<std::string, BulletObject*> getBulletObjects() {return bulletObjects;};
-    bool isLookingAtMagnetMaterial() const {return lookingAtMagnet;}
     void renderDebug(mat4 p, mat4 v);
     bool getDebugFlag(); 
     void setDebugFlag(bool f);
@@ -53,9 +52,7 @@ private:
     
     btIDebugDraw *debug;
     bool debugFlag;
-    
-    bool lookingAtMagnet;
 };
 
-#endif /* BULLETMANAGER_H */
+#endif /* BULLETMANAGER_HPP */
 

@@ -25,7 +25,7 @@ BulletBox::BulletBox(vec3 loc, vec3 dims, vec3 scale, float mass) {
     rigidBodyCI.m_friction = 0.9f;
     rigidBodyCI.m_restitution = 0.0f;
     rigidBody = new btRigidBody(rigidBodyCI);
-    rigidBody->setAngularFactor(btVector3(0, 0, 0));
+    rigidBody->setAngularFactor(btVector3(0.0f, 0.0f, 0.0f));
     rigidBody->setActivationState(DISABLE_DEACTIVATION);
 }
 
