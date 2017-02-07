@@ -29,6 +29,8 @@ halfExtents(halfExtents)
     
 }
 
+
+
 AABoundingBox::~AABoundingBox()
 {
     
@@ -48,4 +50,21 @@ bool AABoundingBox::isCollidingWithAABox(const std::shared_ptr<AABoundingBox> bo
         return true;
     }
     return false;
+}
+
+/*make sure to delete this bad boy after your done with it*/
+std::vector<glm::vec3>* AABoundingBox::getVertices() {
+    vector<glm::vec3> *ret = new vector<glm::vec3>();
+    glm::vec3 p1 = getMins();
+    glm::vec3 p2 = getMaxes();
+    
+    ret->push_back(p1);
+    ret->push_back(p2);
+    ret->push_back(vec3(p1.x, p1.y, p2.z));
+    ret->push_back(vec3(p1.x, p2.y, p1.z));
+    ret->push_back(vec3(p2.x, p1.y, p1.z));
+    ret->push_back(vec3(p1.x, p2.y, p2.z));
+    ret->push_back(vec3(p2.x, p1.y, p2.z));
+    ret->push_back(vec3(p2.x, p2.y, p1.z));
+    return ret;
 }

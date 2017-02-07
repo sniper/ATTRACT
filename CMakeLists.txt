@@ -73,6 +73,11 @@ else()
     target_link_libraries(${CMAKE_PROJECT_NAME} ${CMAKE_SOURCE_DIR}/lib/libBulletDynamics_gmake_x64_release.a)
     target_link_libraries(${CMAKE_PROJECT_NAME} ${CMAKE_SOURCE_DIR}/lib/libBulletCollision_gmake_x64_release.a)
     target_link_libraries(${CMAKE_PROJECT_NAME} ${CMAKE_SOURCE_DIR}/lib/libLinearMath_gmake_x64_release.a)
+
+    #link fmod
+    target_link_libraries(${CMAKE_PROJECT_NAME} ${CMAKE_SOURCE_DIR}/lib/fmod/mac/libfmod.dylib)
+    target_link_libraries(${CMAKE_PROJECT_NAME} ${CMAKE_SOURCE_DIR}/lib/fmod/mac/libfmodL.dylib)
+
   else()
     #Link the Linux OpenGL library
     target_link_libraries(${CMAKE_PROJECT_NAME} "GL")
@@ -81,5 +86,10 @@ else()
     target_link_libraries(${CMAKE_PROJECT_NAME} ${CMAKE_SOURCE_DIR}/lib/libBulletDynamics.a)
     target_link_libraries(${CMAKE_PROJECT_NAME} ${CMAKE_SOURCE_DIR}/lib/libBulletCollision.a)
     target_link_libraries(${CMAKE_PROJECT_NAME} ${CMAKE_SOURCE_DIR}/lib/libLinearMath.a)
+
+    #link fmod
+    target_link_libraries(${CMAKE_PROJECT_NAME} ${CMAKE_SOURCE_DIR}/lib/fmod/linux/libfmod.so)
+    target_link_libraries(${CMAKE_PROJECT_NAME} ${CMAKE_SOURCE_DIR}/lib/fmod/linux/libfmodL.so)
+
   endif()
 endif()

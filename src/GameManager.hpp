@@ -17,6 +17,7 @@
 #include <GLFW/glfw3.h>
 #include <glm/gtc/type_ptr.hpp>
 #include "GameObject.hpp"
+#include "FmodManager.hpp"
 
 class InputManager;
 class Camera;
@@ -25,6 +26,8 @@ class Shape;
 class GameObject;
 class Texture;
 class BulletManager;
+class VfcManager;
+class FmodManager;
 
 class GameManager
 {
@@ -51,6 +54,8 @@ private:
     
     BulletManager *bullet;
     std::shared_ptr<GameObject> testObj;
+    VfcManager *vfc;
+    FmodManager *fmod;
     
     std::vector<std::shared_ptr<GameObject>> objects;
 

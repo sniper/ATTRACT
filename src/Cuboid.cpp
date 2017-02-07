@@ -6,7 +6,7 @@
 //
 //
 #include <iostream>
-
+#include <vector>
 #include "Cuboid.hpp"
 #include "AABoundingBox.hpp"
 #include "Calculations.hpp"
@@ -193,4 +193,8 @@ bool Cuboid::isIntersectingWithLineSegment(const vec3 &start, const vec3 &end,
     }
     
     return false;
+}
+
+std::vector<glm::vec3>* Cuboid::getAabbVertices() {
+    return boundingBox->getVertices();
 }
