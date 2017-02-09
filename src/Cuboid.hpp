@@ -32,7 +32,7 @@ public:
     bool isMagnetic() const {return magnetic;}
     
     void update(float dt);
-    std::vector<glm::vec3>* getAabbVertices();
+    std::vector<glm::vec3>* getAabbMinsMaxs();
 protected:
     std::shared_ptr<AABoundingBox> boundingBox;
     bool magnetic;

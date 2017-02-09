@@ -24,24 +24,46 @@ VfcManager::~VfcManager() {
 
 bool VfcManager::viewFrustCull(vector<vec3> *verts) {
     float dist;
-    int out, in;
+    vec3 p, n;
 
     if (verts->size() == 0)
         cerr << "viewFrustCull IS BEING PASSED AN EMPTY VERTICES VECTOR" << endl;
 
+
+
+
+
     for (int i = 0; i < 6; i++) {
-        out = in = 0;
-        for (std::vector<vec3>::iterator it = verts->begin(); it != verts->end(); ++it) {
-             dist = distToPlane(planes[i].x, planes[i].y, planes[i].z, planes[i].w, *it);
-             if(dist < 0)
-                 out++; 
-             else
-                 in++;
-        }
-        if(!in)
+        /* get P vert*/
+        p = verts->at(0);
+        if (planes[i].x >= 0)
+            p.x = verts->at(1).x;
+        if (planes[i].y >= 0)
+            p.y = verts->at(1).y;
+        if (planes[i].z >= 0)
+            p.z = verts->at(1).z;
+
+        /*get N vert, dont really need this technically*/
+        
+        /*
+        n = verts->at(1);
+
+        if (planes[i].x >= 0)
+            n.x = verts->at(0).x;
+        if (planes[i].y >= 0)
+            n.y = verts->at(0).y;
+        if (planes[i].z >= 0)
+            n.z = verts->at(0).z;
+
+         */
+        
+        if(distToPlane(planes[i].x, planes[i].y, planes[i].z, planes[i].w, p)<0)
             return true;
+
+
     }
     return false;
+
 }
 
 float VfcManager::distToPlane(float A, float B, float C, float D, vec3 point) {

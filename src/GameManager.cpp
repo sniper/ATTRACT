@@ -496,6 +496,8 @@ void GameManager::updateGame(double dt) {
 }
 
 void GameManager::renderGame(int fps) {
+    int objectsDrawn = 0;
+
     // Clear framebuffer.
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -556,13 +558,18 @@ void GameManager::renderGame(int fps) {
         //this will fail if we have different types TODO: FIX THIS
         //meme leaks????
         std::shared_ptr<Cuboid> cub = dynamic_pointer_cast<Cuboid>(objects.at(i));
-        std::vector<vec3> *temp = cub->getAabbVertices();
+        std::vector<vec3> *temp = cub->getAabbMinsMaxs();
 
-        if (!vfc->viewFrustCull(temp))
+        if (!vfc->viewFrustCull(temp)) {
+            objectsDrawn++;
             objects.at(i)->draw(program);
-        delete temp;
-    }
+        }
 
+
+        delete temp;
+
+    }
+    cout << "objects draw: " << objectsDrawn << endl;
     program->unbind();
 
     if (bullet->getDebugFlag())

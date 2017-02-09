@@ -37,7 +37,7 @@ public:
     glm::vec3 getMaxes() const {return glm::vec3(position.x + halfExtents.x,
                                                  position.y + halfExtents.y,
                                                  position.z + halfExtents.z);}
-    std::vector<glm::vec3> *getVertices();
+
 private:
     glm::vec3 position;
     glm::vec3 halfExtents;  // How far the center is from the edge of the
