@@ -53,7 +53,8 @@ using namespace glm;
 
 GameManager::GameManager(GLFWwindow *window, const string &resourceDir) :
 window(window),
-RESOURCE_DIR(resourceDir) {
+RESOURCE_DIR(resourceDir),
+gameState(MENU) {
     objIntervalCounter = 0.0f;
     numObjCollected = 0;
     gameWon = false;
@@ -352,7 +353,8 @@ void GameManager::createLevel() {
 }
 
 void GameManager::processInputs() {
-    inputManager->processInputs(bullet);
+    if(gameState == GAME)
+        inputManager->processGameInputs(bullet);
 }
 
 void GameManager::updateGame(double dt) {
@@ -439,83 +441,70 @@ void GameManager::renderGame(int fps) {
     auto P = make_shared<MatrixStack>();
     auto MV = make_shared<MatrixStack>();
 
-    // Apply camera transforms
-    P->pushMatrix();
-    camera->applyProjectionMatrix(P);
-    MV->pushMatrix();
-    camera->applyViewMatrix(MV);
+    /*if in gamestate menu render menu*/
+    if (gameState == MENU) {
+        gui->draw();
+    }        /* else its in pause menu/game*/
+    else {
 
-    // Render ground
-    //    ground->bind();
-    //    grass->bind(ground->getUniform("grassTexture"));
-    //    glUniformMatrix4fv(ground->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
-    //    glUniformMatrix4fv(ground->getUniform("MV"), 1, GL_FALSE, value_ptr(MV->topMatrix()));
-    //    glEnableVertexAttribArray(ground->getAttribute("aPos"));
-    //    glBindBuffer(GL_ARRAY_BUFFER, grassBufIDs["bPos"]);
-    //    glVertexAttribPointer(ground->getAttribute("aPos"), 3, GL_FLOAT, GL_FALSE, 0, (void *) 0);
-    //    glEnableVertexAttribArray(ground->getAttribute("aTex"));
-    //    glBindBuffer(GL_ARRAY_BUFFER, grassBufIDs["bTex"]);
-    //    glVertexAttribPointer(ground->getAttribute("aTex"), 2, GL_FLOAT, GL_FALSE, 0, (void *) 0);
-    //    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, grassBufIDs["bInd"]);
-    //    glDrawElements(GL_TRIANGLES, grassIndCount, GL_UNSIGNED_INT, (void *) 0);
-    //    grass->unbind();
-    //    ground->unbind();
+        // Apply camera transforms
+        P->pushMatrix();
+        camera->applyProjectionMatrix(P);
+        MV->pushMatrix();
+        camera->applyViewMatrix(MV);
 
-    // Render objects
-    program->bind();
-    glUniformMatrix4fv(program->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
-    glUniformMatrix4fv(program->getUniform("MV"), 1, GL_FALSE, value_ptr(MV->topMatrix()));
-    lightPos = vec4(camera->getPosition(), 1.0);
-    vec4 l = MV->topMatrix() * lightPos;
-    glUniform4f(program->getUniform("lightPos"), l[0], l[1], l[2], l[3]);
-    glUniform1f(program->getUniform("lightIntensity"), lightIntensity);
+        // Render objects
+        program->bind();
+        glUniformMatrix4fv(program->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
+        glUniformMatrix4fv(program->getUniform("MV"), 1, GL_FALSE, value_ptr(MV->topMatrix()));
+        lightPos = vec4(camera->getPosition(), 1.0);
+        vec4 l = MV->topMatrix() * lightPos;
+        glUniform4f(program->getUniform("lightPos"), l[0], l[1], l[2], l[3]);
+        glUniform1f(program->getUniform("lightIntensity"), lightIntensity);
 
-    vfc->extractVFPlanes(P->topMatrix(), MV->topMatrix());
-    for (unsigned int i = 0; i < objects.size(); i++) {
-        //this will fail if we have different types TODO: FIX THIS
-        //meme leaks????
-        std::shared_ptr<Cuboid> cub = dynamic_pointer_cast<Cuboid>(objects.at(i));
-        std::vector<vec3> *temp = cub->getAabbMinsMaxs();
+        vfc->extractVFPlanes(P->topMatrix(), MV->topMatrix());
+        for (unsigned int i = 0; i < objects.size(); i++) {
+            //this will fail if we have different types TODO: FIX THIS
+            //meme leaks????
+            std::shared_ptr<Cuboid> cub = dynamic_pointer_cast<Cuboid>(objects.at(i));
+            std::vector<vec3> *temp = cub->getAabbMinsMaxs();
 
-        if (!vfc->viewFrustCull(temp)) {
-            objectsDrawn++;
-            objects.at(i)->draw(program);
+            if (!vfc->viewFrustCull(temp)) {
+                objectsDrawn++;
+                objects.at(i)->draw(program);
+            }
+
+
+            delete temp;
+
         }
+        //cout << "objects draw: " << objectsDrawn << endl;
+
+        program->unbind();
 
 
-        delete temp;
+        if (bullet->getDebugFlag())
+            bullet->renderDebug(P->topMatrix(), MV->topMatrix());
+
+        MV->popMatrix();
+        P->popMatrix();
+
+
 
     }
-    //cout << "objects draw: " << objectsDrawn << endl;
-
-    program->unbind();
 
 
-    if (bullet->getDebugFlag())
-        bullet->renderDebug(P->topMatrix(), MV->topMatrix());
 
-       
-    // Render sun
-    //    sunProg->bind();
-    //    MV->pushMatrix();
-    //    MV->translate(vec3(0.0f, 10.0f, 0.0f));
-    //    glUniformMatrix4fv(sunProg->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
-    //    glUniformMatrix4fv(sunProg->getUniform("MV"), 1, GL_FALSE, valug_ptr(MV->topMatrix()));
-    //    sun->draw(sunProg);
-    //    MV->popMatrix();
-    //    sunProg->unbind();
-
-       gui->draw();
     //printStringToScreen(0.0f, 0.0f, "+", 0.0f, 0.0f, 0.0f);
-    
- 
+
+
 
     //
     // stb_easy_font.h is used for printing fonts to the screen.
     //
 
     // Prints a crosshair to the center of the screen. Color depends on if you're looking at a magnet surface.
-    
+
     /*
     if (camera->isLookingAtMagnet()) {
         if (Mouse::isLeftMouseButtonPressed()) {
@@ -530,11 +519,9 @@ void GameManager::renderGame(int fps) {
     }
     // Prints the frame rate to the screen.
     printStringToScreen(60.0f, 90.0f, to_string(fps) + " FPS", 0.0f, 0.0f, 0.0f);
-*/
-    MV->popMatrix();
-    P->popMatrix();
+     */
 
-   
+
     GLSL::checkError(GET_FILE_LINE);
 
 

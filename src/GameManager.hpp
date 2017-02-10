@@ -30,6 +30,8 @@ class VfcManager;
 class FmodManager;
 class GuiManager;
 
+enum State {GAME, MENU, PAUSE};
+
 class GameManager
 {
 public:
@@ -52,6 +54,7 @@ private:
     
     GLFWwindow *window;
     std::string RESOURCE_DIR;
+    State gameState;
     
     BulletManager *bullet;
     VfcManager *vfc;

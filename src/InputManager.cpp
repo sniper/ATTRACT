@@ -27,7 +27,7 @@ InputManager::~InputManager()
 
 }
 
-void InputManager::processInputs(BulletManager *bullet)
+void InputManager::processGameInputs(BulletManager *bullet)
 {
     // Move mouse.
     camera->mouseMoved(Mouse::getMouseX(), Mouse::getMouseY());

@@ -17,10 +17,10 @@ using namespace std;
 
 GuiManager::GuiManager() {
     static const GLfloat g_vertex_buffer_data[] = {
-        -1.0f, 1.0f, 0.0f,
-        -1.0f, 0.75f, 0.0f,
-        -0.5f, 0.75f, 0.0f,
-        -0.5f, 1.0f, 0.0f
+        -0.5f, 0.0f, 0.0f,
+        -0.5f, -0.3f, 0.0f,
+        0.5f, -0.3f, 0.0f,
+        0.5f, 0.0f, 0.0f
     };
 
     static const GLfloat tex_buffer_data[] = {
