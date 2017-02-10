@@ -1,6 +1,9 @@
 #version 130 
 
-out vec3 color;
+uniform sampler2D guiTex;
+
+varying vec2 vTex;
+
 void main(){
-  color = vec3(1,0.3,0.7);
+  gl_FragColor = texture2D(guiTex, vTex);
 }

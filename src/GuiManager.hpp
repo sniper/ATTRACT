@@ -42,6 +42,7 @@ private:
     std::shared_ptr<Texture> guiTexture;
 
     GLuint vertexbuffer;
+    GLuint texbuffer;
     
 
 };
