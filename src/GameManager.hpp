@@ -28,6 +28,7 @@ class Texture;
 class BulletManager;
 class VfcManager;
 class FmodManager;
+class GuiManager;
 
 class GameManager
 {
@@ -56,7 +57,8 @@ private:
     std::shared_ptr<GameObject> testObj;
     VfcManager *vfc;
     FmodManager *fmod;
-    
+    GuiManager *gui;
+           
     std::vector<std::shared_ptr<GameObject>> objects;
 
     double objIntervalCounter;

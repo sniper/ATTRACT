@@ -37,7 +37,7 @@
 #include "Cuboid.hpp"
 #include "RayTrace.hpp"
 #include "VfcManager.hpp"
-
+#include "GuiManager.hpp"
 #include "stb_easy_font.h"
 
 #define MAX_NUM_OBJECTS 15
@@ -80,6 +80,8 @@ RESOURCE_DIR(resourceDir) {
     fmod = new FmodManager();
     fmod->createStream(RESOURCE_DIR + "bgm.mp3");
     fmod->playSound();
+
+    gui = new GuiManager();
     // Initialize the scene.
     initScene();
     //create the level
@@ -569,30 +571,37 @@ void GameManager::renderGame(int fps) {
         delete temp;
 
     }
-    cout << "objects draw: " << objectsDrawn << endl;
+    //cout << "objects draw: " << objectsDrawn << endl;
+
     program->unbind();
+
 
     if (bullet->getDebugFlag())
         bullet->renderDebug(P->topMatrix(), MV->topMatrix());
 
-
+       
     // Render sun
     //    sunProg->bind();
     //    MV->pushMatrix();
     //    MV->translate(vec3(0.0f, 10.0f, 0.0f));
     //    glUniformMatrix4fv(sunProg->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
-    //    glUniformMatrix4fv(sunProg->getUniform("MV"), 1, GL_FALSE, value_ptr(MV->topMatrix()));
+    //    glUniformMatrix4fv(sunProg->getUniform("MV"), 1, GL_FALSE, valug_ptr(MV->topMatrix()));
     //    sun->draw(sunProg);
     //    MV->popMatrix();
     //    sunProg->unbind();
 
-    printStringToScreen(0.0f, 0.0f, "+", 0.0f, 0.0f, 0.0f);
+       gui->draw();
+    //printStringToScreen(0.0f, 0.0f, "+", 0.0f, 0.0f, 0.0f);
+    
+ 
 
     //
     // stb_easy_font.h is used for printing fonts to the screen.
     //
 
     // Prints a crosshair to the center of the screen. Color depends on if you're looking at a magnet surface.
+    
+    /*
     if (camera->isLookingAtMagnet()) {
         if (Mouse::isLeftMouseButtonPressed()) {
             printStringToScreen(0.0f, 0.0f, "+", 0.0f, 1.0f, 1.0f);
@@ -606,10 +615,11 @@ void GameManager::renderGame(int fps) {
     }
     // Prints the frame rate to the screen.
     printStringToScreen(60.0f, 90.0f, to_string(fps) + " FPS", 0.0f, 0.0f, 0.0f);
-
+*/
     MV->popMatrix();
     P->popMatrix();
 
+   
     GLSL::checkError(GET_FILE_LINE);
 
 
