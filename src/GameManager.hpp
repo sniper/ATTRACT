@@ -54,7 +54,6 @@ private:
     std::string RESOURCE_DIR;
     
     BulletManager *bullet;
-    std::shared_ptr<GameObject> testObj;
     VfcManager *vfc;
     FmodManager *fmod;
     GuiManager *gui;
@@ -68,17 +67,12 @@ private:
     std::shared_ptr<InputManager> inputManager;
     std::shared_ptr<Camera> camera;
     
-    std::shared_ptr<Program> program, ground, sunProg;
+    std::shared_ptr<Program> program;
     std::vector<std::shared_ptr<Shape>> shapes;
-    std::shared_ptr<Shape> sun;
+
     glm::vec4 lightPos;
     float lightIntensity;
-    std::shared_ptr<Texture> grass;
-    std::vector<float> grassPosBuf;
-    std::vector<float> grassTexBuf;
-    std::vector<unsigned int> grassIndBuf;
-    std::map<std::string,GLuint> grassBufIDs;
-    int grassIndCount;
+
 };
 
 #endif /* GameManager_hpp */

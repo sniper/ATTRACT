@@ -24,10 +24,10 @@ GuiManager::GuiManager() {
     };
 
     static const GLfloat tex_buffer_data[] = {
-        -1.0f, 1.0f, 
-        -1.0f, 0.75f, 
-        -0.5f, 0.75f, 
-        -0.5f, 1.0f
+        0.0f, 0.0f, 
+        0.0f, 1.0f, 
+        1.0f, 1.0f, 
+        1.0f, 0.0f
     };
 
     guiShader = make_shared<Program>();
@@ -46,8 +46,7 @@ GuiManager::GuiManager() {
 
 
 
-    // This will identify our vertex buffer
-    cout << "what" << endl;
+
     // Generate 1 buffer, put the resulting identifier in vertexbuffer
     glGenBuffers(1, &vertexbuffer);
     glGenBuffers(1, &texbuffer);

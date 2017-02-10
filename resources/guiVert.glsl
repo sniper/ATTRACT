@@ -9,6 +9,7 @@ void main(){
   gl_Position.xyz = pos;
   gl_Position.w = 1;
 
-  vTex = posTex;
 
+  vTex = posTex;
+  vTex.y = vTex.y * -1;
 }

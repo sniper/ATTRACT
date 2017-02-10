@@ -120,11 +120,7 @@ void GameManager::initScene() {
     program->addUniform("s");
     program->addUniform("objTransMatrix");
 
-    shared_ptr<Shape> bunny = make_shared<Shape>();
-    bunny->loadMesh(RESOURCE_DIR + "bunny.obj");
-    bunny->fitToUnitBox();
-    bunny->init();
-    shapes.push_back(bunny);
+
 
     shared_ptr<Shape> cube = make_shared<Shape>();
     cube->loadMesh(RESOURCE_DIR + "cube.obj");
@@ -135,88 +131,7 @@ void GameManager::initScene() {
     //lightPos = vec4(0.0f, 10.0f, 0.0f, 1.0f);
     lightIntensity = 0.6f;
 
-    //
-    // Sun
-    //
-    sunProg = make_shared<Program>();
-    sunProg->setShaderNames(RESOURCE_DIR + "sunVert.glsl", RESOURCE_DIR + "sunFrag.glsl");
-    sunProg->setVerbose(false);
-    sunProg->init();
-    sunProg->addAttribute("aPos");
-    sunProg->addUniform("MV");
-    sunProg->addUniform("P");
 
-    sun = make_shared<Shape>();
-    sun->loadMesh(RESOURCE_DIR + "sphere.obj");
-    sun->fitToUnitBox();
-    sun->init();
-
-    //
-    // Grass Texture
-    //
-    ground = make_shared<Program>();
-    ground->setShaderNames(RESOURCE_DIR + "grassVert.glsl", RESOURCE_DIR + "grassFrag.glsl");
-    ground->setVerbose(false);
-    ground->init();
-    ground->addAttribute("aPos");
-    ground->addAttribute("aTex");
-    ground->addUniform("MV");
-    ground->addUniform("P");
-    ground->addUniform("grassTexture");
-
-    grass = make_shared<Texture>();
-    grass->setFilename(RESOURCE_DIR + "grass.jpg");
-    grass->init();
-    grass->setUnit(0);
-    grass->setWrapModes(GL_REPEAT, GL_REPEAT);
-
-    // 0
-    grassPosBuf.push_back(-GRID_SIZE);
-    grassPosBuf.push_back(0.0f);
-    grassPosBuf.push_back(-GRID_SIZE);
-    grassTexBuf.push_back(0.0f);
-    grassTexBuf.push_back(0.0f);
-    // 1
-    grassPosBuf.push_back(GRID_SIZE);
-    grassPosBuf.push_back(0.0f);
-    grassPosBuf.push_back(-GRID_SIZE);
-    grassTexBuf.push_back(30.0f);
-    grassTexBuf.push_back(0.0f);
-    // 2
-    grassPosBuf.push_back(-GRID_SIZE);
-    grassPosBuf.push_back(0.0f);
-    grassPosBuf.push_back(GRID_SIZE);
-    grassTexBuf.push_back(0.0f);
-    grassTexBuf.push_back(30.0f);
-    // 3
-    grassPosBuf.push_back(GRID_SIZE);
-    grassPosBuf.push_back(0.0f);
-    grassPosBuf.push_back(GRID_SIZE);
-    grassTexBuf.push_back(30.0f);
-    grassTexBuf.push_back(30.0f);
-    // Index
-    grassIndBuf.push_back(0);
-    grassIndBuf.push_back(1);
-    grassIndBuf.push_back(2);
-    grassIndBuf.push_back(3);
-    grassIndBuf.push_back(2);
-    grassIndBuf.push_back(1);
-    grassIndCount = (int) grassIndBuf.size();
-
-    GLuint tmp[3];
-    glGenBuffers(3, tmp);
-    grassBufIDs["bPos"] = tmp[0];
-    grassBufIDs["bTex"] = tmp[1];
-    grassBufIDs["bInd"] = tmp[2];
-
-    glBindBuffer(GL_ARRAY_BUFFER, grassBufIDs["bPos"]);
-    glBufferData(GL_ARRAY_BUFFER, grassPosBuf.size() * sizeof (float), &grassPosBuf[0], GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ARRAY_BUFFER, grassBufIDs["bTex"]);
-    glBufferData(GL_ARRAY_BUFFER, grassTexBuf.size() * sizeof (float), &grassTexBuf[0], GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, grassBufIDs["bInd"]);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, grassIndBuf.size() * sizeof (unsigned int), &grassIndBuf[0], GL_STATIC_DRAW);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -262,7 +177,7 @@ void GameManager::createLevel() {
     scale = vec3(100, 0.1, 10);
     shared_ptr<Cuboid> groundPlane = make_shared<Cuboid>(location, direction,
             CUBE_HALF_EXTENTS,
-            scale, 0, shapes.at(1),
+            scale, 0, shapes.at(0),
             ground, false);
     objects.push_back(groundPlane);
     bullet->createBox("groundPlane", location, CUBE_HALF_EXTENTS, scale, 0);
@@ -275,7 +190,7 @@ void GameManager::createLevel() {
     scale = vec3(70, 50, 1);
     shared_ptr<Cuboid> rightWall = make_shared<Cuboid>(location, direction,
             CUBE_HALF_EXTENTS, scale, 0,
-            shapes.at(1), building, false);
+            shapes.at(0), building, false);
     objects.push_back(rightWall);
     bullet->createBox("rightWall", location, CUBE_HALF_EXTENTS, scale, 0);
 
@@ -284,7 +199,7 @@ void GameManager::createLevel() {
     scale = vec3(70, 50, 1);
     shared_ptr<Cuboid> leftWall = make_shared<Cuboid>(location, direction,
             CUBE_HALF_EXTENTS, scale, 0,
-            shapes.at(1), building, false);
+            shapes.at(0), building, false);
     objects.push_back(leftWall);
     bullet->createBox("leftWall", location, CUBE_HALF_EXTENTS, scale, 0);
 
@@ -293,7 +208,7 @@ void GameManager::createLevel() {
     scale = vec3(1, 50, 5);
     shared_ptr<Cuboid> behindWall = make_shared<Cuboid>(location, direction,
             CUBE_HALF_EXTENTS, scale, 0,
-            shapes.at(1), building, false);
+            shapes.at(0), building, false);
     objects.push_back(behindWall);
     bullet->createBox("behindWall", location, CUBE_HALF_EXTENTS, scale, 0);
 
@@ -302,7 +217,7 @@ void GameManager::createLevel() {
     scale = vec3(1, 50, 5);
     shared_ptr<Cuboid> endWall = make_shared<Cuboid>(location, direction,
             CUBE_HALF_EXTENTS, scale, 0,
-            shapes.at(1), building, false);
+            shapes.at(0), building, false);
     objects.push_back(endWall);
     bullet->createBox("endWall", location, CUBE_HALF_EXTENTS, scale, 0);
 
@@ -314,7 +229,7 @@ void GameManager::createLevel() {
     scale = vec3(5, 2.5, 5);
     shared_ptr<Cuboid> firstPlatform = make_shared<Cuboid>(location, direction,
             CUBE_HALF_EXTENTS,
-            scale, 0, shapes.at(1),
+            scale, 0, shapes.at(0),
             building, false);
     objects.push_back(firstPlatform);
     bullet->createBox("firstPlatform", location, CUBE_HALF_EXTENTS, scale, 0);
@@ -324,7 +239,7 @@ void GameManager::createLevel() {
     scale = vec3(1, 1, 1);
     shared_ptr<Cuboid> startingBox = make_shared<Cuboid>(location, direction,
             CUBE_HALF_EXTENTS, scale,
-            0, shapes.at(1), greyBox, false);
+            0, shapes.at(0), greyBox, false);
     objects.push_back(startingBox);
     bullet->createBox("startingBox", location, CUBE_HALF_EXTENTS, scale, 0);
 
@@ -333,7 +248,7 @@ void GameManager::createLevel() {
     scale = vec3(1, 1, 1.5);
     shared_ptr<Cuboid> rightTopPad = make_shared<Cuboid>(location, direction,
             CUBE_HALF_EXTENTS, scale,
-            0, shapes.at(1),
+            0, shapes.at(0),
             magnetSurface, true);
     objects.push_back(rightTopPad);
     bullet->createMagneticBox("rightTopPad", location, CUBE_HALF_EXTENTS, scale, 0);
@@ -346,7 +261,7 @@ void GameManager::createLevel() {
     scale = vec3(5, 2.5, 5);
     shared_ptr<Cuboid> secondPlatform = make_shared<Cuboid>(location, direction,
             CUBE_HALF_EXTENTS, scale,
-            0, shapes.at(1),
+            0, shapes.at(0),
             building, false);
     objects.push_back(secondPlatform);
     bullet->createBox("secondPlatform", location, CUBE_HALF_EXTENTS, scale, 0);
@@ -356,7 +271,7 @@ void GameManager::createLevel() {
     scale = vec3(1, 1, 1);
     shared_ptr<Cuboid> pitBox = make_shared<Cuboid>(location, direction,
             CUBE_HALF_EXTENTS, scale, 0,
-            shapes.at(1), greyBox, false);
+            shapes.at(0), greyBox, false);
     objects.push_back(pitBox);
     bullet->createBox("pitBox", location, CUBE_HALF_EXTENTS, scale, 0);
 
@@ -368,7 +283,7 @@ void GameManager::createLevel() {
     scale = vec3(5, 3, 5);
     shared_ptr<Cuboid> thirdPlatform = make_shared<Cuboid>(location, direction,
             CUBE_HALF_EXTENTS, scale,
-            0, shapes.at(1),
+            0, shapes.at(0),
             building, false);
     objects.push_back(thirdPlatform);
     bullet->createBox("thirdPlatform", location, CUBE_HALF_EXTENTS, scale, 0);
@@ -378,7 +293,7 @@ void GameManager::createLevel() {
     scale = vec3(1, 0.2, 1);
     shared_ptr<Cuboid> magnetPadInPit = make_shared<Cuboid>(location, direction,
             CUBE_HALF_EXTENTS,
-            scale, 0, shapes.at(1),
+            scale, 0, shapes.at(0),
             magnetSurface, true);
     objects.push_back(magnetPadInPit);
     bullet->createMagneticBox("magnetPadInPit", location, CUBE_HALF_EXTENTS, scale, 0);
@@ -391,7 +306,7 @@ void GameManager::createLevel() {
     scale = vec3(5, 4, 5);
     shared_ptr<Cuboid> finalPlatform = make_shared<Cuboid>(location, direction,
             CUBE_HALF_EXTENTS,
-            scale, 0, shapes.at(1),
+            scale, 0, shapes.at(0),
             building, false);
     objects.push_back(finalPlatform);
     bullet->createBox("finalPlatform", location, CUBE_HALF_EXTENTS, scale, 0);
@@ -401,7 +316,7 @@ void GameManager::createLevel() {
     scale = vec3(1, 1, 1);
     shared_ptr<Cuboid> hallwayBox = make_shared<Cuboid>(location, direction,
             CUBE_HALF_EXTENTS, scale,
-            0, shapes.at(1), greyBox, false);
+            0, shapes.at(0), greyBox, false);
     objects.push_back(hallwayBox);
     bullet->createBox("hallwayBox", location, CUBE_HALF_EXTENTS, scale, 0);
 
@@ -410,7 +325,7 @@ void GameManager::createLevel() {
     scale = vec3(1.5, 1.5, 1.5);
     shared_ptr<Cuboid> hallwayFirstPad = make_shared<Cuboid>(location, direction,
             CUBE_HALF_EXTENTS,
-            scale, 0, shapes.at(1),
+            scale, 0, shapes.at(0),
             magnetSurface, true);
     objects.push_back(hallwayFirstPad);
     bullet->createMagneticBox("hallwayFirstPad", location, CUBE_HALF_EXTENTS, scale, 0);
@@ -420,7 +335,7 @@ void GameManager::createLevel() {
     scale = vec3(1.5, 1.5, 1.5);
     shared_ptr<Cuboid> hallwaySecondPad = make_shared<Cuboid>(location, direction,
             CUBE_HALF_EXTENTS,
-            scale, 0, shapes.at(1),
+            scale, 0, shapes.at(0),
             magnetSurface, true);
     objects.push_back(hallwaySecondPad);
     bullet->createMagneticBox("hallwaySecondPad", location, CUBE_HALF_EXTENTS, scale, 0);
@@ -430,7 +345,7 @@ void GameManager::createLevel() {
     scale = vec3(0.1, 1.5, 1.5);
     shared_ptr<Cuboid> hallwayLastPad = make_shared<Cuboid>(location, direction,
             CUBE_HALF_EXTENTS,
-            scale, 0, shapes.at(1),
+            scale, 0, shapes.at(0),
             magnetSurface, true);
     objects.push_back(hallwayLastPad);
     bullet->createMagneticBox("hallwayLastPad", location, CUBE_HALF_EXTENTS, scale, 0);
