@@ -443,7 +443,7 @@ void GameManager::renderGame(int fps) {
 
     /*if in gamestate menu render menu*/
     if (gameState == MENU) {
-        gui->draw();
+        gui->drawAll();
     }        /* else its in pause menu/game*/
     else {
 

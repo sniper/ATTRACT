@@ -25,26 +25,33 @@
 
 #include "Program.h"
 #include "Texture.h"
+#include "MatrixStack.h"
 
 
 #include <iostream>
 #include <vector>
 #include <memory>
 
+class Texture;
 class GuiManager {
 public:
     GuiManager();
     GuiManager(const GuiManager& orig);
     virtual ~GuiManager();
-    void draw();
+    void drawAll();
 private:
     std::shared_ptr<Program> guiShader;
-    std::shared_ptr<Texture> guiTexture;
+    
+    std::map<std::string,std::shared_ptr<Texture>> guiTextures;
+    
+    std::map<std::string, glm::vec3> scales;
+    std::map<std::string, glm::vec3> translates;
+    
 
     GLuint vertexbuffer;
     GLuint texbuffer;
     
-
+    void draw(std::string name);
 };
 
 #endif /* GUIMANAGER_HPP */
