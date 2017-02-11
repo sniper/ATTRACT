@@ -505,7 +505,7 @@ void GameManager::renderGame(int fps) {
 
 
 
-    //printStringToScreen(0.0f, 0.0f, "+", 0.0f, 0.0f, 0.0f);
+   printStringToScreen(0.0f, 0.0f, "+", 0.0f, 0.0f, 0.0f);
 
 
 
@@ -515,7 +515,7 @@ void GameManager::renderGame(int fps) {
 
     // Prints a crosshair to the center of the screen. Color depends on if you're looking at a magnet surface.
 
-    /*
+    
     if (camera->isLookingAtMagnet()) {
         if (Mouse::isLeftMouseButtonPressed()) {
             printStringToScreen(0.0f, 0.0f, "+", 0.0f, 1.0f, 1.0f);
@@ -529,7 +529,7 @@ void GameManager::renderGame(int fps) {
     }
     // Prints the frame rate to the screen.
     printStringToScreen(60.0f, 90.0f, to_string(fps) + " FPS", 0.0f, 0.0f, 0.0f);
-     */
+     
 
 
     GLSL::checkError(GET_FILE_LINE);
