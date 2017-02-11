@@ -44,7 +44,10 @@ public:
     GuiManager(const GuiManager& orig);
     virtual ~GuiManager();
     void drawAll();
-    State interpretPressedKeys(std::vector<char> pressedKeys);
+    void drawMenu();
+    void drawPause();
+    State interpretMenuPressedKeys(std::vector<char> pressedKeys);
+    State interpretPausePressedKeys(std::vector<char> pressedKeys);
 private:
     std::shared_ptr<Program> guiShader;
     

@@ -353,9 +353,13 @@ void GameManager::createLevel() {
 }
 
 State GameManager::processInputs() {
-    if(gameState == GAME)
-        inputManager->processGameInputs(bullet);
-    else if(gameState == MENU) 
+    if (gameState == GAME) {
+        gameState = inputManager->processGameInputs(bullet);
+    }
+    else if (gameState == PAUSE) {
+        gameState = inputManager->processPauseInputs(gui);
+    }
+    else if (gameState == MENU)
         gameState = inputManager->processMenuInputs(gui);
     return gameState;
 }
@@ -446,8 +450,8 @@ void GameManager::renderGame(int fps) {
 
     /*if in gamestate menu render menu*/
     if (gameState == MENU) {
-        gui->drawAll();
-    }        /* else its in pause menu/game*/
+        gui->drawMenu();
+    }/* else its in pause menu/game*/
     else {
 
         // Apply camera transforms
@@ -493,7 +497,10 @@ void GameManager::renderGame(int fps) {
         P->popMatrix();
 
 
-
+        /*render pause menu*/
+        if (gameState == PAUSE) {
+            gui->drawPause();
+        }
     }
 
 

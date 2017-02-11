@@ -14,7 +14,6 @@
 #include "Mouse.hpp"
 #include "Keyboard.hpp"
 
-
 using namespace std;
 
 InputManager::InputManager(shared_ptr<Camera> &camera) :
@@ -26,7 +25,7 @@ InputManager::~InputManager() {
 
 }
 
-void InputManager::processGameInputs(BulletManager *bullet) {
+State InputManager::processGameInputs(BulletManager *bullet) {
     // Move mouse.
     camera->mouseMoved(Mouse::getMouseX(), Mouse::getMouseY());
 
@@ -57,8 +56,12 @@ void InputManager::processGameInputs(BulletManager *bullet) {
     if (Keyboard::isPressed(GLFW_KEY_O)) {
         pressedKeys.push_back('o');
     }
+    if (Keyboard::isPressed(GLFW_KEY_ESCAPE)) {
+        return PAUSE;
+    }
 
     camera->interpretPressedKeys(pressedKeys, bullet);
+    return GAME;
 }
 
 State InputManager::processMenuInputs(GuiManager* gui) {
@@ -73,9 +76,20 @@ State InputManager::processMenuInputs(GuiManager* gui) {
         pressedKeys.push_back('s');
     }
 
-    if (Keyboard::isPressed(GLFW_KEY_ENTER) ) {
+    if (Keyboard::isPressed(GLFW_KEY_ENTER)) {
         pressedKeys.push_back('\n');
     }
-    return gui->interpretPressedKeys(pressedKeys);
+    return gui->interpretMenuPressedKeys(pressedKeys);
 
+}
+
+State InputManager::processPauseInputs(GuiManager* gui) {
+    vector<char> pressedKeys;
+    if (!Keyboard::isPressed(GLFW_KEY_ESCAPE)) {
+        pressedKeys.push_back('<');
+    }
+    if (Keyboard::isPressed(GLFW_KEY_ENTER)) {
+        pressedKeys.push_back('\n');
+    }
+    return gui->interpretPausePressedKeys(pressedKeys);
 }

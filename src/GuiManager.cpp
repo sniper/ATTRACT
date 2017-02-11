@@ -16,7 +16,8 @@
 using namespace std;
 using namespace glm;
 
-GuiManager::GuiManager() {
+GuiManager::GuiManager() :
+selectedName("play") {
     static const GLfloat g_vertex_buffer_data[] = {
         -0.5f, 0.5f, 0.0f,
         -0.5f, -0.5f, 0.0f,
@@ -76,6 +77,23 @@ GuiManager::GuiManager() {
     scales.insert(make_pair("arrow", vec3(0.3, 0.2, 1)));
     translates.insert(make_pair("arrow", vec3(-0.5, -0.2, 0)));
 
+    shared_ptr<Texture> playTex4 = make_shared<Texture>();
+    playTex4->setFilename("/home/darryl/Documents/ATTRACT/resources/pause.jpg");
+    playTex4->init();
+    playTex4->setUnit(0);
+    playTex4->setWrapModes(GL_REPEAT, GL_REPEAT);
+    guiTextures.insert(make_pair("pause", playTex4));
+    scales.insert(make_pair("pause", vec3(1, 1, 1)));
+    translates.insert(make_pair("pause", vec3(-0.5, 0.5, 0)));
+
+    shared_ptr<Texture> playTex5 = make_shared<Texture>();
+    playTex5->setFilename("/home/darryl/Documents/ATTRACT/resources/shipparts0.jpg");
+    playTex5->init();
+    playTex5->setUnit(0);
+    playTex5->setWrapModes(GL_REPEAT, GL_REPEAT);
+    guiTextures.insert(make_pair("shipparts0", playTex5));
+    scales.insert(make_pair("shipparts0", vec3(0.7, 0.7, 1)));
+    translates.insert(make_pair("shipparts0", vec3(0.5, 0.5, 0)));
 
 
 
@@ -102,21 +120,49 @@ GuiManager::GuiManager(const GuiManager& orig) {
 GuiManager::~GuiManager() {
 }
 
-State GuiManager::interpretPressedKeys(vector<char> pressedKeys) {
+State GuiManager::interpretMenuPressedKeys(vector<char> pressedKeys) {
     if (find(pressedKeys.begin(), pressedKeys.end(), 's') != pressedKeys.end()) {
         translates["arrow"] = vec3(-0.8, -0.8, 0);
         selectedName = "quit";
-    }
-    else if (find(pressedKeys.begin(), pressedKeys.end(), 'w') != pressedKeys.end()) {
+    } else if (find(pressedKeys.begin(), pressedKeys.end(), 'w') != pressedKeys.end()) {
         translates["arrow"] = vec3(-0.5, -0.2, 0);
         selectedName = "play";
     } else if (find(pressedKeys.begin(), pressedKeys.end(), '\n') != pressedKeys.end()) {
-        if(selectedName == "play")
+        if (selectedName == "play")
             return GAME;
-        else if(selectedName == "quit")
+        else if (selectedName == "quit")
             exit(0);
     }
     return MENU;
+}
+
+State GuiManager::interpretPausePressedKeys(std::vector<char> pressedKeys) {
+    if (find(pressedKeys.begin(), pressedKeys.end(), '<') != pressedKeys.end()) {
+        return GAME;
+    }
+    else if (find(pressedKeys.begin(), pressedKeys.end(), '\n') != pressedKeys.end()) {
+        if(selectedName == "quit")
+            exit(0);
+    }
+    
+    return PAUSE;
+}
+
+void GuiManager::drawMenu() {
+    draw("attract");
+    draw("play");
+    draw("quit");
+    draw("arrow");
+
+}
+
+void GuiManager::drawPause() {
+    translates["arrow"] = vec3(-0.8, -0.8, 0);
+    draw("arrow");
+    draw("pause");
+    draw("shipparts0");
+    draw("quit");
+    selectedName = "quit";
 }
 
 void GuiManager::drawAll() {
