@@ -16,8 +16,9 @@
 using namespace std;
 using namespace glm;
 
-GuiManager::GuiManager() :
-selectedName("play") {
+GuiManager::GuiManager(string resource) :
+selectedName("play"),
+RESOURCE_DIR(resource){
     static const GLfloat g_vertex_buffer_data[] = {
         -0.5f, 0.5f, 0.0f,
         -0.5f, -0.5f, 0.0f,
@@ -33,7 +34,7 @@ selectedName("play") {
     };
 
     guiShader = make_shared<Program>();
-    guiShader->setShaderNames("/home/darryl/Documents/ATTRACT/resources/guiVert.glsl", "/home/darryl/Documents/ATTRACT/resources/guiFrag.glsl");
+    guiShader->setShaderNames(RESOURCE_DIR + "guiVert.glsl", RESOURCE_DIR + "guiFrag.glsl");
     guiShader->init();
     guiShader->addAttribute("pos");
 
@@ -42,7 +43,7 @@ selectedName("play") {
     guiShader->addUniform("M");
 
     shared_ptr<Texture> playTex = make_shared<Texture>();
-    playTex->setFilename("/home/darryl/Documents/ATTRACT/resources/play.jpg");
+    playTex->setFilename(RESOURCE_DIR + "play.jpg");
     playTex->init();
     playTex->setUnit(0);
     playTex->setWrapModes(GL_REPEAT, GL_REPEAT);
@@ -51,7 +52,7 @@ selectedName("play") {
     translates.insert(make_pair("play", vec3(0, -0.2, 0)));
 
     shared_ptr<Texture> playTex1 = make_shared<Texture>();
-    playTex1->setFilename("/home/darryl/Documents/ATTRACT/resources/attract.jpg");
+    playTex1->setFilename(RESOURCE_DIR + "attract.jpg");
     playTex1->init();
     playTex1->setUnit(0);
     playTex1->setWrapModes(GL_REPEAT, GL_REPEAT);
@@ -60,7 +61,7 @@ selectedName("play") {
     translates.insert(make_pair("attract", vec3(0, 0.5, 0)));
 
     shared_ptr<Texture> playTex2 = make_shared<Texture>();
-    playTex2->setFilename("/home/darryl/Documents/ATTRACT/resources/quit.jpg");
+    playTex2->setFilename(RESOURCE_DIR + "quit.jpg");
     playTex2->init();
     playTex2->setUnit(0);
     playTex2->setWrapModes(GL_REPEAT, GL_REPEAT);
@@ -69,7 +70,7 @@ selectedName("play") {
     translates.insert(make_pair("quit", vec3(0, -0.8, 0)));
 
     shared_ptr<Texture> playTex3 = make_shared<Texture>();
-    playTex3->setFilename("/home/darryl/Documents/ATTRACT/resources/arrow.jpg");
+    playTex3->setFilename(RESOURCE_DIR + "arrow.jpg");
     playTex3->init();
     playTex3->setUnit(0);
     playTex3->setWrapModes(GL_REPEAT, GL_REPEAT);
@@ -78,7 +79,7 @@ selectedName("play") {
     translates.insert(make_pair("arrow", vec3(-0.5, -0.2, 0)));
 
     shared_ptr<Texture> playTex4 = make_shared<Texture>();
-    playTex4->setFilename("/home/darryl/Documents/ATTRACT/resources/pause.jpg");
+    playTex4->setFilename(RESOURCE_DIR + "pause.jpg");
     playTex4->init();
     playTex4->setUnit(0);
     playTex4->setWrapModes(GL_REPEAT, GL_REPEAT);
@@ -87,7 +88,7 @@ selectedName("play") {
     translates.insert(make_pair("pause", vec3(-0.5, 0.5, 0)));
 
     shared_ptr<Texture> playTex5 = make_shared<Texture>();
-    playTex5->setFilename("/home/darryl/Documents/ATTRACT/resources/shipparts0.jpg");
+    playTex5->setFilename(RESOURCE_DIR + "shipparts0.jpg");
     playTex5->init();
     playTex5->setUnit(0);
     playTex5->setWrapModes(GL_REPEAT, GL_REPEAT);

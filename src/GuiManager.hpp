@@ -40,7 +40,7 @@ class Texture;
 
 class GuiManager {
 public:
-    GuiManager();
+    GuiManager(std::string resource);
     GuiManager(const GuiManager& orig);
     virtual ~GuiManager();
     void drawAll();
@@ -49,6 +49,7 @@ public:
     State interpretMenuPressedKeys(std::vector<char> pressedKeys);
     State interpretPausePressedKeys(std::vector<char> pressedKeys);
 private:
+    std::string RESOURCE_DIR;
     std::shared_ptr<Program> guiShader;
     
     std::map<std::string,std::shared_ptr<Texture>> guiTextures;

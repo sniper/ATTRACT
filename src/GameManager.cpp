@@ -82,7 +82,7 @@ gameState(MENU) {
     fmod->createStream(RESOURCE_DIR + "bgm.mp3");
     fmod->playSound();
 
-    gui = new GuiManager();
+    gui = new GuiManager(RESOURCE_DIR);
     // Initialize the scene.
     initScene();
     //create the level
