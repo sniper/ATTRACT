@@ -352,11 +352,12 @@ void GameManager::createLevel() {
     bullet->createMagneticBox("hallwayLastPad", location, CUBE_HALF_EXTENTS, scale, 0);
 }
 
-void GameManager::processInputs() {
+State GameManager::processInputs() {
     if(gameState == GAME)
         inputManager->processGameInputs(bullet);
     else if(gameState == MENU) 
         gameState = inputManager->processMenuInputs(gui);
+    return gameState;
 }
 
 void GameManager::updateGame(double dt) {

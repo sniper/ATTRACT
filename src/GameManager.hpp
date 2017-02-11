@@ -39,7 +39,7 @@ public:
     virtual ~GameManager();
     
     void initScene();
-    void processInputs();
+    State processInputs();
     void updateGame(double dt);
     void renderGame(int fps);
     static void resize_callback(GLFWwindow *window, int width, int height);
