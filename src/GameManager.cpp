@@ -355,6 +355,8 @@ void GameManager::createLevel() {
 void GameManager::processInputs() {
     if(gameState == GAME)
         inputManager->processGameInputs(bullet);
+    else if(gameState == MENU) 
+        gameState = inputManager->processMenuInputs(gui);
 }
 
 void GameManager::updateGame(double dt) {

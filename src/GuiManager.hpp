@@ -31,14 +31,20 @@
 #include <iostream>
 #include <vector>
 #include <memory>
+#include <algorithm>
+#include "GameManager.hpp"
 
 class Texture;
+
+
+
 class GuiManager {
 public:
     GuiManager();
     GuiManager(const GuiManager& orig);
     virtual ~GuiManager();
     void drawAll();
+    State interpretPressedKeys(std::vector<char> pressedKeys);
 private:
     std::shared_ptr<Program> guiShader;
     
@@ -47,7 +53,8 @@ private:
     std::map<std::string, glm::vec3> scales;
     std::map<std::string, glm::vec3> translates;
     
-
+    std::string selectedName;
+    
     GLuint vertexbuffer;
     GLuint texbuffer;
     

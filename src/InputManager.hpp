@@ -11,9 +11,13 @@
 
 #include <memory>
 #include "BulletSphere.h"
+#include "GuiManager.hpp"
+#include "GameManager.hpp"
+
 
 class Camera;
 class BulletManager;
+class GuiManager;
 
 class InputManager
 {
@@ -21,6 +25,7 @@ public:
     InputManager(std::shared_ptr<Camera> &camera);
     virtual ~InputManager();
     void processGameInputs(BulletManager *bullet);
+    State processMenuInputs(GuiManager *gui);
 private:
     std::shared_ptr<Camera> camera;
 };

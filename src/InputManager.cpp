@@ -14,21 +14,19 @@
 #include "Mouse.hpp"
 #include "Keyboard.hpp"
 
+
 using namespace std;
 
 InputManager::InputManager(shared_ptr<Camera> &camera) :
-camera(camera)
-{
+camera(camera) {
 
 }
 
-InputManager::~InputManager()
-{
+InputManager::~InputManager() {
 
 }
 
-void InputManager::processGameInputs(BulletManager *bullet)
-{
+void InputManager::processGameInputs(BulletManager *bullet) {
     // Move mouse.
     camera->mouseMoved(Mouse::getMouseX(), Mouse::getMouseY());
 
@@ -61,4 +59,23 @@ void InputManager::processGameInputs(BulletManager *bullet)
     }
 
     camera->interpretPressedKeys(pressedKeys, bullet);
+}
+
+State InputManager::processMenuInputs(GuiManager* gui) {
+
+    vector<char> pressedKeys;
+
+    if (Keyboard::isPressed(GLFW_KEY_W) || Keyboard::isPressed(GLFW_KEY_UP)) {
+        pressedKeys.push_back('w');
+
+    }
+    if (Keyboard::isPressed(GLFW_KEY_S) || Keyboard::isPressed(GLFW_KEY_DOWN)) {
+        pressedKeys.push_back('s');
+    }
+
+    if (Keyboard::isPressed(GLFW_KEY_ENTER) ) {
+        pressedKeys.push_back('\n');
+    }
+    return gui->interpretPressedKeys(pressedKeys);
+
 }

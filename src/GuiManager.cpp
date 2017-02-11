@@ -102,6 +102,23 @@ GuiManager::GuiManager(const GuiManager& orig) {
 GuiManager::~GuiManager() {
 }
 
+State GuiManager::interpretPressedKeys(vector<char> pressedKeys) {
+    if (find(pressedKeys.begin(), pressedKeys.end(), 's') != pressedKeys.end()) {
+        translates["arrow"] = vec3(-0.8, -0.8, 0);
+        selectedName = "quit";
+    }
+    else if (find(pressedKeys.begin(), pressedKeys.end(), 'w') != pressedKeys.end()) {
+        translates["arrow"] = vec3(-0.5, -0.2, 0);
+        selectedName = "play";
+    } else if (find(pressedKeys.begin(), pressedKeys.end(), '\n') != pressedKeys.end()) {
+        if(selectedName == "play")
+            return GAME;
+        else if(selectedName == "quit")
+            exit(0);
+    }
+    return MENU;
+}
+
 void GuiManager::drawAll() {
     for (std::map<string, shared_ptr < Texture>>::iterator it = guiTextures.begin(); it != guiTextures.end(); ++it) {
         draw(it->first);
