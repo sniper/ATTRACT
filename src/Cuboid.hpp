@@ -10,6 +10,7 @@
 #define Cuboid_hpp
 
 #include "GameObject.hpp"
+#include "AABoundingBox.hpp"
 
 class Cuboid : public GameObject
 {
@@ -29,10 +30,13 @@ public:
                                        const glm::vec3 &end,
                                        glm::vec3 *closestPointOfIntersection);
     
+    bool isCuboid() const {return true;}
     bool isMagnetic() const {return magnetic;}
     
     void update(float dt);
-    std::vector<glm::vec3>* getAabbMinsMaxs();
+    glm::vec3 getMins() const {return boundingBox->getMins();}
+    glm::vec3 getMaxes() const {return boundingBox->getMaxes();}
+    std::vector<glm::vec3> *getAabbMinsMaxs();
 protected:
     std::shared_ptr<AABoundingBox> boundingBox;
     bool magnetic;

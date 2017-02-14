@@ -37,6 +37,7 @@
 #include "Cuboid.hpp"
 #include "RayTrace.hpp"
 #include "VfcManager.hpp"
+#include "KDTree.hpp"
 
 #include "stb_easy_font.h"
 
@@ -80,10 +81,36 @@ RESOURCE_DIR(resourceDir) {
     fmod = new FmodManager();
     fmod->createStream(RESOURCE_DIR + "bgm.mp3");
     fmod->playSound();
+    
     // Initialize the scene.
     initScene();
     //create the level
     createLevel();
+    
+    kdtree = make_shared<KDTree>(objects);
+    kdtree->printTree();
+    
+//    vector<shared_ptr<GameObject>> treeTest = kdtree->findObjectsNearPoint(vec3(0, 3, 4));
+//    cout << "Objects near (0, 3, 4): " << endl;
+//    for (int i = 0; i < treeTest.size(); i++) {
+//        string xCoord = to_string(treeTest.at(i)->getPosition().x);
+//        xCoord.erase(xCoord.find_last_not_of('0') + 1, string::npos);
+//        if (xCoord[xCoord.size()-1] == '.') {
+//            xCoord.append("0");
+//        }
+//        string yCoord = to_string(treeTest.at(i)->getPosition().y);
+//        yCoord.erase(yCoord.find_last_not_of('0') + 1, string::npos);
+//        if (yCoord[yCoord.size()-1] == '.') {
+//            yCoord.append("0");
+//        }
+//        string zCoord = to_string(treeTest.at(i)->getPosition().z);
+//        zCoord.erase(zCoord.find_last_not_of('0') + 1, string::npos);
+//        if (zCoord[zCoord.size()-1] == '.') {
+//            zCoord.append("0");
+//        }
+//        
+//        cout << "(" + xCoord + ", " + yCoord + ", " + zCoord + ")" << endl;
+//    }
 }
 
 GameManager::~GameManager() {
@@ -255,7 +282,7 @@ void GameManager::createLevel() {
     vec3 location, direction, scale;
 
     // Ground Plane
-    location = vec3(20, 0, 0);
+    location = vec3(25, 0, 0);
     direction = vec3(1, 0, 0);
     scale = vec3(100, 0.1, 10);
     shared_ptr<Cuboid> groundPlane = make_shared<Cuboid>(location, direction,
@@ -447,7 +474,8 @@ void GameManager::updateGame(double dt) {
 
     camera->setPosition(bullet->getBulletObjectState("cam"));
 
-
+    //kdtree->printTree();
+    
     /*
     for (int i = 0; i < objects.size(); i++) {
         shared_ptr<GameObject> currObj = objects.at(i);
@@ -569,7 +597,7 @@ void GameManager::renderGame(int fps) {
         delete temp;
 
     }
-    cout << "objects draw: " << objectsDrawn << endl;
+    //cout << "objects draw: " << objectsDrawn << endl;
     program->unbind();
 
     if (bullet->getDebugFlag())
@@ -611,8 +639,6 @@ void GameManager::renderGame(int fps) {
     P->popMatrix();
 
     GLSL::checkError(GET_FILE_LINE);
-
-
 }
 
 // If the window is resized, capture the new size and reset the viewport
@@ -624,11 +650,14 @@ void GameManager::resize_callback(GLFWwindow *window, int width, int height) {
 void GameManager::resolveMagneticInteractions() {
     vec3 startLoc = camera->getPosition();
     vec3 endLoc = startLoc + camera->getDirection() * MAGNET_RANGE;
-    shared_ptr<GameObject> obj = RayTrace::rayTrace(startLoc, endLoc, objects);
+    
+    // Limiting the number of objects to just ones near the endpoint. Not sure
+    // if checking the endpoint is the best approach, but it seems to work fine
+    // for now.
+    vector<shared_ptr<GameObject>> nearObjs = kdtree->findObjectsNearPoint(endLoc);
+    
+    shared_ptr<GameObject> obj = RayTrace::rayTrace(startLoc, endLoc, nearObjs);
     if (obj && obj->isMagnetic()) {
-        //        cout << to_string(obj->getPosition().x) + " " +
-        //                to_string(obj->getPosition().y) + " " +
-        //                to_string(obj->getPosition().z) << endl;
         camera->setLookingAtMagnet(true);
         if (Mouse::isLeftMouseButtonPressed()) {
             vec3 dir = normalize(endLoc - startLoc);

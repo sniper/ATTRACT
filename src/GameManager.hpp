@@ -28,6 +28,7 @@ class Texture;
 class BulletManager;
 class VfcManager;
 class FmodManager;
+struct KDTree;
 
 class GameManager
 {
@@ -56,6 +57,8 @@ private:
     std::shared_ptr<GameObject> testObj;
     VfcManager *vfc;
     FmodManager *fmod;
+    
+    std::shared_ptr<KDTree> kdtree;
     
     std::vector<std::shared_ptr<GameObject>> objects;
 

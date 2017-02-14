@@ -195,8 +195,8 @@ bool Cuboid::isIntersectingWithLineSegment(const vec3 &start, const vec3 &end,
     return false;
 }
 
-std::vector<glm::vec3>* Cuboid::getAabbMinsMaxs() {
-    std::vector<glm::vec3> *temp = new vector<glm::vec3>();
+vector<vec3>* Cuboid::getAabbMinsMaxs() {
+    vector<vec3> *temp = new vector<vec3>();
     temp->push_back(boundingBox->getMins());
     temp->push_back(boundingBox->getMaxes());
     return temp;
