@@ -28,9 +28,13 @@ class Texture;
 class BulletManager;
 class VfcManager;
 class FmodManager;
+
 class GuiManager;
 
 enum State {GAME, MENU, PAUSE};
+
+struct KDTree;
+
 
 class GameManager
 {
@@ -59,8 +63,12 @@ private:
     BulletManager *bullet;
     VfcManager *vfc;
     FmodManager *fmod;
+
     GuiManager *gui;
-           
+        
+    std::shared_ptr<KDTree> kdtree;
+    
+
     std::vector<std::shared_ptr<GameObject>> objects;
 
     double objIntervalCounter;

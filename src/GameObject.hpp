@@ -42,6 +42,8 @@ public:
     void update(float dt);
     void resolveCollision(bool collidedWithPlayer);
     
+    virtual bool isCuboid() const {return false;}
+    
     void setPosition(glm::vec3 pos);
     
     virtual bool isMagnetic() const {return false;}
