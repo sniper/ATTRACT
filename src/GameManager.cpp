@@ -159,6 +159,12 @@ void GameManager::initScene() {
     cube->init();
     shapes.push_back(cube);
 
+    shared_ptr<Shape> gun = make_shared<Shape>();
+    gun->loadMesh(RESOURCE_DIR + "MP5K.obj");
+    gun->fitToUnitBox();
+    gun->init();
+    shapes.push_back(gun);
+
     //lightPos = vec4(0.0f, 10.0f, 0.0f, 1.0f);
     lightIntensity = 0.6f;
 
@@ -177,9 +183,9 @@ void GameManager::initScene() {
 
     bullet->createBox("cam", vec3(0, 0.5, 0), CUBE_HALF_EXTENTS, vec3(1, 1, 1), 1);
 
-    //shared_ptr<Material> material = make_shared<Material>(vec3(0.2f, 0.2f, 0.2f), vec3(0.0f, 0.5f, 0.5f), vec3(1.0f, 0.9f, 0.8f), 200.0f);
-    //shared_ptr<BoundingSphere> boundingSphere = make_shared<BoundingSphere>(vec3(0, 10, 0), BUNNY_SPHERE_RADIUS);
-    //testObj = make_shared<GameObject>(vec3(0, 10, 0), vec3(1, 0, 0), 0, boundingSphere, shapes.at(0), material);
+    shared_ptr<Material> material = make_shared<Material>(vec3(0.2f, 0.2f, 0.2f), vec3(0.0f, 0.5f, 0.5f), vec3(1.0f, 0.9f, 0.8f), 200.0f);
+    shared_ptr<BoundingSphere> boundingSphere = make_shared<BoundingSphere>(vec3(0, 10, 0), BUNNY_SPHERE_RADIUS);
+    magnetObj = make_shared<GameObject>(vec3(0.4, -0.2, -1), vec3(0.4, 0, -0.2), vec3(0.5, 0.5, 0.5), 0, shapes.at(1), material);
     //objects.push_back(testObj);
 }
 
@@ -526,6 +532,13 @@ void GameManager::renderGame(int fps) {
         }
         //cout << "objects draw: " << objectsDrawn << endl;
 
+        MV->pushMatrix();
+        MV->loadIdentity();
+        glUniformMatrix4fv(program->getUniform("MV"), 1, GL_FALSE, value_ptr(MV->topMatrix()));
+        glDisable(GL_DEPTH_TEST);
+        magnetObj->draw(program);
+        glEnable(GL_DEPTH_TEST);
+        MV->popMatrix();
         program->unbind();
 
 
@@ -611,8 +624,8 @@ void GameManager::resolveMagneticInteractions() {
 
     } else {
         camera->setLookingAtMagnet(false);
-        if( Mouse::isLeftMouseButtonPressed() || Mouse::isRightMouseButtonPressed()) {
-            if(!fmod->isPlaying("click"))
+        if (Mouse::isLeftMouseButtonPressed() || Mouse::isRightMouseButtonPressed()) {
+            if (!fmod->isPlaying("click"))
                 fmod->playSound("click", false, 1);
         }
     }

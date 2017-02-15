@@ -167,9 +167,9 @@ void Camera::interpretPressedKeys(const vector<char> &pressedKeys,
             }
         }
          */
-        cout << "pressed space" << endl;
+
         if (RayCB.hasHit()) {
-            cout << "hit" << endl;
+
             movement += btVector3(0, JUMP_VELOCITY, 0);
             if (!fmod->isPlaying("jump")) {
                 fmod->playSound("jump", false, 2.2);

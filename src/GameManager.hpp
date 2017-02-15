@@ -70,6 +70,8 @@ private:
     
 
     std::vector<std::shared_ptr<GameObject>> objects;
+    
+    std::shared_ptr<GameObject> magnetObj;
 
     double objIntervalCounter;
     int numObjCollected;
