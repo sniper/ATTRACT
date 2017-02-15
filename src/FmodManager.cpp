@@ -66,6 +66,17 @@ void FmodManager::playSound(string name, bool loop) {
         curSound = name;
 }
 
+void FmodManager::playSound(string name, bool loop, float volume) {
+    
+    
+    result = fmodSystem->playSound(sounds[name], 0, false, &channels[name]);
+    ERRCHECK(result);
+    result = channels[name]->setVolume(volume);
+    ERRCHECK(result);
+    if(loop)
+        curSound = name;
+}
+
 void FmodManager::stopSound(string name) {
     result = channels[name]->stop();
     ERRCHECK(result);

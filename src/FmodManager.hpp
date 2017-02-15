@@ -27,6 +27,7 @@ public:
     virtual ~FmodManager();
     void createStream(std::string name, std::string path, bool loop);
     void playSound(std::string name, bool loop);
+    void playSound(std::string name, bool loop, float volume);
     void setPaused(std::string name, bool state);
     bool isPlaying(std::string name);
     std::string getCurSound();
