@@ -27,6 +27,9 @@ curSound(""){
     createStream("jump_land", "jump_land.mp3",false);
     createStream("magnet", "magnet.mp3",false);
     createStream("walking", "walking.mp3",false);
+    createStream("click", "click.mp3",false);
+    createStream("select", "select.mp3",false);
+    createStream("choose", "choose.mp3",false);
 }
 
 FmodManager::FmodManager(const FmodManager& orig) {

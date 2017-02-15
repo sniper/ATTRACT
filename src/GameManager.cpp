@@ -387,15 +387,15 @@ State GameManager::processInputs() {
         gameState = inputManager->processGameInputs(bullet, fmod);
         if (fmod->getCurSound() != "game") {
             fmod->stopSound("menu");
-            fmod->playSound("game",true);
+            fmod->playSound("game", true);
         }
     } else if (gameState == PAUSE) {
-        gameState = inputManager->processPauseInputs(gui);
+        gameState = inputManager->processPauseInputs(gui, fmod);
     } else if (gameState == MENU) {
         if (fmod->getCurSound() != "menu")
-            fmod->playSound("menu",true);
+            fmod->playSound("menu", true);
 
-        gameState = inputManager->processMenuInputs(gui);
+        gameState = inputManager->processMenuInputs(gui, fmod);
     }
 
 
@@ -594,16 +594,27 @@ void GameManager::resolveMagneticInteractions() {
     if (obj && obj->isMagnetic()) {
         camera->setLookingAtMagnet(true);
         if (Mouse::isLeftMouseButtonPressed()) {
+            if (!fmod->isPlaying("magnet")) {
+                fmod->playSound("magnet", false, 1);
+            }
             vec3 dir = normalize(endLoc - startLoc);
             btVector3 bulletDir = btVector3(dir.x, dir.y, dir.z);
             bullet->getBulletObject("cam")->getRigidBody()->setLinearVelocity(bulletDir * MAGNET_STRENGTH);
         } else if (Mouse::isRightMouseButtonPressed()) {
+            if (!fmod->isPlaying("magnet")) {
+                fmod->playSound("magnet", false, 1);
+            }
             vec3 dir = normalize(startLoc - endLoc);
             btVector3 bulletDir = btVector3(dir.x, dir.y, dir.z);
             bullet->getBulletObject("cam")->getRigidBody()->setLinearVelocity(bulletDir * MAGNET_STRENGTH);
         }
+
     } else {
         camera->setLookingAtMagnet(false);
+        if( Mouse::isLeftMouseButtonPressed() || Mouse::isRightMouseButtonPressed()) {
+            if(!fmod->isPlaying("click"))
+                fmod->playSound("click", false, 1);
+        }
     }
 }
 

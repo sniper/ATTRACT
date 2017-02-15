@@ -57,6 +57,9 @@ State InputManager::processGameInputs(shared_ptr<BulletManager> bullet, shared_p
         pressedKeys.push_back('o');
     }
     if (Keyboard::isPressed(GLFW_KEY_ESCAPE)) {
+        if (!fmod->isPlaying("select")) {
+            fmod->playSound("select", false, 1);
+        }
         return PAUSE;
     }
 
@@ -64,32 +67,47 @@ State InputManager::processGameInputs(shared_ptr<BulletManager> bullet, shared_p
     return GAME;
 }
 
-State InputManager::processMenuInputs(shared_ptr<GuiManager> gui) {
+State InputManager::processMenuInputs(shared_ptr<GuiManager> gui, shared_ptr<FmodManager> fmod) {
 
     vector<char> pressedKeys;
 
     if (Keyboard::isPressed(GLFW_KEY_W) || Keyboard::isPressed(GLFW_KEY_UP)) {
         pressedKeys.push_back('w');
+        if (!fmod->isPlaying("select")) {
+            fmod->playSound("select", false, 1);
+        }
 
     }
     if (Keyboard::isPressed(GLFW_KEY_S) || Keyboard::isPressed(GLFW_KEY_DOWN)) {
         pressedKeys.push_back('s');
+        if (!fmod->isPlaying("select")) {
+            fmod->playSound("select", false, 1);
+        }
     }
 
     if (Keyboard::isPressed(GLFW_KEY_ENTER)) {
         pressedKeys.push_back('\n');
+        if (!fmod->isPlaying("choose")) {
+            fmod->playSound("choose", false, 1);
+        }
     }
     return gui->interpretMenuPressedKeys(pressedKeys);
 
 }
 
-State InputManager::processPauseInputs(shared_ptr<GuiManager> gui) {
+State InputManager::processPauseInputs(shared_ptr<GuiManager> gui, shared_ptr<FmodManager> fmod) {
     vector<char> pressedKeys;
     if (!Keyboard::isPressed(GLFW_KEY_ESCAPE)) {
         pressedKeys.push_back('<');
+        if (!fmod->isPlaying("choose")) {
+            fmod->playSound("choose", false, 1);
+        }
     }
     if (Keyboard::isPressed(GLFW_KEY_ENTER)) {
         pressedKeys.push_back('\n');
+        if (!fmod->isPlaying("choose")) {
+            fmod->playSound("choose", false, 1);
+        }
     }
     return gui->interpretPausePressedKeys(pressedKeys);
 }
