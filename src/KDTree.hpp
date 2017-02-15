@@ -10,6 +10,7 @@
 #define KDTree_hpp
 
 #include <vector>
+#include <memory>
 
 #include <glm/gtc/type_ptr.hpp>
 
