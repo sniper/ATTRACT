@@ -60,11 +60,11 @@ private:
     std::string RESOURCE_DIR;
     State gameState;
     
-    BulletManager *bullet;
-    VfcManager *vfc;
-    FmodManager *fmod;
+    std::shared_ptr<BulletManager> bullet;
+    std::shared_ptr<VfcManager> vfc;
+    std::shared_ptr<FmodManager> fmod;
 
-    GuiManager *gui;
+    std::shared_ptr<GuiManager> gui;
         
     std::shared_ptr<KDTree> kdtree;
     

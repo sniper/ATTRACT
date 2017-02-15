@@ -8,6 +8,7 @@
 
 #include <iostream>
 #include <algorithm>
+#include <memory>
 
 #include "Camera.hpp"
 #include "MatrixStack.h"
@@ -83,7 +84,8 @@ void Camera::mouseMoved(double x, double y)
 }
 
 void Camera::interpretPressedKeys(const vector<char> &pressedKeys,
-                                  BulletManager *bullet, FmodManager *fmod)
+                                  shared_ptr<BulletManager> bullet, 
+                                  shared_ptr<FmodManager> fmod)
 {
     BulletObject *bulletCamObj = bullet->getBulletObject("cam");
     vec3 rot = vec3(cos(yaw), 0, cos((3.14 / 2) - yaw));

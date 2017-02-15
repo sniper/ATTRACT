@@ -25,7 +25,7 @@ InputManager::~InputManager() {
 
 }
 
-State InputManager::processGameInputs(BulletManager *bullet, FmodManager *fmod) {
+State InputManager::processGameInputs(shared_ptr<BulletManager> bullet, shared_ptr<FmodManager> fmod) {
     // Move mouse.
     camera->mouseMoved(Mouse::getMouseX(), Mouse::getMouseY());
 
@@ -64,7 +64,7 @@ State InputManager::processGameInputs(BulletManager *bullet, FmodManager *fmod) 
     return GAME;
 }
 
-State InputManager::processMenuInputs(GuiManager* gui) {
+State InputManager::processMenuInputs(shared_ptr<GuiManager> gui) {
 
     vector<char> pressedKeys;
 
@@ -83,7 +83,7 @@ State InputManager::processMenuInputs(GuiManager* gui) {
 
 }
 
-State InputManager::processPauseInputs(GuiManager* gui) {
+State InputManager::processPauseInputs(shared_ptr<GuiManager> gui) {
     vector<char> pressedKeys;
     if (!Keyboard::isPressed(GLFW_KEY_ESCAPE)) {
         pressedKeys.push_back('<');

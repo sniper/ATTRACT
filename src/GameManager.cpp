@@ -81,11 +81,11 @@ gameState(MENU) {
     // Set up the manager for keyboard and mouse input.
     inputManager = make_shared<InputManager>(camera);
     //init vfc
-    vfc = new VfcManager();
+    vfc = make_shared<VfcManager>();
     //init fmod
-    fmod = new FmodManager(RESOURCE_DIR);
+    fmod = make_shared<FmodManager>(RESOURCE_DIR);
 
-    gui = new GuiManager(RESOURCE_DIR);
+    gui = make_shared<GuiManager>(RESOURCE_DIR);
 
 
     // Initialize the scene.
@@ -172,7 +172,7 @@ void GameManager::initScene() {
 
 
     // Set up the bullet manager and create ground plane and camera.
-    bullet = new BulletManager();
+    bullet = make_shared<BulletManager>();
     bullet->createPlane("ground", 0, 0, 0);
 
     bullet->createBox("cam", vec3(0, 0.5, 0), CUBE_HALF_EXTENTS, vec3(1, 1, 1), 1);

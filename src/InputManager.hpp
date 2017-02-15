@@ -24,9 +24,9 @@ class InputManager
 public:
     InputManager(std::shared_ptr<Camera> &camera);
     virtual ~InputManager();
-    State processGameInputs(BulletManager *bullet, FmodManager *fmod);
-    State processMenuInputs(GuiManager *gui);
-    State processPauseInputs(GuiManager *gui);
+    State processGameInputs(std::shared_ptr<BulletManager> bullet, std::shared_ptr<FmodManager> fmod);
+    State processMenuInputs(std::shared_ptr<GuiManager> gui);
+    State processPauseInputs(std::shared_ptr<GuiManager> gui);
 private:
     std::shared_ptr<Camera> camera;
 };
