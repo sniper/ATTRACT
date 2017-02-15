@@ -386,14 +386,14 @@ State GameManager::processInputs() {
     if (gameState == GAME) {
         gameState = inputManager->processGameInputs(bullet, fmod);
         if (fmod->getCurSound() != "game") {
-            fmod->stopSound();
-            fmod->playSound("game");
+            fmod->stopSound("menu");
+            fmod->playSound("game",true);
         }
     } else if (gameState == PAUSE) {
         gameState = inputManager->processPauseInputs(gui);
     } else if (gameState == MENU) {
         if (fmod->getCurSound() != "menu")
-            fmod->playSound("menu");
+            fmod->playSound("menu",true);
 
         gameState = inputManager->processMenuInputs(gui);
     }

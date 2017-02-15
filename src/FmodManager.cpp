@@ -11,7 +11,6 @@ using namespace std;
 using namespace FMOD;
 
 FmodManager::FmodManager(string resource) :
-channel(0),
 RESOURCE_DIR(resource +"sound/"),
 curSound(""){
     /* Create a System object and initialize */
@@ -46,23 +45,29 @@ FmodManager::~FmodManager() {
  bool is for whether you want the sound to loop or not*/
 void FmodManager::createStream(string name, string path, bool loop) {
     Sound *sound;
+    Channel *channel = 0;
+    
     if(loop) 
-        result = fmodSystem->createStream((RESOURCE_DIR + path).c_str(), (FMOD_MODE) FMOD_LOOP_OFF, NULL, &sound);
+        result = fmodSystem->createSound((RESOURCE_DIR + path).c_str(), (FMOD_MODE) FMOD_LOOP_NORMAL, NULL, &sound);
     else
-        result = fmodSystem->createStream((RESOURCE_DIR + path).c_str(), (FMOD_MODE) FMOD_LOOP_NORMAL, NULL, &sound);
+        result = fmodSystem->createSound((RESOURCE_DIR + path).c_str(), (FMOD_MODE) FMOD_LOOP_OFF, NULL, &sound);
     ERRCHECK(result);
     sounds.insert(make_pair(name, sound));
+    
+    channels.insert(make_pair(name,channel));
+    
 }
 
-
-void FmodManager::playSound(string name) {
-    result = fmodSystem->playSound(sounds[name], 0, false, &channel);
+/*bool checks whether its a looping sound*/
+void FmodManager::playSound(string name, bool loop) {
+    result = fmodSystem->playSound(sounds[name], 0, false, &channels[name]);
     ERRCHECK(result);
-    curSound = name;
+    if(loop)
+        curSound = name;
 }
 
-void FmodManager::stopSound() {
-    result = channel->stop();
+void FmodManager::stopSound(string name) {
+    result = channels[name]->stop();
     ERRCHECK(result);
 }
 
@@ -70,17 +75,19 @@ string FmodManager::getCurSound() {
     return curSound;
 }
 
-bool FmodManager::isPlaying() {
+bool FmodManager::isPlaying(string name) {
+
     bool ret;
-    if(channel == 0)
+    if(channels[name] == 0)
         return false;
-    result = channel->isPlaying(&ret);
+    result = channels[name]->isPlaying(&ret);
     ERRCHECK(result);
     return ret;
+    
 }
 
-void FmodManager::setPaused(bool state) {
-    result = channel->setPaused(state);
+void FmodManager::setPaused(string name, bool state) {
+    result = channels[name]->setPaused(state);
     ERRCHECK(result);
     
 }
