@@ -7,9 +7,13 @@
 
 #include "FmodManager.hpp"
 
-FmodManager::FmodManager() :
+using namespace std;
+using namespace FMOD;
+
+FmodManager::FmodManager(string resource) :
 channel(0),
-sound(NULL) {
+RESOURCE_DIR(resource +"sound/"),
+curSound(""){
     /* Create a System object and initialize */
     result = System_Create(&fmodSystem);
     ERRCHECK(result);
@@ -17,14 +21,19 @@ sound(NULL) {
     result = fmodSystem->init(32, FMOD_INIT_NORMAL, NULL);
     ERRCHECK(result);
 
+    /*create sounds */
+    createStream("game", "game.mp3",true);
+    createStream("menu", "menu.mp3",true);
+    createStream("jump", "jump.mp3",false);
+    createStream("jump_land", "jump_land.mp3",false);
+    createStream("magnet", "magnet.mp3",false);
+    createStream("walking", "walking.mp3",false);
 }
 
 FmodManager::FmodManager(const FmodManager& orig) {
 }
 
 FmodManager::~FmodManager() {
-    result = sound->release(); /* Release the parent, not the sound that was retrieved with getSubSound. */
-    ERRCHECK(result);
     result = fmodSystem->close();
     ERRCHECK(result);
     result = fmodSystem->release();
@@ -33,15 +42,41 @@ FmodManager::~FmodManager() {
 }
 
 /*note: using a stream uses less ram, but uses more cpu.
- if framerate becomes an issue change this!*/
-void FmodManager::createStream(string path) {
-    result = fmodSystem->createStream(path.c_str(), (FMOD_MODE) FMOD_LOOP_NORMAL, NULL, &sound);
+ if framerate becomes an issue change this!
+ bool is for whether you want the sound to loop or not*/
+void FmodManager::createStream(string name, string path, bool loop) {
+    Sound *sound;
+    if(loop) 
+        result = fmodSystem->createStream((RESOURCE_DIR + path).c_str(), (FMOD_MODE) FMOD_LOOP_OFF, NULL, &sound);
+    else
+        result = fmodSystem->createStream((RESOURCE_DIR + path).c_str(), (FMOD_MODE) FMOD_LOOP_NORMAL, NULL, &sound);
+    ERRCHECK(result);
+    sounds.insert(make_pair(name, sound));
+}
+
+
+void FmodManager::playSound(string name) {
+    result = fmodSystem->playSound(sounds[name], 0, false, &channel);
+    ERRCHECK(result);
+    curSound = name;
+}
+
+void FmodManager::stopSound() {
+    result = channel->stop();
     ERRCHECK(result);
 }
 
-void FmodManager::playSound() {
-    result = fmodSystem->playSound(sound, 0, false, &channel);
+string FmodManager::getCurSound() {
+    return curSound;
+}
+
+bool FmodManager::isPlaying() {
+    bool ret;
+    if(channel == 0)
+        return false;
+    result = channel->isPlaying(&ret);
     ERRCHECK(result);
+    return ret;
 }
 
 void FmodManager::setPaused(bool state) {

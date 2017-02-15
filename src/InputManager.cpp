@@ -25,7 +25,7 @@ InputManager::~InputManager() {
 
 }
 
-State InputManager::processGameInputs(BulletManager *bullet) {
+State InputManager::processGameInputs(BulletManager *bullet, FmodManager *fmod) {
     // Move mouse.
     camera->mouseMoved(Mouse::getMouseX(), Mouse::getMouseY());
 
@@ -60,7 +60,7 @@ State InputManager::processGameInputs(BulletManager *bullet) {
         return PAUSE;
     }
 
-    camera->interpretPressedKeys(pressedKeys, bullet);
+    camera->interpretPressedKeys(pressedKeys, bullet, fmod);
     return GAME;
 }
 

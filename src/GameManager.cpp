@@ -83,10 +83,7 @@ gameState(MENU) {
     //init vfc
     vfc = new VfcManager();
     //init fmod
-    fmod = new FmodManager();
-    fmod->createStream(RESOURCE_DIR + "bgm.mp3");
-    fmod->playSound();
-
+    fmod = new FmodManager(RESOURCE_DIR);
 
     gui = new GuiManager(RESOURCE_DIR);
 
@@ -95,31 +92,31 @@ gameState(MENU) {
     initScene();
     //create the level
     createLevel();
-    
+
     kdtree = make_shared<KDTree>(objects);
     kdtree->printTree();
-    
-//    vector<shared_ptr<GameObject>> treeTest = kdtree->findObjectsNearPoint(vec3(0, 3, 4));
-//    cout << "Objects near (0, 3, 4): " << endl;
-//    for (int i = 0; i < treeTest.size(); i++) {
-//        string xCoord = to_string(treeTest.at(i)->getPosition().x);
-//        xCoord.erase(xCoord.find_last_not_of('0') + 1, string::npos);
-//        if (xCoord[xCoord.size()-1] == '.') {
-//            xCoord.append("0");
-//        }
-//        string yCoord = to_string(treeTest.at(i)->getPosition().y);
-//        yCoord.erase(yCoord.find_last_not_of('0') + 1, string::npos);
-//        if (yCoord[yCoord.size()-1] == '.') {
-//            yCoord.append("0");
-//        }
-//        string zCoord = to_string(treeTest.at(i)->getPosition().z);
-//        zCoord.erase(zCoord.find_last_not_of('0') + 1, string::npos);
-//        if (zCoord[zCoord.size()-1] == '.') {
-//            zCoord.append("0");
-//        }
-//        
-//        cout << "(" + xCoord + ", " + yCoord + ", " + zCoord + ")" << endl;
-//    }
+
+    //    vector<shared_ptr<GameObject>> treeTest = kdtree->findObjectsNearPoint(vec3(0, 3, 4));
+    //    cout << "Objects near (0, 3, 4): " << endl;
+    //    for (int i = 0; i < treeTest.size(); i++) {
+    //        string xCoord = to_string(treeTest.at(i)->getPosition().x);
+    //        xCoord.erase(xCoord.find_last_not_of('0') + 1, string::npos);
+    //        if (xCoord[xCoord.size()-1] == '.') {
+    //            xCoord.append("0");
+    //        }
+    //        string yCoord = to_string(treeTest.at(i)->getPosition().y);
+    //        yCoord.erase(yCoord.find_last_not_of('0') + 1, string::npos);
+    //        if (yCoord[yCoord.size()-1] == '.') {
+    //            yCoord.append("0");
+    //        }
+    //        string zCoord = to_string(treeTest.at(i)->getPosition().z);
+    //        zCoord.erase(zCoord.find_last_not_of('0') + 1, string::npos);
+    //        if (zCoord[zCoord.size()-1] == '.') {
+    //            zCoord.append("0");
+    //        }
+    //        
+    //        cout << "(" + xCoord + ", " + yCoord + ", " + zCoord + ")" << endl;
+    //    }
 }
 
 GameManager::~GameManager() {
@@ -387,13 +384,21 @@ void GameManager::createLevel() {
 
 State GameManager::processInputs() {
     if (gameState == GAME) {
-        gameState = inputManager->processGameInputs(bullet);
-    }
-    else if (gameState == PAUSE) {
+        gameState = inputManager->processGameInputs(bullet, fmod);
+        if (fmod->getCurSound() != "game") {
+            fmod->stopSound();
+            fmod->playSound("game");
+        }
+    } else if (gameState == PAUSE) {
         gameState = inputManager->processPauseInputs(gui);
-    }
-    else if (gameState == MENU)
+    } else if (gameState == MENU) {
+        if (fmod->getCurSound() != "menu")
+            fmod->playSound("menu");
+
         gameState = inputManager->processMenuInputs(gui);
+    }
+
+
     return gameState;
 }
 
@@ -407,7 +412,7 @@ void GameManager::updateGame(double dt) {
     camera->setPosition(bullet->getBulletObjectState("cam"));
 
     //kdtree->printTree();
-    
+
     /*
     for (int i = 0; i < objects.size(); i++) {
         shared_ptr<GameObject> currObj = objects.at(i);
@@ -540,7 +545,7 @@ void GameManager::renderGame(int fps) {
 
 
 
-   printStringToScreen(0.0f, 0.0f, "+", 0.0f, 0.0f, 0.0f);
+    printStringToScreen(0.0f, 0.0f, "+", 0.0f, 0.0f, 0.0f);
 
 
 
@@ -550,7 +555,7 @@ void GameManager::renderGame(int fps) {
 
     // Prints a crosshair to the center of the screen. Color depends on if you're looking at a magnet surface.
 
-    
+
     if (camera->isLookingAtMagnet()) {
         if (Mouse::isLeftMouseButtonPressed()) {
             printStringToScreen(0.0f, 0.0f, "+", 0.0f, 1.0f, 1.0f);
@@ -564,7 +569,7 @@ void GameManager::renderGame(int fps) {
     }
     // Prints the frame rate to the screen.
     printStringToScreen(60.0f, 90.0f, to_string(fps) + " FPS", 0.0f, 0.0f, 0.0f);
-     
+
 
 
     GLSL::checkError(GET_FILE_LINE);
@@ -579,12 +584,12 @@ void GameManager::resize_callback(GLFWwindow *window, int width, int height) {
 void GameManager::resolveMagneticInteractions() {
     vec3 startLoc = camera->getPosition();
     vec3 endLoc = startLoc + camera->getDirection() * MAGNET_RANGE;
-    
+
     // Limiting the number of objects to just ones near the endpoint. Not sure
     // if checking the endpoint is the best approach, but it seems to work fine
     // for now.
-    vector<shared_ptr<GameObject>> nearObjs = kdtree->findObjectsNearPoint(endLoc);
-    
+    vector<shared_ptr < GameObject>> nearObjs = kdtree->findObjectsNearPoint(endLoc);
+
     shared_ptr<GameObject> obj = RayTrace::rayTrace(startLoc, endLoc, nearObjs);
     if (obj && obj->isMagnetic()) {
         camera->setLookingAtMagnet(true);

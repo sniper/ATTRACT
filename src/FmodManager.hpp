@@ -11,27 +11,32 @@
 #include "fmod/fmod_common.h"
 #include "fmod/fmod_errors.h"
 #include <iostream>
+#include <map>
 
 /*error checking not working, fix later*/
 
 
-using namespace std;
-using namespace FMOD;
+
 
 
 
 class FmodManager {
 public:
-    FmodManager();
+    FmodManager(std::string resource);
     FmodManager(const FmodManager& orig);
     virtual ~FmodManager();
-    void createStream(string path);
-    void playSound();
+    void createStream(std::string name, std::string path, bool loop);
+    void playSound(std::string name);
     void setPaused(bool state);
+    bool isPlaying();
+    std::string getCurSound();
+    void stopSound();
 private:
-    System *fmodSystem;
-    Sound *sound;
-    Channel *channel;
+    std::string RESOURCE_DIR;
+    std::string curSound;
+    FMOD::System *fmodSystem;
+    std::map<std::string, FMOD::Sound*> sounds;
+    FMOD::Channel *channel;
     FMOD_RESULT result;
     void ERRCHECK(FMOD_RESULT res);
 };
