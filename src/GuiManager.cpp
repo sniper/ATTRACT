@@ -18,7 +18,7 @@ using namespace glm;
 
 GuiManager::GuiManager(string resource) :
 selectedName("play"),
-RESOURCE_DIR(resource){
+RESOURCE_DIR(resource) {
     static const GLfloat g_vertex_buffer_data[] = {
         -0.5f, 0.5f, 0.0f,
         -0.5f, -0.5f, 0.0f,
@@ -96,6 +96,46 @@ RESOURCE_DIR(resource){
     scales.insert(make_pair("shipparts0", vec3(0.7, 0.7, 1)));
     translates.insert(make_pair("shipparts0", vec3(0.5, 0.5, 0)));
 
+    playTex5 = make_shared<Texture>();
+    playTex5->setFilename(RESOURCE_DIR + "death.jpg");
+    playTex5->init();
+    playTex5->setUnit(0);
+    playTex5->setWrapModes(GL_REPEAT, GL_REPEAT);
+    guiTextures.insert(make_pair("death", playTex5));
+    scales.insert(make_pair("death", vec3(0.7, 0.7, 1)));
+    translates.insert(make_pair("death", vec3(0.5, 0.5, 0)));
+
+    playTex5 = make_shared<Texture>();
+    playTex5->setFilename(RESOURCE_DIR + "win.jpg");
+    playTex5->init();
+    playTex5->setUnit(0);
+    playTex5->setWrapModes(GL_REPEAT, GL_REPEAT);
+    guiTextures.insert(make_pair("win", playTex5));
+    scales.insert(make_pair("win", vec3(0.7, 0.7, 1)));
+    translates.insert(make_pair("win", vec3(0.5, 0.5, 0)));
+
+    playTex5 = make_shared<Texture>();
+    playTex5->setFilename(RESOURCE_DIR + "nextlevel.jpg");
+    playTex5->init();
+    playTex5->setUnit(0);
+    playTex5->setWrapModes(GL_REPEAT, GL_REPEAT);
+    guiTextures.insert(make_pair("nextlevel", playTex5));
+    scales.insert(make_pair("nextlevel", vec3(0.7, 0.7, 1)));
+    translates.insert(make_pair("nextlevel", vec3(-0.5, -0.5, 0)));
+
+    playTex5 = make_shared<Texture>();
+    playTex5->setFilename(RESOURCE_DIR + "tryagain.jpg");
+    playTex5->init();
+    playTex5->setUnit(0);
+    playTex5->setWrapModes(GL_REPEAT, GL_REPEAT);
+    guiTextures.insert(make_pair("tryagain", playTex5));
+    scales.insert(make_pair("tryagain", vec3(0.7, 0.7, 1)));
+    translates.insert(make_pair("tryagain", vec3(-0.5, -0.5, 0)));
+
+
+
+
+
 
 
     // Generate 1 buffer, put the resulting identifier in vertexbuffer
@@ -140,13 +180,44 @@ State GuiManager::interpretMenuPressedKeys(vector<char> pressedKeys) {
 State GuiManager::interpretPausePressedKeys(std::vector<char> pressedKeys) {
     if (find(pressedKeys.begin(), pressedKeys.end(), '<') != pressedKeys.end()) {
         return GAME;
-    }
-    else if (find(pressedKeys.begin(), pressedKeys.end(), '\n') != pressedKeys.end()) {
-        if(selectedName == "quit")
+    } else if (find(pressedKeys.begin(), pressedKeys.end(), '\n') != pressedKeys.end()) {
+        if (selectedName == "quit")
             exit(0);
     }
-    
+
     return PAUSE;
+}
+
+State GuiManager::interpretDeathPressedKeys(std::vector<char> pressedKeys) {
+    if (find(pressedKeys.begin(), pressedKeys.end(), 's') != pressedKeys.end()) {
+        translates["arrow"] = vec3(-0.8, -0.8, 0);
+        selectedName = "quit";
+    } else if (find(pressedKeys.begin(), pressedKeys.end(), 'w') != pressedKeys.end()) {
+        translates["arrow"] = vec3(-0.5, -0.2, 0);
+        selectedName = "tryagain";
+    } else if (find(pressedKeys.begin(), pressedKeys.end(), '\n') != pressedKeys.end()) {
+        if (selectedName == "quit")
+            exit(0);
+        else if (selectedName == "tryagain")
+            return GAME;
+    }
+    return DEATH;
+}
+
+State GuiManager::interpretWinPressedKeys(std::vector<char> pressedKeys) {
+    if (find(pressedKeys.begin(), pressedKeys.end(), 's') != pressedKeys.end()) {
+        translates["arrow"] = vec3(-0.8, -0.8, 0);
+        selectedName = "quit";
+    } else if (find(pressedKeys.begin(), pressedKeys.end(), 'w') != pressedKeys.end()) {
+        translates["arrow"] = vec3(-0.5, -0.2, 0);
+        selectedName = "nextlevel";
+    } else if (find(pressedKeys.begin(), pressedKeys.end(), '\n') != pressedKeys.end()) {
+        if (selectedName == "quit")
+            exit(0);
+        else if (selectedName == "nextlevel")
+            return GAME;
+    }
+    return WIN;
 }
 
 void GuiManager::drawMenu() {
@@ -164,6 +235,22 @@ void GuiManager::drawPause() {
     draw("shipparts0");
     draw("quit");
     selectedName = "quit";
+}
+
+void GuiManager::drawDeath() {
+
+    draw("death");
+    draw("tryagain");
+    draw("quit");
+    draw("arrow");
+}
+
+void GuiManager::drawWin() {
+
+    draw("win");
+    draw("nextlevel");
+    draw("quit");
+    draw("arrow");
 }
 
 void GuiManager::drawAll() {

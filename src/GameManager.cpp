@@ -91,7 +91,7 @@ gameState(MENU) {
 
     // Initialize the scene.
     initScene();
-    
+
     kdtree = make_shared<KDTree>(objects);
     //kdtree->printTree();
 }
@@ -133,7 +133,7 @@ void GameManager::initScene() {
     cube->fitToUnitBox();
     cube->init();
     shapes.push_back(cube);
-    
+
     shared_ptr<Shape> shipPart = make_shared<Shape>();
     shipPart->loadMesh(RESOURCE_DIR + "cargoContainer.obj");
     shipPart->fitToUnitBox();
@@ -157,33 +157,43 @@ void GameManager::createLevel() {
     bullet = new BulletManager();
     cout << "Create Level" << endl;
     shared_ptr<Material> building = make_shared<Material>(vec3(0.9f, 0.9f, 0.9f),
-                                                          vec3(1.0f, 1.0f, 1.0f),
-                                                          vec3(0.0f, 0.0f, 0.0f),
-                                                          200.0f);
+            vec3(1.0f, 1.0f, 1.0f),
+            vec3(0.0f, 0.0f, 0.0f),
+            200.0f);
     shared_ptr<Material> ground = make_shared<Material>(vec3(0.6f, 0.6f, 0.6f),
-                                                        vec3(0.7f, 0.7f, 0.7f),
-                                                        vec3(0.0f, 0.0f, 0.0f),
-                                                        200.0f);
+            vec3(0.7f, 0.7f, 0.7f),
+            vec3(0.0f, 0.0f, 0.0f),
+            200.0f);
     shared_ptr<Material> greyBox = make_shared<Material>(vec3(0.2f, 0.2f, 0.2f),
-                                                         vec3(0.4f, 0.4f, 0.4f),
-                                                         vec3(0.0f, 0.0f, 0.0f),
-                                                         200.0f);
+            vec3(0.4f, 0.4f, 0.4f),
+            vec3(0.0f, 0.0f, 0.0f),
+            200.0f);
     shared_ptr<Material> magnetSurface = make_shared<Material>(vec3(0.2f, 0.2f, 0.2f),
-                                                               vec3(1.0f, 0.0f, 0.0f),
-                                                               vec3(1.0f, 0.9f, 0.8f),
-                                                               200.0f);
+            vec3(1.0f, 0.0f, 0.0f),
+            vec3(1.0f, 0.9f, 0.8f),
+            200.0f);
     shared_ptr<Material> spacePart = make_shared<Material>(vec3(0.2f, 0.2f, 0.2f),
-                                                           vec3(1.0f, 1.0f, 0.0f),
-                                                           vec3(1.0f, 0.9f, 0.8f),
-                                                           200.0f);
+            vec3(1.0f, 1.0f, 0.0f),
+            vec3(1.0f, 0.9f, 0.8f),
+            200.0f);
     vec3 location, direction, scale;
-    
+
     /* Camera */
     location = vec3(0, 0.5, 0);
     scale = vec3(1, 1, 1);
     camera = make_shared<Camera>(location);
     inputManager->setCamera(camera);
     bullet->createBox("cam", location, CUBE_HALF_EXTENTS, scale, 1);
+
+    /*Death Object*/
+    location = vec3(1, 2, 2);
+    direction = vec3(1, 0, 0);
+    scale = vec3(1, 1, 1);
+    shared_ptr<Cuboid> dobj1 = make_shared<Cuboid>(location, direction,
+            CUBE_HALF_EXTENTS,
+            scale, 0, shapes.at(0),
+            ground, false);
+    deathObjects.push_back(dobj1);
 
     /* Ground Plane */
     location = vec3(25, 0, 0);
@@ -361,7 +371,7 @@ void GameManager::createLevel() {
             magnetSurface, true);
     objects.push_back(hallwayLastPad);
     bullet->createMagneticBox("hallwayLastPad", location, CUBE_HALF_EXTENTS, scale, 0);
-    
+
     //
     // Collectable
     //
@@ -369,25 +379,35 @@ void GameManager::createLevel() {
     direction = vec3(1, 0, 0);
     scale = vec3(1, 1, 1);
     spaceShipPart = make_shared<SpaceShipPart>(location, direction,
-                                               CUBE_HALF_EXTENTS, scale,
-                                               shapes.at(1), spacePart);
+            CUBE_HALF_EXTENTS, scale,
+            shapes.at(1), spacePart);
     objects.push_back(spaceShipPart);
 }
 
 State GameManager::processInputs() {
     if (gameState == GAME) {
         gameState = inputManager->processGameInputs(bullet);
-    }
-    else if (gameState == PAUSE) {
+    } else if (gameState == PAUSE) {
         gameState = inputManager->processPauseInputs(gui);
-    }
-    else if (gameState == MENU) {
+    } else if (gameState == MENU) {
         gameState = inputManager->processMenuInputs(gui);
         if (gameState == GAME) {
             createLevel();
         }
+    } else if (gameState == DEATH) {
+
+        gameState = inputManager->processDeathInputs(gui);
+        if (gameState == GAME) {
+            createLevel();
+        }
+    } else if (gameState == WIN) {
+        gameState = inputManager->processWinInputs(gui);
+        if (gameState == GAME) {
+            createLevel();
+        }
     }
-    
+
+
     return gameState;
 }
 
@@ -401,14 +421,25 @@ void GameManager::updateGame(double dt) {
     bullet->step(dt);
 
     camera->setPosition(bullet->getBulletObjectState("cam"));
-    
+
     // TODO: Can't play again after going back to menu.
     if (camera->checkForCollision(spaceShipPart)) {
         //cout << "Collision" << endl;
         delete bullet;
         objects.clear();
-        gameState = MENU;
+        deathObjects.clear();
+        gameState = WIN;
     }
+    /*check for collision with death objects*/
+    for (unsigned int i = 0; i < deathObjects.size(); i++) {
+        if (camera->checkForCollision(deathObjects.at(i))) {
+            delete bullet;
+            objects.clear();
+            deathObjects.clear();
+            gameState = DEATH;
+        }
+    }
+
 }
 
 void GameManager::renderGame(int fps) {
@@ -442,6 +473,10 @@ void GameManager::renderGame(int fps) {
     if (gameState == MENU) {
         gui->drawMenu();
     }/* else its in pause menu/game*/
+    else if (gameState == DEATH)
+        gui->drawDeath();
+    else if (gameState == WIN)
+        gui->drawWin();
     else {
 
         // Apply camera transforms
@@ -475,7 +510,15 @@ void GameManager::renderGame(int fps) {
             delete temp;
 
         }
+
         //cout << "objects draw: " << objectsDrawn << endl;
+
+        if (bullet->getDebugFlag()) {
+            /*DRAW DEATH OBJECTS*/
+            for (unsigned int i = 0; i < deathObjects.size(); i++) {
+                deathObjects.at(i)->draw(program);
+            }
+        }
 
         program->unbind();
 
@@ -496,7 +539,7 @@ void GameManager::renderGame(int fps) {
 
 
 
-   printStringToScreen(0.0f, 0.0f, "+", 0.0f, 0.0f, 0.0f);
+    printStringToScreen(0.0f, 0.0f, "+", 0.0f, 0.0f, 0.0f);
 
 
 
@@ -506,7 +549,7 @@ void GameManager::renderGame(int fps) {
 
     // Prints a crosshair to the center of the screen. Color depends on if you're looking at a magnet surface.
 
-    
+
     if (camera->isLookingAtMagnet()) {
         if (Mouse::isLeftMouseButtonPressed()) {
             printStringToScreen(0.0f, 0.0f, "+", 0.0f, 1.0f, 1.0f);
@@ -520,7 +563,7 @@ void GameManager::renderGame(int fps) {
     }
     // Prints the frame rate to the screen.
     printStringToScreen(60.0f, 90.0f, to_string(fps) + " FPS", 0.0f, 0.0f, 0.0f);
-     
+
 
 
     GLSL::checkError(GET_FILE_LINE);
@@ -535,12 +578,12 @@ void GameManager::resize_callback(GLFWwindow *window, int width, int height) {
 void GameManager::resolveMagneticInteractions() {
     vec3 startLoc = camera->getPosition();
     vec3 endLoc = startLoc + camera->getDirection() * MAGNET_RANGE;
-    
+
     // Limiting the number of objects to just ones near the endpoint. Not sure
     // if checking the endpoint is the best approach, but it seems to work fine
     // for now.
-    vector<shared_ptr<GameObject>> nearObjs = kdtree->findObjectsNearPoint(endLoc);
-    
+    vector<shared_ptr < GameObject>> nearObjs = kdtree->findObjectsNearPoint(endLoc);
+
     shared_ptr<GameObject> obj = RayTrace::rayTrace(startLoc, endLoc, nearObjs);
     if (obj && obj->isMagnetic()) {
         camera->setLookingAtMagnet(true);

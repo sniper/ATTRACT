@@ -31,7 +31,7 @@ class SpaceShipPart;
 
 class GuiManager;
 
-enum State {GAME, MENU, PAUSE};
+enum State {GAME, MENU, PAUSE, DEATH, WIN};
 
 struct KDTree;
 
@@ -70,6 +70,8 @@ private:
     
 
     std::vector<std::shared_ptr<GameObject>> objects;
+    
+    std::vector<std::shared_ptr<GameObject>> deathObjects;
 
     double objIntervalCounter;
     int numObjCollected;

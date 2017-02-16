@@ -46,8 +46,12 @@ public:
     void drawAll();
     void drawMenu();
     void drawPause();
+    void drawDeath();
+    void drawWin();
     State interpretMenuPressedKeys(std::vector<char> pressedKeys);
     State interpretPausePressedKeys(std::vector<char> pressedKeys);
+    State interpretDeathPressedKeys(std::vector<char> pressedKeys);
+    State interpretWinPressedKeys(std::vector<char> pressedKeys);
 private:
     std::string RESOURCE_DIR;
     std::shared_ptr<Program> guiShader;

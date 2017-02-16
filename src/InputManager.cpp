@@ -93,3 +93,41 @@ State InputManager::processPauseInputs(GuiManager* gui) {
     }
     return gui->interpretPausePressedKeys(pressedKeys);
 }
+
+State InputManager::processDeathInputs(GuiManager* gui) {
+
+    vector<char> pressedKeys;
+
+    if (Keyboard::isPressed(GLFW_KEY_W) || Keyboard::isPressed(GLFW_KEY_UP)) {
+        pressedKeys.push_back('w');
+
+    }
+    if (Keyboard::isPressed(GLFW_KEY_S) || Keyboard::isPressed(GLFW_KEY_DOWN)) {
+        pressedKeys.push_back('s');
+    }
+
+    if (Keyboard::isPressed(GLFW_KEY_ENTER)) {
+        pressedKeys.push_back('\n');
+    }
+    return gui->interpretDeathPressedKeys(pressedKeys);
+
+}
+
+State InputManager::processWinInputs(GuiManager* gui) {
+
+    vector<char> pressedKeys;
+
+    if (Keyboard::isPressed(GLFW_KEY_W) || Keyboard::isPressed(GLFW_KEY_UP)) {
+        pressedKeys.push_back('w');
+
+    }
+    if (Keyboard::isPressed(GLFW_KEY_S) || Keyboard::isPressed(GLFW_KEY_DOWN)) {
+        pressedKeys.push_back('s');
+    }
+
+    if (Keyboard::isPressed(GLFW_KEY_ENTER)) {
+        pressedKeys.push_back('\n');
+    }
+    return gui->interpretWinPressedKeys(pressedKeys);
+
+}
