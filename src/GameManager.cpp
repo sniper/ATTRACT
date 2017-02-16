@@ -290,8 +290,8 @@ void GameManager::importLevel(string level) {
     bullet = make_shared<BulletManager>();
     file.open(RESOURCE_DIR + "levels/" + level);
 
-    shared_ptr<Material> greyBox = make_shared<Material>(vec3(0.2f, 0.2f, 0.2f),
-            vec3(0.4f, 0.4f, 0.4f),
+   shared_ptr<Material> greyBox = make_shared<Material>(vec3(0.9f, 0.9f, 0.9f),
+            vec3(1.0f, 1.0f, 1.0f),
             vec3(0.0f, 0.0f, 0.0f),
             200.0f);
     shared_ptr<Material> magnetSurface = make_shared<Material>(vec3(0.2f, 0.2f, 0.2f),
@@ -302,7 +302,7 @@ void GameManager::importLevel(string level) {
             vec3(1.0f, 1.0f, 0.0f),
             vec3(1.0f, 0.9f, 0.8f),
             200.0f);
-
+    
     if (file.is_open()) {
         if (getline(file, line)) {
             /*get camera position*/
@@ -310,11 +310,11 @@ void GameManager::importLevel(string level) {
         }
         if (getline(file, line)) {
             /*get spaceship positions*/
-            parseObject(line, greyBox, magnetSurface, spacePart);
+            parseObject(line,greyBox, magnetSurface, spacePart);
         }
         while (getline(file, line)) {
             /*objects here*/
-            parseObject(line, greyBox, magnetSurface, spacePart);
+            parseObject(line,greyBox, magnetSurface, spacePart);
         }
         cout << "Level '" << level << "' successfully imported." << endl;
         file.close();
@@ -344,6 +344,8 @@ void GameManager::importLevel(string level) {
 
     kdtree = make_shared<KDTree>(objects);
 }
+
+
 
 State GameManager::processInputs() {
     if (gameState == GAME) {
