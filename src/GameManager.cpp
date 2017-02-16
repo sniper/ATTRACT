@@ -325,20 +325,7 @@ void GameManager::importLevel(string level) {
 
 
 
-    shared_ptr<Material> ground = make_shared<Material>(vec3(0.6f, 0.6f, 0.6f),
-            vec3(0.7f, 0.7f, 0.7f),
-            vec3(0.0f, 0.0f, 0.0f),
-            200.0f);
 
-    vec3 location = vec3(25, 0, 0);
-    vec3 direction = vec3(1, 0, 0);
-    vec3 scale = vec3(100, 0.1, 10);
-    shared_ptr<Cuboid> groundPlane = make_shared<Cuboid>(location, direction,
-            CUBE_HALF_EXTENTS,
-            scale, 0, shapes.at(0),
-            ground, false);
-    objects.push_back(groundPlane);
-    bullet->createBox("groundPlane", location, CUBE_HALF_EXTENTS, scale, 0);
 
 
     kdtree = make_shared<KDTree>(objects);
@@ -372,6 +359,9 @@ State GameManager::processInputs() {
         if (gameState == GAME) {
             level++;
             importLevel(to_string(level));
+        }
+        else if(gameState == MENU) {
+            fmod->stopSound("menu");
         }
     }
 
@@ -510,7 +500,8 @@ void GameManager::renderGame(int fps) {
         if (bullet->getDebugFlag()) {
             /*DRAW DEATH OBJECTS*/
             for (unsigned int i = 0; i < deathObjects.size(); i++) {
-                deathObjects.at(i)->draw(program);
+                //deathObjects.at(i)->draw(program);
+                
             }
         }
         program->unbind();

@@ -121,7 +121,7 @@ RESOURCE_DIR(resource) {
     playTex5->setWrapModes(GL_REPEAT, GL_REPEAT);
     guiTextures.insert(make_pair("win", playTex5));
     scales.insert(make_pair("win", vec3(0.7, 0.7, 1)));
-    translates.insert(make_pair("win", vec3(0, 0.5, 0)));
+    translates.insert(make_pair("win", vec3(-0.4, 0.5, 0)));
 
     playTex5 = make_shared<Texture>();
     playTex5->setFilename(RESOURCE_DIR + "nextlevel.jpg");
@@ -215,7 +215,7 @@ State GuiManager::interpretWinPressedKeys(std::vector<char> pressedKeys) {
         if (selectedName == "quit")
             exit(0);
         else if (selectedName == "nextlevel")
-            return GAME;
+            return MENU;
     }
     return WIN;
 }
@@ -258,6 +258,7 @@ void GuiManager::drawWin() {
     draw("nextlevel");
     draw("quit");
     draw("arrow");
+    draw("shipparts1");
 }
 
 void GuiManager::drawAll() {
