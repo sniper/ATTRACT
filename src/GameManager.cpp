@@ -216,7 +216,7 @@ void GameManager::createLevel() {
 
     /* Camera */
     location = vec3(0, 0.5, 0);
-    scale = vec3(0.75, 1.25, 0.75);
+    scale = vec3(0.75, 1.5, 0.75);
     camera = make_shared<Camera>(location);
     inputManager->setCamera(camera);
     bullet->createBox("cam", location, CUBE_HALF_EXTENTS, scale, 1);
@@ -575,7 +575,6 @@ void GameManager::renderGame(int fps) {
         magnetGun->draw(program);
         glEnable(GL_DEPTH_TEST);
         MV->popMatrix();
-        program->unbind();
         
         if (bullet->getDebugFlag()) {
             /*DRAW DEATH OBJECTS*/
@@ -583,6 +582,7 @@ void GameManager::renderGame(int fps) {
                 deathObjects.at(i)->draw(program);
             }
         }
+        program->unbind();
 
         if (bullet->getDebugFlag())
             bullet->renderDebug(P->topMatrix(), MV->topMatrix());
