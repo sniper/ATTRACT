@@ -58,7 +58,7 @@ void SpaceShipPart::update(float dt)
 
 void SpaceShipPart::draw(const std::shared_ptr<Program> &prog)
 {
-    material->setUniforms(prog);
+    //material->setUniforms(prog);
     
     auto transMat = make_shared<MatrixStack>();
     transMat->translate(vec3(position.x, position.y + yOffset, position.z));

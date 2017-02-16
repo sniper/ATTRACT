@@ -121,7 +121,40 @@ void GameManager::initScene() {
     program->addUniform("ks");
     program->addUniform("s");
     program->addUniform("objTransMatrix");
+    
+    //
+    // Ship Parts (with Texture)
+    //
+    shipPartProgram = make_shared<Program>();
+    shipPartProgram->setShaderNames(RESOURCE_DIR + "shipPartVert.glsl",
+                                    RESOURCE_DIR + "shipPartFrag.glsl");
+    shipPartProgram->setVerbose(true);
+    shipPartProgram->init();
+    shipPartProgram->addAttribute("aPos");
+    shipPartProgram->addAttribute("aNor");
+    shipPartProgram->addAttribute("aTex");
+    shipPartProgram->addUniform("P");
+    shipPartProgram->addUniform("MV");
+    shipPartProgram->addUniform("colorTexture");
+    shipPartProgram->addUniform("specularTexture");
+    shipPartProgram->addUniform("lightPos");
+    shipPartProgram->addUniform("objTransMatrix");
+    
+    shipPartColorTexture = make_shared<Texture>();
+    shipPartColorTexture->setFilename(RESOURCE_DIR + "shipPartColor.jpg");
+    shipPartColorTexture->init();
+    shipPartColorTexture->setUnit(0);
+    shipPartColorTexture->setWrapModes(GL_REPEAT, GL_REPEAT);
+    
+    shipPartSpecularTexture = make_shared<Texture>();
+    shipPartSpecularTexture->setFilename(RESOURCE_DIR + "shipPartSpecular.jpg");
+    shipPartSpecularTexture->init();
+    shipPartSpecularTexture->setUnit(1);
+    shipPartSpecularTexture->setWrapModes(GL_REPEAT, GL_REPEAT);
 
+    //
+    // Loading obj files
+    //
     shared_ptr<Shape> cube = make_shared<Shape>();
     cube->loadMesh(RESOURCE_DIR + "cube.obj");
     cube->fitToUnitBox();
@@ -129,7 +162,7 @@ void GameManager::initScene() {
     shapes.push_back(cube);
 
     shared_ptr<Shape> shipPart = make_shared<Shape>();
-    shipPart->loadMesh(RESOURCE_DIR + "cargoContainer.obj");
+    shipPart->loadMesh(RESOURCE_DIR + "shipPart.obj");
     shipPart->fitToUnitBox();
     shipPart->init();
     shapes.push_back(shipPart);
@@ -153,7 +186,7 @@ void GameManager::initScene() {
     //bullet->createPlane("ground", 0, 0, 0);
 
     shared_ptr<Material> material = make_shared<Material>(vec3(0.2f, 0.2f, 0.2f), vec3(0.0f, 0.5f, 0.5f), vec3(1.0f, 0.9f, 0.8f), 200.0f);
-    magnetObj = make_shared<GameObject>(vec3(0.4, -0.2, -1), vec3(0.4, 0, -0.2), vec3(0.5, 0.5, 0.5), 0, shapes.at(2), material);
+    magnetGun = make_shared<GameObject>(vec3(0.4, -0.2, -1), vec3(0.4, 0, -0.2), vec3(0.5, 0.5, 0.5), 0, shapes.at(2), material);
 }
 
 void GameManager::createLevel() {
@@ -384,7 +417,7 @@ void GameManager::createLevel() {
     spaceShipPart = make_shared<SpaceShipPart>(location, direction,
             CUBE_HALF_EXTENTS, scale,
             shapes.at(1), spacePart);
-    objects.push_back(spaceShipPart);
+    //objects.push_back(spaceShipPart);
 
     kdtree = make_shared<KDTree>(objects);
 }
@@ -496,12 +529,26 @@ void GameManager::renderGame(int fps) {
         MV->pushMatrix();
         camera->applyViewMatrix(MV);
 
+        // Draw ship part
+        shipPartProgram->bind();
+        shipPartColorTexture->bind(shipPartProgram->getUniform("colorTexture"));
+        shipPartSpecularTexture->bind(shipPartProgram->getUniform("specularTexture"));
+        glUniformMatrix4fv(shipPartProgram->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
+        glUniformMatrix4fv(shipPartProgram->getUniform("MV"), 1, GL_FALSE, value_ptr(MV->topMatrix()));
+        lightPos = vec4(camera->getPosition(), 1.0);
+        vec4 l = MV->topMatrix() * lightPos;
+        glUniform3fv(shipPartProgram->getUniform("lightPos"), 1, value_ptr(vec3(l)));
+        spaceShipPart->draw(shipPartProgram);
+        shipPartSpecularTexture->unbind();
+        shipPartColorTexture->unbind();
+        shipPartProgram->unbind();
+        
         // Render objects
         program->bind();
         glUniformMatrix4fv(program->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
         glUniformMatrix4fv(program->getUniform("MV"), 1, GL_FALSE, value_ptr(MV->topMatrix()));
         lightPos = vec4(camera->getPosition(), 1.0);
-        vec4 l = MV->topMatrix() * lightPos;
+        l = MV->topMatrix() * lightPos;
         glUniform4f(program->getUniform("lightPos"), l[0], l[1], l[2], l[3]);
         glUniform1f(program->getUniform("lightIntensity"), lightIntensity);
 
@@ -520,23 +567,22 @@ void GameManager::renderGame(int fps) {
             delete temp;
         }
         
+        // Draw magnet gun
+        MV->pushMatrix();
+        MV->loadIdentity();
+        glUniformMatrix4fv(program->getUniform("MV"), 1, GL_FALSE, value_ptr(MV->topMatrix()));
+        glDisable(GL_DEPTH_TEST);
+        magnetGun->draw(program);
+        glEnable(GL_DEPTH_TEST);
+        MV->popMatrix();
+        program->unbind();
+        
         if (bullet->getDebugFlag()) {
             /*DRAW DEATH OBJECTS*/
             for (unsigned int i = 0; i < deathObjects.size(); i++) {
                 deathObjects.at(i)->draw(program);
             }
         }
-
-        MV->pushMatrix();
-        MV->loadIdentity();
-        glUniformMatrix4fv(program->getUniform("MV"), 1, GL_FALSE, value_ptr(MV->topMatrix()));
-        glDisable(GL_DEPTH_TEST);
-        magnetObj->draw(program);
-        glEnable(GL_DEPTH_TEST);
-        MV->popMatrix();
-
-        program->unbind();
-
 
         if (bullet->getDebugFlag())
             bullet->renderDebug(P->topMatrix(), MV->topMatrix());

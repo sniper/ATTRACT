@@ -72,7 +72,7 @@ private:
 
     std::vector<std::shared_ptr<GameObject>> objects;
     
-    std::shared_ptr<GameObject> magnetObj;
+    std::shared_ptr<GameObject> magnetGun;
 
     std::vector<std::shared_ptr<GameObject>> deathObjects;
 
@@ -84,7 +84,8 @@ private:
     std::shared_ptr<InputManager> inputManager;
     std::shared_ptr<Camera> camera;
     
-    std::shared_ptr<Program> program;
+    std::shared_ptr<Program> program, shipPartProgram;
+    std::shared_ptr<Texture> shipPartColorTexture, shipPartSpecularTexture;
     std::vector<std::shared_ptr<Shape>> shapes;
     
     std::shared_ptr<SpaceShipPart> spaceShipPart;

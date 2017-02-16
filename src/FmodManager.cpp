@@ -22,7 +22,7 @@ curSound(""){
 
     /*create sounds */
     createStream("game", "game.mp3",true);
-    createStream("menu", "menu.mp3",true);
+    createStream("menu", "menu_old.mp3",true);
     createStream("jump", "jump.mp3",false);
     createStream("jump_land", "jump_land.mp3",false);
     createStream("magnet", "magnet.mp3",false);
