@@ -149,11 +149,12 @@ void GameManager::initScene() {
     GLSL::checkError(GET_FILE_LINE);
 
     // Set up the bullet manager and create ground plane and camera.
-    bullet = new BulletManager();
+    //bullet = new BulletManager();
     //bullet->createPlane("ground", 0, 0, 0);
 }
 
 void GameManager::createLevel() {
+    bullet = new BulletManager();
     cout << "Create Level" << endl;
     shared_ptr<Material> building = make_shared<Material>(vec3(0.9f, 0.9f, 0.9f),
                                                           vec3(1.0f, 1.0f, 1.0f),
@@ -386,6 +387,7 @@ State GameManager::processInputs() {
             createLevel();
         }
     }
+    
     return gameState;
 }
 
@@ -403,6 +405,8 @@ void GameManager::updateGame(double dt) {
     // TODO: Can't play again after going back to menu.
     if (camera->checkForCollision(spaceShipPart)) {
         //cout << "Collision" << endl;
+        delete bullet;
+        objects.clear();
         gameState = MENU;
     }
 }
