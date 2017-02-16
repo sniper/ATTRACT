@@ -103,7 +103,7 @@ RESOURCE_DIR(resource) {
     playTex5->setWrapModes(GL_REPEAT, GL_REPEAT);
     guiTextures.insert(make_pair("death", playTex5));
     scales.insert(make_pair("death", vec3(0.7, 0.7, 1)));
-    translates.insert(make_pair("death", vec3(0.5, 0.5, 0)));
+    translates.insert(make_pair("death", vec3(0, 0.5, 0)));
 
     playTex5 = make_shared<Texture>();
     playTex5->setFilename(RESOURCE_DIR + "win.jpg");
@@ -112,7 +112,7 @@ RESOURCE_DIR(resource) {
     playTex5->setWrapModes(GL_REPEAT, GL_REPEAT);
     guiTextures.insert(make_pair("win", playTex5));
     scales.insert(make_pair("win", vec3(0.7, 0.7, 1)));
-    translates.insert(make_pair("win", vec3(0.5, 0.5, 0)));
+    translates.insert(make_pair("win", vec3(0, 0.5, 0)));
 
     playTex5 = make_shared<Texture>();
     playTex5->setFilename(RESOURCE_DIR + "nextlevel.jpg");
@@ -121,7 +121,7 @@ RESOURCE_DIR(resource) {
     playTex5->setWrapModes(GL_REPEAT, GL_REPEAT);
     guiTextures.insert(make_pair("nextlevel", playTex5));
     scales.insert(make_pair("nextlevel", vec3(0.7, 0.7, 1)));
-    translates.insert(make_pair("nextlevel", vec3(-0.5, -0.5, 0)));
+    translates.insert(make_pair("nextlevel", vec3(0, -0.25, 0)));
 
     playTex5 = make_shared<Texture>();
     playTex5->setFilename(RESOURCE_DIR + "tryagain.jpg");
@@ -130,7 +130,7 @@ RESOURCE_DIR(resource) {
     playTex5->setWrapModes(GL_REPEAT, GL_REPEAT);
     guiTextures.insert(make_pair("tryagain", playTex5));
     scales.insert(make_pair("tryagain", vec3(0.7, 0.7, 1)));
-    translates.insert(make_pair("tryagain", vec3(-0.5, -0.5, 0)));
+    translates.insert(make_pair("tryagain", vec3(0, -0.25, 0)));
 
 
 

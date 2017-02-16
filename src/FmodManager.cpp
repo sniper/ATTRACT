@@ -30,6 +30,8 @@ curSound(""){
     createStream("click", "click.mp3",false);
     createStream("select", "select.mp3",false);
     createStream("choose", "choose.mp3",false);
+    createStream("death", "death.mp3",false);
+    createStream("win", "win.mp3",false);
 }
 
 FmodManager::FmodManager(const FmodManager& orig) {

@@ -435,6 +435,7 @@ void GameManager::updateGame(double dt) {
         kdtree = nullptr;
         objects.clear();
         deathObjects.clear();
+        fmod->playSound("win", false);
         gameState = WIN;
     }
     /*check for collision with death objects*/
@@ -442,6 +443,7 @@ void GameManager::updateGame(double dt) {
         if (camera->checkForCollision(deathObjects.at(i))) {
             objects.clear();
             deathObjects.clear();
+            fmod->playSound("death", false);
             gameState = DEATH;
         }
     }
