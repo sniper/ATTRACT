@@ -26,7 +26,8 @@ InputManager::~InputManager() {
 
 }
 
-State InputManager::processGameInputs(shared_ptr<BulletManager> bullet, shared_ptr<FmodManager> fmod) {
+State InputManager::processGameInputs(shared_ptr<BulletManager> &bullet,
+                                      shared_ptr<FmodManager> &fmod) {
     // Move mouse.
     camera->mouseMoved(Mouse::getMouseX(), Mouse::getMouseY());
 
@@ -68,7 +69,8 @@ State InputManager::processGameInputs(shared_ptr<BulletManager> bullet, shared_p
     return GAME;
 }
 
-State InputManager::processMenuInputs(shared_ptr<GuiManager> gui, shared_ptr<FmodManager> fmod) {
+State InputManager::processMenuInputs(shared_ptr<GuiManager> &gui,
+                                      shared_ptr<FmodManager> &fmod) {
 
     vector<char> pressedKeys;
 
@@ -96,7 +98,8 @@ State InputManager::processMenuInputs(shared_ptr<GuiManager> gui, shared_ptr<Fmo
 
 }
 
-State InputManager::processPauseInputs(shared_ptr<GuiManager> gui, shared_ptr<FmodManager> fmod) {
+State InputManager::processPauseInputs(shared_ptr<GuiManager> &gui,
+                                       shared_ptr<FmodManager> &fmod) {
     vector<char> pressedKeys;
     if (!Keyboard::isPressed(GLFW_KEY_ESCAPE)) {
         pressedKeys.push_back('<');
@@ -111,4 +114,42 @@ State InputManager::processPauseInputs(shared_ptr<GuiManager> gui, shared_ptr<Fm
         }
     }
     return gui->interpretPausePressedKeys(pressedKeys);
+}
+
+State InputManager::processDeathInputs(shared_ptr<GuiManager> &gui) {
+
+    vector<char> pressedKeys;
+
+    if (Keyboard::isPressed(GLFW_KEY_W) || Keyboard::isPressed(GLFW_KEY_UP)) {
+        pressedKeys.push_back('w');
+
+    }
+    if (Keyboard::isPressed(GLFW_KEY_S) || Keyboard::isPressed(GLFW_KEY_DOWN)) {
+        pressedKeys.push_back('s');
+    }
+
+    if (Keyboard::isPressed(GLFW_KEY_ENTER)) {
+        pressedKeys.push_back('\n');
+    }
+    return gui->interpretDeathPressedKeys(pressedKeys);
+
+}
+
+State InputManager::processWinInputs(shared_ptr<GuiManager> &gui) {
+
+    vector<char> pressedKeys;
+
+    if (Keyboard::isPressed(GLFW_KEY_W) || Keyboard::isPressed(GLFW_KEY_UP)) {
+        pressedKeys.push_back('w');
+
+    }
+    if (Keyboard::isPressed(GLFW_KEY_S) || Keyboard::isPressed(GLFW_KEY_DOWN)) {
+        pressedKeys.push_back('s');
+    }
+
+    if (Keyboard::isPressed(GLFW_KEY_ENTER)) {
+        pressedKeys.push_back('\n');
+    }
+    return gui->interpretWinPressedKeys(pressedKeys);
+
 }
