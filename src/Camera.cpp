@@ -183,7 +183,7 @@ void Camera::interpretPressedKeys(const vector<char> &pressedKeys,
     // ray test to see if you're in the air. If you are, don't have any friction
     vec3 startV = bullet->getBulletObjectState("cam");
     btVector3 start = btVector3(startV.x, startV.y, startV.z);
-    btVector3 end = btVector3(startV.x, startV.y - 1, startV.z);
+    btVector3 end = btVector3(startV.x, startV.y - 0.6, startV.z);
 
     // Finds the closest object from the start location to the end location.
     btCollisionWorld::ClosestRayResultCallback RayCB(start, end);
@@ -211,6 +211,7 @@ void Camera::interpretPressedKeys(const vector<char> &pressedKeys,
         }
 
     } else {
+        //cout << "zeroing out friciton" << endl;
         jumping = true;
         bulletCamObj->getRigidBody()->setFriction(0.0f);
     }

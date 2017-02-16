@@ -60,7 +60,8 @@ using namespace glm;
 GameManager::GameManager(GLFWwindow *window, const string &resourceDir) :
 window(window),
 RESOURCE_DIR(resourceDir),
-gameState(MENU) {
+gameState(MENU),
+level(1){
     objIntervalCounter = 0.0f;
     numObjCollected = 0;
     gameWon = false;
@@ -409,8 +410,10 @@ State GameManager::processInputs() {
             createLevel();
         }
     } else if (gameState == WIN) {
+        
         gameState = inputManager->processWinInputs(gui, fmod);
         if (gameState == GAME) {
+            level++;
             createLevel();
         }
     }
@@ -544,7 +547,8 @@ void GameManager::renderGame(int fps) {
 
         /*render pause menu*/
         if (gameState == PAUSE) {
-            gui->drawPause();
+            gui->drawPause(level);
+            cout << level << endl;
         }
     }
     //

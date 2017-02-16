@@ -45,7 +45,7 @@ public:
     virtual ~GuiManager();
     void drawAll();
     void drawMenu();
-    void drawPause();
+    void drawPause(int level);
     void drawDeath();
     void drawWin();
     State interpretMenuPressedKeys(std::vector<char> pressedKeys);

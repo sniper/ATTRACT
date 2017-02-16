@@ -97,6 +97,15 @@ RESOURCE_DIR(resource) {
     translates.insert(make_pair("shipparts0", vec3(0.5, 0.5, 0)));
 
     playTex5 = make_shared<Texture>();
+    playTex5->setFilename(RESOURCE_DIR + "shipparts1.jpg");
+    playTex5->init();
+    playTex5->setUnit(0);
+    playTex5->setWrapModes(GL_REPEAT, GL_REPEAT);
+    guiTextures.insert(make_pair("shipparts1", playTex5));
+    scales.insert(make_pair("shipparts1", vec3(0.7, 0.7, 1)));
+    translates.insert(make_pair("shipparts1", vec3(0.5, 0.5, 0)));
+
+    playTex5 = make_shared<Texture>();
     playTex5->setFilename(RESOURCE_DIR + "death.jpg");
     playTex5->init();
     playTex5->setUnit(0);
@@ -228,13 +237,20 @@ void GuiManager::drawMenu() {
 
 }
 
-void GuiManager::drawPause() {
+void GuiManager::drawPause(int level) {
     translates["arrow"] = vec3(-0.8, -0.8, 0);
     draw("arrow");
     draw("pause");
-    draw("shipparts0");
     draw("quit");
     selectedName = "quit";
+    switch (level) {
+        case 1:
+            draw("shipparts0");
+            break;
+        case 2:
+            draw("shipparts1");
+            break;
+    }
 }
 
 void GuiManager::drawDeath() {

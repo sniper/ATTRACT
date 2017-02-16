@@ -56,6 +56,8 @@ private:
     void printStringToScreen(float x, float y, const std::string &text, float r, float g, float b);
     float randFloat(float l, float h);
     
+    
+    
     GLFWwindow *window;
     std::string RESOURCE_DIR;
     State gameState;
@@ -77,6 +79,7 @@ private:
     double objIntervalCounter;
     int numObjCollected;
     int gameWon;
+    int level;
     
     std::shared_ptr<InputManager> inputManager;
     std::shared_ptr<Camera> camera;
