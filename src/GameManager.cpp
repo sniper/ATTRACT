@@ -81,19 +81,13 @@ gameState(MENU) {
     // Set up the manager for keyboard and mouse input.
     inputManager = make_shared<InputManager>(camera);
     //init vfc
-    vfc = new VfcManager();
-    //init fmod
-    fmod = new FmodManager();
-    fmod->createStream(RESOURCE_DIR + "council.mp3");
-    fmod->playSound();
-    // init gui
-    gui = new GuiManager(RESOURCE_DIR);
+    vfc = make_shared<VfcManager>();
+    fmod = make_shared<FmodManager>(RESOURCE_DIR);
+    gui = make_shared<GuiManager>(RESOURCE_DIR);
 
     // Initialize the scene.
     initScene();
-    
-    kdtree = make_shared<KDTree>(objects);
-    //kdtree->printTree();
+    createLevel();
 }
 
 GameManager::~GameManager() {
@@ -140,6 +134,12 @@ void GameManager::initScene() {
     shipPart->init();
     shapes.push_back(shipPart);
 
+    shared_ptr<Shape> gun = make_shared<Shape>();
+    gun->loadMesh(RESOURCE_DIR + "MP5K.obj");
+    gun->fitToUnitBox();
+    gun->init();
+    shapes.push_back(gun);
+
     //lightPos = vec4(0.0f, 10.0f, 0.0f, 1.0f);
     lightIntensity = 0.6f;
 
@@ -149,13 +149,14 @@ void GameManager::initScene() {
     GLSL::checkError(GET_FILE_LINE);
 
     // Set up the bullet manager and create ground plane and camera.
-    //bullet = new BulletManager();
+    bullet = make_shared<BulletManager>();
     //bullet->createPlane("ground", 0, 0, 0);
+    
+    shared_ptr<Material> material = make_shared<Material>(vec3(0.2f, 0.2f, 0.2f), vec3(0.0f, 0.5f, 0.5f), vec3(1.0f, 0.9f, 0.8f), 200.0f);
+    magnetObj = make_shared<GameObject>(vec3(0.4, -0.2, -1), vec3(0.4, 0, -0.2), vec3(0.5, 0.5, 0.5), 0, shapes.at(2), material);
 }
 
 void GameManager::createLevel() {
-    bullet = new BulletManager();
-    
     shared_ptr<Material> building = make_shared<Material>(vec3(0.9f, 0.9f, 0.9f),
                                                           vec3(1.0f, 1.0f, 1.0f),
                                                           vec3(0.0f, 0.0f, 0.0f),
@@ -378,16 +379,20 @@ void GameManager::createLevel() {
 
 State GameManager::processInputs() {
     if (gameState == GAME) {
-        gameState = inputManager->processGameInputs(bullet);
+        gameState = inputManager->processGameInputs(bullet, fmod);
+        if (fmod->getCurSound() != "game") {
+            fmod->stopSound("menu");
+            fmod->playSound("game", true);
+        }
     }
     else if (gameState == PAUSE) {
-        gameState = inputManager->processPauseInputs(gui);
+        gameState = inputManager->processPauseInputs(gui, fmod);
     }
     else if (gameState == MENU) {
-        gameState = inputManager->processMenuInputs(gui);
-        if (gameState == GAME) {
-            createLevel();
-        }
+        if (fmod->getCurSound() != "menu")
+            fmod->playSound("menu", true);
+
+        gameState = inputManager->processMenuInputs(gui, fmod);
     }
     
     return gameState;
@@ -407,7 +412,6 @@ void GameManager::updateGame(double dt) {
     // TODO: Can't play again after going back to menu.
     if (camera->checkForCollision(spaceShipPart)) {
         //cout << "Collision" << endl;
-        delete bullet;
         kdtree = nullptr;
         objects.clear();
         gameState = MENU;
@@ -480,6 +484,13 @@ void GameManager::renderGame(int fps) {
         }
         //cout << "objects draw: " << objectsDrawn << endl;
 
+        MV->pushMatrix();
+        MV->loadIdentity();
+        glUniformMatrix4fv(program->getUniform("MV"), 1, GL_FALSE, value_ptr(MV->topMatrix()));
+        glDisable(GL_DEPTH_TEST);
+        magnetObj->draw(program);
+        glEnable(GL_DEPTH_TEST);
+        MV->popMatrix();
         program->unbind();
 
 
@@ -496,14 +507,11 @@ void GameManager::renderGame(int fps) {
         }
     }
 
-   printStringToScreen(0.0f, 0.0f, "+", 0.0f, 0.0f, 0.0f);
-
     //
     // stb_easy_font.h is used for printing fonts to the screen.
     //
 
     // Prints a crosshair to the center of the screen. Color depends on if you're looking at a magnet surface.
-
     if (camera->isLookingAtMagnet()) {
         if (Mouse::isLeftMouseButtonPressed()) {
             printStringToScreen(0.0f, 0.0f, "+", 0.0f, 1.0f, 1.0f);
@@ -517,8 +525,6 @@ void GameManager::renderGame(int fps) {
     }
     // Prints the frame rate to the screen.
     printStringToScreen(60.0f, 90.0f, to_string(fps) + " FPS", 0.0f, 0.0f, 0.0f);
-     
-
 
     GLSL::checkError(GET_FILE_LINE);
 }
@@ -532,26 +538,36 @@ void GameManager::resize_callback(GLFWwindow *window, int width, int height) {
 void GameManager::resolveMagneticInteractions() {
     vec3 startLoc = camera->getPosition();
     vec3 endLoc = startLoc + camera->getDirection() * MAGNET_RANGE;
-    
+
     // Limiting the number of objects to just ones near the endpoint. Not sure
     // if checking the endpoint is the best approach, but it seems to work fine
     // for now.
     vector<shared_ptr<GameObject>> nearObjs = kdtree->findObjectsIntersectedByRay(startLoc, endLoc);
-    
     shared_ptr<GameObject> obj = RayTrace::rayTrace(startLoc, endLoc, nearObjs);
     if (obj && obj->isMagnetic()) {
         camera->setLookingAtMagnet(true);
         if (Mouse::isLeftMouseButtonPressed()) {
+            if (!fmod->isPlaying("magnet")) {
+                fmod->playSound("magnet", false, 1);
+            }
             vec3 dir = normalize(endLoc - startLoc);
             btVector3 bulletDir = btVector3(dir.x, dir.y, dir.z);
             bullet->getBulletObject("cam")->getRigidBody()->setLinearVelocity(bulletDir * MAGNET_STRENGTH);
         } else if (Mouse::isRightMouseButtonPressed()) {
+            if (!fmod->isPlaying("magnet")) {
+                fmod->playSound("magnet", false, 1);
+            }
             vec3 dir = normalize(startLoc - endLoc);
             btVector3 bulletDir = btVector3(dir.x, dir.y, dir.z);
             bullet->getBulletObject("cam")->getRigidBody()->setLinearVelocity(bulletDir * MAGNET_STRENGTH);
         }
+
     } else {
         camera->setLookingAtMagnet(false);
+        if (Mouse::isLeftMouseButtonPressed() || Mouse::isRightMouseButtonPressed()) {
+            if (!fmod->isPlaying("click"))
+                fmod->playSound("click", false, 1);
+        }
     }
 }
 

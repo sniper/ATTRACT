@@ -8,6 +8,7 @@
 
 #include <iostream>
 #include <algorithm>
+#include <memory>
 
 #include "Camera.hpp"
 #include "MatrixStack.h"
@@ -16,6 +17,7 @@
 #include "InputManager.hpp"
 #include "GameManager.hpp"
 #include "BulletManager.hpp"
+#include "FmodManager.hpp"
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <BulletCollision/Gimpact/btGImpactCollisionAlgorithm.h>
@@ -54,16 +56,14 @@ zfar(1000.0f),
 boundingBox(make_shared<AABoundingBox>(position, vec3(0.25f, 0.25f, 0.25f))),
 lookingAtMagnet(false)
 {
-    
-}
-
-Camera::~Camera()
-{
 
 }
 
-void Camera::mouseMoved(double x, double y)
-{
+Camera::~Camera() {
+
+}
+
+void Camera::mouseMoved(double x, double y) {
     vec2 mouseCurr(x, y);
     vec2 dv = mouseCurr - mousePrev;
 
@@ -83,8 +83,8 @@ void Camera::mouseMoved(double x, double y)
 }
 
 void Camera::interpretPressedKeys(const vector<char> &pressedKeys,
-                                  BulletManager *bullet)
-{
+        shared_ptr<BulletManager> bullet,
+        shared_ptr<FmodManager> fmod) {
     BulletObject *bulletCamObj = bullet->getBulletObject("cam");
     vec3 rot = vec3(cos(yaw), 0, cos((3.14 / 2) - yaw));
     vec3 lap = position + rot;
@@ -92,6 +92,8 @@ void Camera::interpretPressedKeys(const vector<char> &pressedKeys,
     forward.y = position.y;
     vec3 up;
     vec3 right;
+    bool moving = false;
+
     if (cos(pitch) < 0) {
         up = vec3(0.0, -1.0, 0.0);
         right = cross(up, forward);
@@ -105,6 +107,7 @@ void Camera::interpretPressedKeys(const vector<char> &pressedKeys,
     /*debug stuff*/
     if (find(pressedKeys.begin(), pressedKeys.end(), 'p') != pressedKeys.end()) {
         bullet->setDebugFlag(!bullet->getDebugFlag());
+
     }
 
     if (find(pressedKeys.begin(), pressedKeys.end(), 'i') != pressedKeys.end()) {
@@ -118,17 +121,27 @@ void Camera::interpretPressedKeys(const vector<char> &pressedKeys,
     // The keys that are held down are contained in the pressedKeys vector.
     if (find(pressedKeys.begin(), pressedKeys.end(), 'w') != pressedKeys.end()) {
         movement += (btVector3(forward.x, 0, forward.z) * MOVEMENT_SPEED);
+        moving = true;
+
     }
     if (find(pressedKeys.begin(), pressedKeys.end(), 'a') != pressedKeys.end()) {
         movement += (btVector3(right.x, 0, right.z) * -MOVEMENT_SPEED);
+        moving = true;
     }
     if (find(pressedKeys.begin(), pressedKeys.end(), 's') != pressedKeys.end()) {
         movement += (btVector3(forward.x, 0, forward.z) * -MOVEMENT_SPEED);
+        moving = true;
     }
     if (find(pressedKeys.begin(), pressedKeys.end(), 'd') != pressedKeys.end()) {
         movement += (btVector3(right.x, 0, right.z) * MOVEMENT_SPEED);
+        moving = true;
     }
+
+
+
     if (find(pressedKeys.begin(), pressedKeys.end(), ' ') != pressedKeys.end()) {
+
+
         vec3 startV = bullet->getBulletObjectState("cam");
         btVector3 start = btVector3(startV.x, startV.y, startV.z);
         btVector3 end = btVector3(startV.x, startV.y - JUMP_CUTOFF, startV.z);
@@ -138,61 +151,81 @@ void Camera::interpretPressedKeys(const vector<char> &pressedKeys,
         bullet->getDynamicsWorld()->rayTest(start, end, RayCB);
 
         // Get the object that is hit.
-        const btRigidBody *hitShape = (btRigidBody *) RayCB.m_collisionObject;
+        //const btRigidBody *hitShape = (btRigidBody *) RayCB.m_collisionObject;
 
         /****** NOTE: IF AN OBJECT INTERRUPTS THE JUMPING PROCESS (GETS IN THE WAY) AND
          THE PLAYER HOLDS DOWN SPACE BAR, THE CHARACTER FLOATS ******/
-        
+
         // Check if the ground was hit
         // TODO: check all objects which can be jumped off of
+
+        /*
         std::map<std::string, BulletObject*> objects = bullet->getBulletObjects();
         for (auto iter = objects.begin(); iter != objects.end(); ++iter) {
             if (RayCB.hasHit() && hitShape == iter->second->getRigidBody()) {
                 movement += btVector3(0, JUMP_VELOCITY, 0);
+
+
+
             }
         }
+         */
+
+        if (RayCB.hasHit()) {
+            movement += btVector3(0, JUMP_VELOCITY, 0);
+            if (!fmod->isPlaying("jump")) {
+                fmod->playSound("jump", false, 2.2);
+            }
+        }
+
     }
 
     // ray test to see if you're in the air. If you are, don't have any friction
     vec3 startV = bullet->getBulletObjectState("cam");
     btVector3 start = btVector3(startV.x, startV.y, startV.z);
-    btVector3 end = btVector3(startV.x, startV.y - 0.1, startV.z);
+    btVector3 end = btVector3(startV.x, startV.y - 1, startV.z);
 
     // Finds the closest object from the start location to the end location.
     btCollisionWorld::ClosestRayResultCallback RayCB(start, end);
     bullet->getDynamicsWorld()->rayTest(start, end, RayCB);
 
     // Get the object that is hit.
-    const btRigidBody *hitShape = (btRigidBody *) RayCB.m_collisionObject;
+    //const btRigidBody *hitShape = (btRigidBody *) RayCB.m_collisionObject;
 
-    bool jumping = true;
+    static bool jumping = false;
     // Check if the ground was hit
     // TODO: check all objects which can be jumped off of
-    std::map<std::string, BulletObject*> objects = bullet->getBulletObjects();
-    for (auto iter = objects.begin(); iter != objects.end(); ++iter) {
-        if (RayCB.hasHit() && hitShape == iter->second->getRigidBody()) {
-            jumping = false;
-        }
-    }
-    if (jumping) {
-        bulletCamObj->getRigidBody()->setFriction(0.0f);
-    } else {
-        bulletCamObj->getRigidBody()->setFriction(0.9f);
-    }
+    //std::map<std::string, BulletObject*> objects = bullet->getBulletObjects();
 
+    if (RayCB.hasHit()) {
+        if (jumping) {
+            if (!fmod->isPlaying("jump_land")) {
+                fmod->playSound("jump_land", false, 1);
+            }
+        }
+
+        jumping = false;
+        bulletCamObj->getRigidBody()->setFriction(0.9f);
+        if (moving == true && !fmod->isPlaying("walking")) {
+            fmod->playSound("walking", false, 0.6);
+        }
+
+    } else {
+        jumping = true;
+        bulletCamObj->getRigidBody()->setFriction(0.0f);
+    }
+    
     bulletCamObj->getRigidBody()->setLinearVelocity(movement);
 
     boundingBox->setPosition(position);
 }
 
-void Camera::applyProjectionMatrix(shared_ptr<MatrixStack> P) const
-{
+void Camera::applyProjectionMatrix(shared_ptr<MatrixStack> P) const {
     // Modify provided MatrixStack
     P->perspective(fovy, aspect, znear, zfar);
 }
 
-void Camera::applyViewMatrix(shared_ptr<MatrixStack> MV) const
-{
+void Camera::applyViewMatrix(shared_ptr<MatrixStack> MV) const {
     vec3 rot = vec3(cos(pitch) * cos(yaw), sin(pitch), cos(pitch) * cos((3.14 / 2) - yaw));
     vec3 lap = position + rot;
     vec3 up;
@@ -209,13 +242,11 @@ bool Camera::checkForCollision(const std::shared_ptr<GameObject> &otherObj)
     return otherObj->isCollidingWithBoundingBox(boundingBox);
 }
 
-void Camera::resolveCollision()
-{
+void Camera::resolveCollision() {
     position = oldPosition;
     boundingBox->setPosition(position);
 }
 
-void Camera::setPosition(vec3 inPos)
-{
+void Camera::setPosition(vec3 inPos) {
     position = inPos;
 }

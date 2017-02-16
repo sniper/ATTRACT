@@ -21,6 +21,7 @@ shared_ptr<GameObject> RayTrace::rayTrace(const vec3 &startLoc,
 {
     shared_ptr<GameObject> closestObj, currObj;
     vec3 CPOI, currIntersection;
+    
     for (unsigned int i = 0; i < objList.size(); i++) {
         currObj = objList.at(i);
         if (currObj->isIntersectingWithLineSegment(startLoc, endLoc, &currIntersection)) {
