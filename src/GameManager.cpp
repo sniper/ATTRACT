@@ -402,7 +402,7 @@ void GameManager::processInputs()
             file << objects.at(i)->toString() << endl;
         }
         file.close();
-        cout << "Level '" << level << "' successfully exported." << endl;
+        cout << "Level '" << LEVEL_DIR + str << "' successfully exported." << endl;
     }
 }
 
