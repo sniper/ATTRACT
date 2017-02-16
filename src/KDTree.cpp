@@ -15,6 +15,7 @@
 
 #include "KDTree.hpp"
 #include "GameObject.hpp"
+#include "AABoundingBox.hpp"
 #include "Cuboid.hpp"
 
 using namespace std;
@@ -101,6 +102,16 @@ vector<shared_ptr<GameObject>> KDTree::findObjectsNearPoint(vec3 point)
     return vector<shared_ptr<GameObject>>();
 }
 
+vector<shared_ptr<GameObject>> KDTree::findObjectsIntersectedByRay(vec3 start,
+                                                                   vec3 end)
+{
+    if (root) {
+        return searchTreeWithRay(root, start, end);
+    }
+    
+    return vector<shared_ptr<GameObject>>();
+}
+
 void KDTree::printTree()
 {
     if (root) {
@@ -168,9 +179,6 @@ shared_ptr<KDTree::KDNode> KDTree::createBranch(int axis,
         }
     }
     
-//    cout << "Left branch size: " + to_string(leftBranch.size()) << endl;
-//    cout << "Right branch size: " + to_string(rightBranch.size()) << endl;
-    
     // Add the new KDNode for the KDTree
     newNode->axis = axis;
     newNode->split = median;
@@ -218,6 +226,147 @@ vector<shared_ptr<GameObject>> KDTree::searchTree(shared_ptr<KDNode> node,
         return objs;
     }
 }
+
+vector<shared_ptr<GameObject>> KDTree::searchTreeWithRay(shared_ptr<KDNode> node,
+                                                         vec3 start, vec3 end)
+{
+    float t, lineX, lineY, lineZ;
+    vec3 segmentDivide;
+    vector<shared_ptr<GameObject>> objs = vector<shared_ptr<GameObject>>();
+    vector<shared_ptr<GameObject>> left = vector<shared_ptr<GameObject>>();
+    vector<shared_ptr<GameObject>> right = vector<shared_ptr<GameObject>>();
+    
+    if (node->axis == -1) {
+        objs.push_back(node->obj);
+        return objs;
+    }
+    
+    if (node->axis == 0) {
+        t = (node->split - start.x)/(end.x - start.x);
+        
+        // Get the y and z values at point of intersection.
+        lineY = start.y + (end.y - start.y) * t;
+        lineZ = start.z + (end.z - start.z) * t;
+        segmentDivide = vec3(node->split, lineY, lineZ);
+
+        // Check if point is within line segment.
+        // If it is, then check both children.
+        if (lineY >= std::min(start.y, end.y) && lineY <= std::max(start.y, end.y) &&
+            lineZ >= std::min(start.z, end.z) && lineZ <= std::max(start.z, end.z)) {
+            if (start.x <= node->split) {
+                left = searchTreeWithRay(node->left, start, segmentDivide);
+                right = searchTreeWithRay(node->right, segmentDivide, end);
+            }
+            else {
+                left = searchTreeWithRay(node->left, segmentDivide, end);
+                right = searchTreeWithRay(node->right, start, segmentDivide);
+            }
+        }
+        // Else, check only the side that the segment is in.
+        else {
+            if (start.x <= node->split) {
+                left = searchTreeWithRay(node->left, start, end);
+            }
+            else {
+                right = searchTreeWithRay(node->right, start, end);
+            }
+        }
+    }
+    else if (node->axis == 1) {
+        t = (node->split - start.y)/(end.y - start.y);
+        
+        // Get the x and z values at point of intersection.
+        lineX = start.x + (end.x - start.x) * t;
+        lineZ = start.z + (end.z - start.z) * t;
+        segmentDivide = vec3(lineX, node->split, lineZ);
+        
+        // Check if point is within line segment.
+        // If it is, then check both children.
+        if (lineX >= std::min(start.x, end.x) && lineX <= std::max(start.x, end.x) &&
+            lineZ >= std::min(start.z, end.z) && lineZ <= std::max(start.z, end.z)) {
+            if (start.y <= node->split) {
+                if (node->left) {
+                    left = searchTreeWithRay(node->left, start, segmentDivide);
+                }
+                if (node->right) {
+                    right = searchTreeWithRay(node->right, segmentDivide, end);
+                }
+            }
+            else {
+                if (node->left) {
+                    left = searchTreeWithRay(node->left, segmentDivide, end);
+                }
+                if (node->right) {
+                    right = searchTreeWithRay(node->right, start, segmentDivide);
+                }
+            }
+        }
+        // Else, check only the side that the segment is in.
+        else {
+            if (start.x <= node->split) {
+                if (node->left) {
+                    left = searchTreeWithRay(node->left, start, end);
+                }
+            }
+            else {
+                if (node->right) {
+                    right = searchTreeWithRay(node->right, start, end);
+                }
+            }
+        }
+    }
+    else {
+        t = (node->split - start.z)/(end.z - start.z);
+        
+        // Get the x and y values at point of intersection.
+        lineX = start.x + (end.x - start.x) * t;
+        lineY = start.y + (end.y - start.y) * t;
+        segmentDivide = vec3(lineX, lineY, node->split);
+        
+        // Check if point is within line segment.
+        // If it is, then check both children.
+        if (lineX >= std::min(start.x, end.x) && lineX <= std::max(start.x, end.x) &&
+            lineY >= std::min(start.y, end.y) && lineY <= std::max(start.y, end.y)) {
+            if (start.z <= node->split) {
+                if (node->left) {
+                    left = searchTreeWithRay(node->left, start, segmentDivide);
+                }
+                if (node->right) {
+                    right = searchTreeWithRay(node->right, segmentDivide, end);
+                }
+            }
+            else {
+                if (node->left) {
+                    left = searchTreeWithRay(node->left, segmentDivide, end);
+                }
+                if (node->right) {
+                    right = searchTreeWithRay(node->right, start, segmentDivide);
+                }
+            }
+        }
+        // Else, check only the side that the segment is in.
+        else {
+            if (start.z <= node->split) {
+                if (node->left) {
+                    left = searchTreeWithRay(node->left, start, end);
+                }
+            }
+            else {
+                if (node->right) {
+                    right = searchTreeWithRay(node->right, start, end);
+                }
+            }
+        }
+    }
+    
+    objs.reserve(left.size() + right.size());
+    objs.insert(objs.end(), left.begin(), left.end());
+    objs.insert(objs.end(), right.begin(), right.end());
+    objs.push_back(node->obj);
+
+    return objs;
+}
+
 
 bool KDTree::compareByXAxis(const shared_ptr<GameObject> &a,
                             const shared_ptr<GameObject> &b)

@@ -155,7 +155,7 @@ void GameManager::initScene() {
 
 void GameManager::createLevel() {
     bullet = new BulletManager();
-    cout << "Create Level" << endl;
+    
     shared_ptr<Material> building = make_shared<Material>(vec3(0.9f, 0.9f, 0.9f),
                                                           vec3(1.0f, 1.0f, 1.0f),
                                                           vec3(0.0f, 0.0f, 0.0f),
@@ -372,6 +372,8 @@ void GameManager::createLevel() {
                                                CUBE_HALF_EXTENTS, scale,
                                                shapes.at(1), spacePart);
     objects.push_back(spaceShipPart);
+    
+    kdtree = make_shared<KDTree>(objects);
 }
 
 State GameManager::processInputs() {
@@ -406,6 +408,7 @@ void GameManager::updateGame(double dt) {
     if (camera->checkForCollision(spaceShipPart)) {
         //cout << "Collision" << endl;
         delete bullet;
+        kdtree = nullptr;
         objects.clear();
         gameState = MENU;
     }
@@ -493,12 +496,7 @@ void GameManager::renderGame(int fps) {
         }
     }
 
-
-
-
    printStringToScreen(0.0f, 0.0f, "+", 0.0f, 0.0f, 0.0f);
-
-
 
     //
     // stb_easy_font.h is used for printing fonts to the screen.
@@ -506,7 +504,6 @@ void GameManager::renderGame(int fps) {
 
     // Prints a crosshair to the center of the screen. Color depends on if you're looking at a magnet surface.
 
-    
     if (camera->isLookingAtMagnet()) {
         if (Mouse::isLeftMouseButtonPressed()) {
             printStringToScreen(0.0f, 0.0f, "+", 0.0f, 1.0f, 1.0f);
@@ -539,7 +536,7 @@ void GameManager::resolveMagneticInteractions() {
     // Limiting the number of objects to just ones near the endpoint. Not sure
     // if checking the endpoint is the best approach, but it seems to work fine
     // for now.
-    vector<shared_ptr<GameObject>> nearObjs = kdtree->findObjectsNearPoint(endLoc);
+    vector<shared_ptr<GameObject>> nearObjs = kdtree->findObjectsIntersectedByRay(startLoc, endLoc);
     
     shared_ptr<GameObject> obj = RayTrace::rayTrace(startLoc, endLoc, nearObjs);
     if (obj && obj->isMagnetic()) {

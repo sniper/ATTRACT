@@ -23,6 +23,8 @@ public:
     virtual ~KDTree();
     
     std::vector<std::shared_ptr<GameObject>> findObjectsNearPoint(glm::vec3 point);
+    std::vector<std::shared_ptr<GameObject>> findObjectsIntersectedByRay(glm::vec3 start,
+                                                                         glm::vec3 end);
     void printTree();
 private:
     struct KDNode;
@@ -38,6 +40,9 @@ private:
     
     std::vector<std::shared_ptr<GameObject>> searchTree(std::shared_ptr<KDNode> node,
                                                         glm::vec3 point);
+    std::vector<std::shared_ptr<GameObject>> searchTreeWithRay(std::shared_ptr<KDNode> node,
+                                                               glm::vec3 start,
+                                                               glm::vec3 end);
     
     std::shared_ptr<KDNode> root;
 };
