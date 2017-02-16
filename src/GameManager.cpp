@@ -221,16 +221,12 @@ void GameManager::parseCamera(string objectString) {
     camera = make_shared<Camera>(pos);
     inputManager->setCamera(camera);
     bullet->createBox("cam", pos, CUBE_HALF_EXTENTS, scale, 1);
-
-
 }
 
 void GameManager::parseObject(string objectString, shared_ptr<Material> greyBox,
         shared_ptr<Material> magnetSurface,
         shared_ptr<Material> spacePart) {
     static int name = 0;
-
-
 
     char *str = new char[objectString.length() + 1];
     strcpy(str, objectString.c_str());
@@ -314,7 +310,7 @@ void GameManager::importLevel(string level) {
         }
         while (getline(file, line)) {
             /*objects here*/
-            parseObject(line,greyBox, magnetSurface, spacePart);
+            parseObject(line, greyBox, magnetSurface, spacePart);
         }
         cout << "Level '" << level << "' successfully imported." << endl;
         file.close();
@@ -322,16 +318,8 @@ void GameManager::importLevel(string level) {
         cout << "Unable to open level '" << level << "'" << endl;
     }
 
-
-
-
-
-
-
     kdtree = make_shared<KDTree>(objects);
 }
-
-
 
 State GameManager::processInputs() {
     if (gameState == GAME) {
@@ -342,6 +330,8 @@ State GameManager::processInputs() {
         gameState = inputManager->processPauseInputs(gui, fmod);
     } else if (gameState == MENU) {
         gameState = inputManager->processMenuInputs(gui, fmod);
+        if (fmod->isPlaying("game"))
+            fmod->stopSound("game");
         if (!fmod->isPlaying("menu"))
             fmod->playSound("menu", true);
         if (gameState == GAME) {
@@ -354,7 +344,6 @@ State GameManager::processInputs() {
             importLevel(to_string(level));
         }
     } else if (gameState == WIN) {
-
         gameState = inputManager->processWinInputs(gui, fmod);
         if (gameState == GAME) {
             level++;
@@ -441,14 +430,15 @@ void GameManager::renderGame(int fps) {
         MV->pushMatrix();
         camera->applyViewMatrix(MV);
 
+        lightPos = vec4(camera->getPosition(), 1.0);
+        vec4 l = MV->topMatrix() * lightPos;
+        
         // Draw ship part
         shipPartProgram->bind();
         shipPartColorTexture->bind(shipPartProgram->getUniform("colorTexture"));
         shipPartSpecularTexture->bind(shipPartProgram->getUniform("specularTexture"));
         glUniformMatrix4fv(shipPartProgram->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
         glUniformMatrix4fv(shipPartProgram->getUniform("MV"), 1, GL_FALSE, value_ptr(MV->topMatrix()));
-        lightPos = vec4(camera->getPosition(), 1.0);
-        vec4 l = MV->topMatrix() * lightPos;
         glUniform3fv(shipPartProgram->getUniform("lightPos"), 1, value_ptr(vec3(l)));
         spaceShipPart->draw(shipPartProgram);
         shipPartSpecularTexture->unbind();
@@ -459,8 +449,6 @@ void GameManager::renderGame(int fps) {
         program->bind();
         glUniformMatrix4fv(program->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
         glUniformMatrix4fv(program->getUniform("MV"), 1, GL_FALSE, value_ptr(MV->topMatrix()));
-        lightPos = vec4(camera->getPosition(), 1.0);
-        l = MV->topMatrix() * lightPos;
         glUniform4f(program->getUniform("lightPos"), l[0], l[1], l[2], l[3]);
         glUniform1f(program->getUniform("lightIntensity"), lightIntensity);
 
@@ -520,6 +508,7 @@ void GameManager::renderGame(int fps) {
 
         }
     }
+    
     //
     // stb_easy_font.h is used for printing fonts to the screen.
     //
@@ -553,8 +542,8 @@ void GameManager::resolveMagneticInteractions() {
     vec3 startLoc = camera->getPosition();
     vec3 endLoc = startLoc + camera->getDirection() * MAGNET_RANGE;
 
-    vector<shared_ptr<GameObject>> nearObjs = kdtree->findObjectsIntersectedByRay(startLoc, endLoc);
-    shared_ptr<GameObject> obj = RayTrace::rayTrace(startLoc, endLoc, nearObjs);
+    //vector<shared_ptr<GameObject>> nearObjs = kdtree->findObjectsIntersectedByRay(startLoc, endLoc);
+    shared_ptr<GameObject> obj = RayTrace::rayTrace(startLoc, endLoc, objects);
     if (obj && obj->isMagnetic()) {
         camera->setLookingAtMagnet(true);
         if (Mouse::isLeftMouseButtonPressed()) {
