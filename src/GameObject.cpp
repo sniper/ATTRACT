@@ -7,6 +7,8 @@
 //
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <string>
+#include <iostream>
 
 #include "GameObject.hpp"
 #include "Program.h"
@@ -19,54 +21,61 @@ using namespace std;
 using namespace glm;
 
 GameObject::GameObject() :
-collected(false),
 position(vec3(0.0f, 0.0f, 0.0f)),
-oldPosition(vec3(0.0f, 0.0f, 0.0f)),
-direction(vec3(0.0f, 0.0f, 0.0f)),
-velocity(0.0f),
-boundingSphere(make_shared<BoundingSphere>()),
+scale(vec3(1.0f, 1.0f, 1.0f)),
+rotation(vec3(1.0f, 1.0f, 1.0f)),
 shape(make_shared<Shape>()),
 material(make_shared<Material>())
 {
 
 }
 
-GameObject::GameObject(const glm::vec3 &position, const glm::vec3 &direction, float velocity,
-                       const std::shared_ptr<BoundingSphere> &sphere,
+GameObject::GameObject(const glm::vec3 &position, const glm::vec3 &scale, const glm::vec3 &rotation,
                        const std::shared_ptr<Shape> &shape,
-                       const std::shared_ptr<Material> &material) :
-collected(false),
+                       const bool magnetic, const bool deadly, const bool spawnPoint, const bool collectable) :
 position(position),
-oldPosition(position),
-direction(direction),
-velocity(velocity),
-boundingSphere(sphere),
+scale(scale),
+rotation(rotation),
 shape(shape),
-material(material)
+magnetic(magnetic),
+deadly(deadly),
+spawnPoint(spawnPoint),
+collectable(collectable),
+selected(false)
 {
-    
+    material = createMaterial(magnetic, deadly, spawnPoint, collectable);
 }
 
 GameObject::~GameObject()
 {
-    
+
 }
 
-bool GameObject::isCollidingWithBoundingSphere(const std::shared_ptr<BoundingSphere> &otherSphere)
+shared_ptr<Material> GameObject::createMaterial(bool magnetic, bool deadly, bool spawnPoint, bool collectable)
 {
-    return boundingSphere->isColliding(otherSphere);
+    if (magnetic && deadly) {
+        return make_shared<Material>(vec3(0.2f, 0.2f, 0.2f), vec3(1.0f, 0.5f, 1.0f), vec3(1.0f, 0.9f, 0.8f), 200.0f);
+    } else if (magnetic) {
+        return make_shared<Material>(vec3(0.2f, 0.2f, 0.2f), vec3(1.0f, 0.0f, 0.0f), vec3(1.0f, 0.9f, 0.8f), 200.0f);
+    } else if (deadly) {
+        return make_shared<Material>(vec3(0.2f, 0.2f, 0.2f), vec3(0.0f, 0.5f, 1.0f), vec3(1.0f, 0.9f, 0.8f), 200.0f);
+    } else if (spawnPoint) {
+        return make_shared<Material>(vec3(0.2f, 0.2f, 0.2f), vec3(0.0f, 1.0f, 0.0f), vec3(1.0f, 0.9f, 0.8f), 200.0f);
+    } else if (collectable) {
+        return make_shared<Material>(vec3(0.2f, 0.2f, 0.2f), vec3(0.0f, 0.0f, 1.0f), vec3(1.0f, 0.9f, 0.8f), 200.0f);
+    } else {
+        return make_shared<Material>(vec3(0.9f, 0.9f, 0.9f), vec3(1.0f, 1.0f, 1.0f), vec3(0.0f, 0.0f, 0.0f), 200.0f);
+    }
 }
 
-bool GameObject::isCollidingWithOtherObject(const std::shared_ptr<GameObject> &otherObj)
-{
-    return otherObj->isCollidingWithBoundingSphere(boundingSphere);
+void GameObject::setMagnetic(bool mag) {
+    magnetic = mag;
+    material = createMaterial(magnetic, deadly, spawnPoint, collectable);
 }
 
-void GameObject::update(float dt)
-{
-    oldPosition = position;
-    position += direction * velocity * dt;
-    boundingSphere->updateCenter(position);
+void GameObject::setDeadly(bool dead) {
+    deadly = dead;
+    material = createMaterial(magnetic, deadly, spawnPoint, collectable);
 }
 
 void GameObject::draw(const shared_ptr<Program> &prog)
@@ -75,23 +84,23 @@ void GameObject::draw(const shared_ptr<Program> &prog)
     
     auto transMat = make_shared<MatrixStack>();
     transMat->translate(position);
-    transMat->rotate(M_PI - atan2(direction[2], direction[0]), vec3(0.0f, 1.0f, 0.0f));
+    transMat->rotate(rotation.z, vec3(1, 0, 0));
+    transMat->rotate(rotation.y, vec3(0, 1, 0));
+    transMat->rotate(rotation.x, vec3(0, 0, 1));
+    transMat->scale(scale);
     glUniformMatrix4fv(prog->getUniform("objTransMatrix"), 1, GL_FALSE, value_ptr(transMat->topMatrix()));
+    glUniform1i(prog->getUniform("selected"), selected ? 1 : 0);
     
     shape->draw(prog);
 }
 
-void GameObject::resolveCollision(bool collidedWithPlayer)
+string vecString(vec3 v)
 {
-    position = oldPosition;
-    boundingSphere->updateCenter(position);
-    
-    if (collidedWithPlayer) {
-        collected = true;
-        material = make_shared<Material>(vec3(0.2f, 0.2f, 0.2f), vec3(0.8f, 0.8f, 0.8f), vec3(1.0f, 0.9f, 0.8f), 200.0f);
-        velocity = 0.0f;
-    }
-    else if (!collected) {
-        direction *= -1;
-    }
+    return to_string(v.x) + "," + to_string(v.y) + "," + to_string(v.z);
+}
+
+string GameObject::toString()
+{
+    return vecString(position) + "," + vecString(scale) + "," + vecString(rotation) + "," + to_string(magnetic)
+        + "," + to_string(deadly) + "," + to_string(spawnPoint) + "," + to_string(collectable);
 }

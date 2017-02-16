@@ -18,6 +18,8 @@ public:
     static bool isPressed(unsigned int key);
 private:
     static bool keyToggles[349];
+    static bool lastKeyToggles[349];
+    static bool hideCursor;
 };
 
 #endif /* Keyboard_hpp */

@@ -28,8 +28,9 @@ int main(int argc, char **argv)
 {
     GLFWwindow *window; // Main application window
     shared_ptr<GameManager> gameManager; // Manages all aspects of the game.
-    string RESOURCE_DIR = "./"; // Where the resources are loaded from
-    
+    string RESOURCE_DIR = "../resources/"; // Where the resources are loaded from
+    string LEVEL_DIR = "../levels/";
+
     time_point<system_clock> curTime, oldTime; // Variables for time.
     double elapsedTime = 0, dt = 0;
     int fps = 60;
@@ -37,11 +38,6 @@ int main(int argc, char **argv)
 
     bool firstTimeThroughGameLoop = true;
     
-	if (argc < 2) {
-		cout << "Please specify the resource directory" << endl;
-		return 0;
-	}
-	RESOURCE_DIR = argv[1] + string("/");
 
 	// Set error callback.
 	glfwSetErrorCallback(error_callback);
@@ -50,7 +46,7 @@ int main(int argc, char **argv)
 		return -1;
 	}
 	// Create a windowed mode window and its OpenGL context.
-	window = glfwCreateWindow(640, 480, "Cody Rhoads", NULL, NULL);
+	window = glfwCreateWindow(640, 480, "ATTRACT Level Editor", NULL, NULL);
 	if (!window) {
 		glfwTerminate();
 		return -1;
@@ -67,9 +63,14 @@ int main(int argc, char **argv)
 	cout << "OpenGL version: " << glGetString(GL_VERSION) << endl;
 	cout << "GLSL version: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << endl;
 	GLSL::checkVersion();
-    
-    gameManager = make_shared<GameManager>(window, RESOURCE_DIR);
-    
+
+    string level = "";
+    if (argc >= 2) {
+        level = argv[1];
+    }
+
+    gameManager = make_shared<GameManager>(window, RESOURCE_DIR, LEVEL_DIR, level);
+
 	// Loop until the user closes the window.
 	while(!glfwWindowShouldClose(window)) {
         curTime = system_clock::now();
@@ -91,7 +92,7 @@ int main(int argc, char **argv)
         while (elapsedTime > 0) {
             dt = min(elapsedTime, IDEAL_DT);
             // Simulate movement/physics
-            gameManager->updateGame(dt);
+            //gameManager->updateGame(dt);
             elapsedTime -= dt;
         }
 		// Render scene.

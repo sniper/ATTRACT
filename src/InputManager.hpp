@@ -18,7 +18,7 @@ class InputManager
 public:
     InputManager(std::shared_ptr<Camera> &camera);
     virtual ~InputManager();
-    void processInputs();
+    std::vector<char> processInputs();
 private:
     std::shared_ptr<Camera> camera;
 };

@@ -6,7 +6,9 @@
 //
 //
 
+#include <algorithm>
 #include <iostream>
+#include <fstream>
 #include <math.h>
 #include <time.h>
 
@@ -34,21 +36,33 @@
 #include "Mouse.hpp"
 
 #define MAX_NUM_OBJECTS 15
-#define GRID_SIZE 8
+#define GRID_SIZE 32
 #define OBJ_SPAWN_INTERVAL 2
 #define BUNNY_SPHERE_RADIUS 0.5f
+
+#define X_AXIS 0
+#define Y_AXIS 1
+#define Z_AXIS 2
 
 using namespace std;
 using namespace glm;
 
-GameManager::GameManager(GLFWwindow *window, const string &resourceDir) :
+GameManager::GameManager(GLFWwindow *window, const string &resourceDir, const string &levelDir, const string &level) :
 window(window),
-RESOURCE_DIR(resourceDir)
+RESOURCE_DIR(resourceDir),
+LEVEL_DIR(levelDir),
+level(level)
 {
     objIntervalCounter = 0.0f;
     numObjCollected = 0;
     gameWon = false;
-    
+
+    currentObject = 0;
+    currentAxis = X_AXIS;
+    objectPlacement = false;
+    setSpawn = false;
+    setCollectable = false;
+
     // Set vsync.
     glfwSwapInterval(1);
     // Set keyboard callback.
@@ -57,6 +71,8 @@ RESOURCE_DIR(resourceDir)
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     // Set cursor position callback.
     glfwSetCursorPosCallback(window, Mouse::cursor_position_callback);
+    // Set cursor button callback.
+    glfwSetMouseButtonCallback(window, Mouse::mouse_button_callback);
     // Set the window resize call back.
     glfwSetFramebufferSizeCallback(window, resize_callback);
     // Create the camera for the scene.
@@ -65,11 +81,64 @@ RESOURCE_DIR(resourceDir)
     inputManager = make_shared<InputManager>(camera);
     // Initialize the scene.
     initScene();
+
+    if (!level.empty()) {
+        importLevel(level);
+    }
 }
 
 GameManager::~GameManager()
 {
     
+}
+
+bool toBool(string s) {
+    return s != "0";
+}
+
+shared_ptr<GameObject> GameManager::parseObject(string objectString) {
+    char *str = new char[objectString.length() + 1];
+    strcpy(str, objectString.c_str());
+
+    vector<string> elems;
+    char *tok = strtok(str, ",");
+    while (tok != NULL) {
+        elems.push_back(tok);
+        tok = strtok(NULL, ",");
+    }
+    //split(objectString, ',', back_inserter(elems));
+    string::size_type sz;
+    vec3 pos = vec3(stof(elems[0], &sz), stof(elems[1]), stof(elems[2]));
+    vec3 scale = vec3(stof(elems[3]), stof(elems[4]), stof(elems[5]));
+    vec3 rot = vec3(stof(elems[6]), stof(elems[7]), stof(elems[8]));
+    bool magnetic = toBool(elems[9]);
+    bool deadly = toBool(elems[10]);
+    bool playerSpawn = toBool(elems[11]);
+    bool collectable = toBool(elems[12]);
+
+    return createObject(pos, scale, rot, magnetic, deadly, playerSpawn, collectable);
+}
+
+void GameManager::importLevel(string level)
+{
+    string line;
+    ifstream file;
+    file.open(level);
+    if (file.is_open()) {
+        if (getline(file, line)) {
+            playerSpawn = parseObject(line);
+        }
+        if (getline(file, line)) {
+            spaceshipPart = parseObject(line);
+        }
+        while (getline(file, line)) {
+            objects.push_back(parseObject(line));
+        }
+        cout << "Level '" << level << "' successfully imported." << endl;
+        file.close();
+    } else {
+        cout << "Unable to open level '" << level << "'" << endl;
+    }
 }
 
 void GameManager::initScene()
@@ -100,12 +169,13 @@ void GameManager::initScene()
     program->addUniform("ks");
     program->addUniform("s");
     program->addUniform("objTransMatrix");
+    program->addUniform("selected");
     
-    shared_ptr<Shape> bunny = make_shared<Shape>();
-    bunny->loadMesh(RESOURCE_DIR + "bunny.obj");
-    bunny->fitToUnitBox();
-    bunny->init();
-    shapes.push_back(bunny);
+    shared_ptr<Shape> cube = make_shared<Shape>();
+    cube->loadMesh(RESOURCE_DIR + "cube.obj");
+    cube->fitToUnitBox();
+    cube->init();
+    shapes.push_back(cube);
     
     lightPos = vec4(0.0f, 10.0f, 0.0f, 1.0f);
     lightIntensity = 0.8f;
@@ -197,64 +267,142 @@ void GameManager::initScene()
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     
     GLSL::checkError(GET_FILE_LINE);
+
+    tempObject = createObject(false, false, false, false);
+    playerSpawn = createObject(false, false, true, false);
+    spaceshipPart = createObject(false, false, false, true);
 }
 
 void GameManager::processInputs()
 {
-    inputManager->processInputs();
-}
+    vector<char> objectKeys = inputManager->processInputs();
 
-void GameManager::updateGame(double dt)
-{
-    // Spawn in a bunny every OBJ_SPAWN_INTERVAL seconds
-    objIntervalCounter += dt;
-    if (objIntervalCounter > OBJ_SPAWN_INTERVAL && objects.size() < MAX_NUM_OBJECTS) {
-        objIntervalCounter = 0.0;
-        createBunny();
+    if (find(objectKeys.begin(), objectKeys.end(), 'p') != objectKeys.end()) {
+        objectPlacement = !objectPlacement;
     }
-    
-    for (int i = 0; i < objects.size(); i++) {
-        shared_ptr<GameObject> currObj = objects.at(i);
-        
-        // Update the current object
-        currObj->update(dt);
-        
-        // Check for a collision between this object and the player
-        if (camera->checkForCollision(currObj)) {
-            // If this is the first time the player has contacted this object,
-            // then count it as a new object collected.
-            if (!currObj->isCollected()) {
-                numObjCollected++;
-                if (numObjCollected == MAX_NUM_OBJECTS) {
-                    gameWon = true;
-                }
-            }
-            
-            camera->resolveCollision();
-            currObj->resolveCollision(true);
-        }
-        
-        vec3 objPosition = currObj->getPosition();
-        vec3 objDirection = currObj->getDirection();
-        // Check to see if the object is leaving the grid. If it is, then make it
-        // collide with the edge of the grid. I slightly alter the GRID_SIZE so the
-        // objects don't hang over the edge of the grid.
-        if ((objPosition[0] <= -GRID_SIZE + 0.5f && objDirection[0] < 0)
-                || (objPosition[0] >= GRID_SIZE - 0.5f && objDirection[0] > 0)
-                || (objPosition[2] <= -GRID_SIZE + 0.5f && objDirection[2] < 0)
-                || (objPosition[2] >= GRID_SIZE - 0.5f && objDirection[2] > 0)) {
-            currObj->resolveCollision(false);
-        }
-        
-        // Check for collision between this object and the other objects
-        for (int j = 0; j < objects.size(); j++) {
-            // First, make sure you aren't comparing the object against itself.
-            // Then, check for a collision between this object and one of the other objects.
-            if (i != j && currObj->isCollidingWithOtherObject(objects.at(j))) {
-                currObj->resolveCollision(false);
-                objects.at(j)->resolveCollision(false);
+
+    if (find(objectKeys.begin(), objectKeys.end(), 'j') != objectKeys.end()) {
+        if (objects.size() > 0) {
+            if (currentObject == 0) {
+                currentObject = objects.size() - 1;
+            } else {
+                currentObject--;
             }
         }
+        objectPlacement = false;
+    }
+
+    if (find(objectKeys.begin(), objectKeys.end(), 'k') != objectKeys.end()) {
+        currentObject++;
+        if (currentObject >= objects.size()) {
+            currentObject = 0;
+        }
+        objectPlacement = false;
+    }
+
+    if (find(objectKeys.begin(), objectKeys.end(), '1') != objectKeys.end()) {
+        setSpawn = true;
+        setCollectable = false;
+        objectPlacement = false;
+    }
+
+    if (find(objectKeys.begin(), objectKeys.end(), '2') != objectKeys.end()) {
+        setCollectable = true;
+        setSpawn = false;
+        objectPlacement = false;
+    }
+
+    shared_ptr<GameObject> obj;
+    if (objectPlacement) {
+        obj = tempObject;
+    } else if (objects.size() > 0) {
+        obj = objects.at(currentObject);
+    } else {
+        return;
+    }
+
+    if (find(objectKeys.begin(), objectKeys.end(), 'x') != objectKeys.end()) {
+        currentAxis = X_AXIS;
+    }
+    if (find(objectKeys.begin(), objectKeys.end(), 'y') != objectKeys.end()) {
+        currentAxis = Y_AXIS;
+    }
+    if (find(objectKeys.begin(), objectKeys.end(), 'z') != objectKeys.end()) {
+        currentAxis = Z_AXIS;
+    }
+
+    float modifier;
+    if (find(objectKeys.begin(), objectKeys.end(), '^') != objectKeys.end()) {
+        modifier = 0.1;
+    } else {
+        modifier = 1.0;
+    }
+    float modSpeed = 0.1 * modifier;
+
+    // rotate
+    vec3 rotate = obj->getRotation();
+    if (find(objectKeys.begin(), objectKeys.end(), 'L') != objectKeys.end()) {
+        rotate[currentAxis] -= modSpeed;
+        obj->setRotation(rotate);
+    }
+    if (find(objectKeys.begin(), objectKeys.end(), 'R') != objectKeys.end()) {
+        rotate[currentAxis] += modSpeed;
+        obj->setRotation(rotate);
+    }
+
+    // translate
+    vec3 position = obj->getPosition();
+    if (find(objectKeys.begin(), objectKeys.end(), 'U') != objectKeys.end()) {
+        position[currentAxis] += modSpeed;
+        obj->setPosition(position);
+    }
+    if (find(objectKeys.begin(), objectKeys.end(), 'D') != objectKeys.end()) {
+        position[currentAxis] -= modSpeed;
+        obj->setPosition(position);
+    }
+
+    // scale
+    vec3 scale = obj->getScale();
+    if (find(objectKeys.begin(), objectKeys.end(), 'q') != objectKeys.end()) {
+        scale[currentAxis] -= modSpeed;
+        obj->setScale(scale);
+    }
+    if (find(objectKeys.begin(), objectKeys.end(), 'e') != objectKeys.end()) {
+        scale[currentAxis] += modSpeed;
+        obj->setScale(scale);
+    }
+
+    if (find(objectKeys.begin(), objectKeys.end(), '3') != objectKeys.end()) {
+        obj->setMagnetic(!obj->getMagnetic());
+    }
+    if (find(objectKeys.begin(), objectKeys.end(), '4') != objectKeys.end()) {
+        obj->setDeadly(!obj->getDeadly());
+    }
+
+    if (find(objectKeys.begin(), objectKeys.end(), 'X') != objectKeys.end()) {
+        objects.erase(objects.begin() + currentObject);
+        if (currentObject >= objects.size()) {
+            currentObject--;
+        }
+    }
+
+    if (find(objectKeys.begin(), objectKeys.end(), 'E') != objectKeys.end()) {
+        if (playerSpawn == NULL || spaceshipPart == NULL) {
+            cout << "Place a player spawn and spaceship part before saving." << endl;
+            return;
+        }
+        char str[80];
+        cout << "Enter a file name: ";
+        scanf("%73s", str);
+        strcat(str, ".level");
+        ofstream file;
+        file.open(LEVEL_DIR + str);
+        file << playerSpawn->toString() << endl << spaceshipPart->toString() << endl;
+        for (unsigned int i = 0; i < objects.size(); i++) {
+            file << objects.at(i)->toString() << endl;
+        }
+        file.close();
+        cout << "Level '" << level << "' successfully exported." << endl;
     }
 }
 
@@ -307,18 +455,53 @@ void GameManager::renderGame(int fps)
     glDrawElements(GL_TRIANGLES, grassIndCount, GL_UNSIGNED_INT, (void *)0);
     grass->unbind();
     ground->unbind();
-    
+ 
     // Render objects
+    if (Mouse::wasLeftMouseClicked() && (objectPlacement || setSpawn || setCollectable)) {
+        if (objectPlacement) {
+            objects.push_back(tempObject);
+            tempObject = createObject(false, false, false, false);
+            if (currentObject > 0) {
+                currentObject++;
+            }
+        } else if (setSpawn) {
+            setSpawn = false;
+        } else if (setCollectable) {
+            setCollectable = false;
+        }
+        Mouse::clearClick(GLFW_MOUSE_BUTTON_LEFT);
+    }
     program->bind();
     glUniformMatrix4fv(program->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
     glUniformMatrix4fv(program->getUniform("MV"), 1, GL_FALSE, value_ptr(MV->topMatrix()));
     vec4 l = MV->topMatrix() * lightPos;
     glUniform4f(program->getUniform("lightPos"), l[0] , l[1], l[2], l[3]);
     glUniform1f(program->getUniform("lightIntensity"), lightIntensity);
+    if (objectPlacement) {
+        tempObject->setPosition(camera->getPosition() + (2.0f * camera->getForward()));
+        tempObject->draw(program);
+    }
+    if (setSpawn) {
+        playerSpawn->setPosition(camera->getPosition() + (2.0f * camera->getForward()));
+    }
+    playerSpawn->draw(program);
+    if (setCollectable) {
+        spaceshipPart->setPosition(camera->getPosition() + (2.0f * camera->getForward()));
+    }
+    spaceshipPart->draw(program);
+
+    if (objects.size() > 0 && !objectPlacement && !setSpawn && !setCollectable) {
+        objects.at(currentObject)->setSelected(true);
+    }
+
     for (unsigned int i = 0; i < objects.size(); i++) {
         objects.at(i)->draw(program);
     }
     program->unbind();
+
+    if (objects.size() > 0) {
+        objects.at(currentObject)->setSelected(false);
+    }
     
     // Render sun
     sunProg->bind();
@@ -329,23 +512,40 @@ void GameManager::renderGame(int fps)
     sun->draw(sunProg);
     MV->popMatrix();
     sunProg->unbind();
-    
+
     //
     // stb_easy_font.h is used for printing fonts to the screen.
     //
-    if (!gameWon) {
-        // Prints objects collected to screen.
-        printStringToScreen(-95.0f, -95.0f, "Score: " + to_string(numObjCollected), 0.0f, 0.0f, 0.0f);
-        
-        // Prints current number of objects to screen.
-        printStringToScreen(10.0f, -95.0f, "# of Objects: " + to_string(objects.size()), 0.0f, 0.0f, 0.0f);
-        
-        // Prints the frame rate to the screen.
-        printStringToScreen(60.0f, 90.0f, to_string(fps) + " FPS", 0.0f, 0.0f, 0.0f);
-    }
-    else {
-        // Prints the winning message to screen.
-        printStringToScreen(-40.0f, -10.0f, "Congratulations!\n   You won!", 0.0f, 0.0f, 0.0f);
+    printStringToScreen(0, 0, "+", 0, 0, 0); 
+    printStringToScreen(60.0f, -95.0f, to_string(fps) + " FPS", 0.0f, 0.0f, 0.0f);
+
+    if (objects.size() > 0 || objectPlacement || setSpawn || setCollectable) {
+        shared_ptr<GameObject> obj;
+        if (objectPlacement) {
+            obj = tempObject;
+        } else if (setSpawn) {
+            obj = playerSpawn;
+        } else if (setCollectable) {
+            obj = spaceshipPart;
+        } else {
+            obj = objects.at(currentObject);
+        }
+        vec3 pos = obj->getPosition();
+        vec3 scale = obj->getScale();
+        vec3 rotation = obj->getRotation();
+        printStringToScreen(-95.0f, 70.0f, "X: " + to_string(pos.x) + " " + to_string(scale.x) + " " + to_string(rotation.x), (currentAxis == X_AXIS ? 1.0f : 0.0f), 0.0f, 0.0f);
+        printStringToScreen(-95.0f, 80.0f, "Y: " + to_string(pos.y) + " " + to_string(scale.y) + " " + to_string(rotation.y), (currentAxis == Y_AXIS ? 1.0f : 0.0f), 0.0f, 0.0f);
+        printStringToScreen(-95.0f, 90.0f, "Z: " + to_string(pos.z) + " " + to_string(scale.z) + " " + to_string(rotation.z), (currentAxis == Z_AXIS ? 1.0f : 0.0f), 0.0f, 0.0f);
+
+        if (objectPlacement) {
+            printStringToScreen(-95.0f, -95.0f, "Object: new (total: " + to_string(objects.size()) + ")", 0.0f, 0.0f, 0.0f);
+        } else if (setSpawn) {
+            printStringToScreen(-95.0f, -95.0f, "Object: Spawn", 0.0f, 0.0f, 0.0f);
+        } else if (setCollectable) {
+            printStringToScreen(-95.0f, -95.0f, "Object: Spaceship Part", 0.0f, 0.0f, 0.0f);
+        } else {
+            printStringToScreen(-95.0f, -95.0f, "Object: " + to_string(currentObject + 1) + " / " + to_string(objects.size()), 0.0f, 0.0f, 0.0f);
+        }
     }
 
     MV->popMatrix();
@@ -360,64 +560,14 @@ void GameManager::resize_callback(GLFWwindow *window, int width, int height)
     glViewport(0, 0, width, height);
 }
 
-void GameManager::createBunny()
+shared_ptr<GameObject> GameManager::createObject(vec3 position, vec3 scale, vec3 rotation, bool magnetic, bool deadly, bool spawnPoint, bool collectable)
 {
-    vec3 position, direction;
-    float velocity;
-    shared_ptr<BoundingSphere> boundingSphere;
-    shared_ptr<Shape> shape;
-    shared_ptr<Material> material;
-    
-    srand(time(NULL));
-    
-    bool objectPlaced = false;
-    while (!objectPlaced) {
-        bool placementConflict = false;
-        // Place the object in some random spot on the grid (with y==0.49f so it is touching the ground).
-        vec3 objPos = vec3(randFloat(-GRID_SIZE + 1, GRID_SIZE - 1),
-                           0.49f,
-                           randFloat(-GRID_SIZE + 1, GRID_SIZE - 1));
+    return make_shared<GameObject>(position, scale, rotation, shapes.at(0), magnetic, deadly, spawnPoint, collectable);
+}
 
-        boundingSphere = make_shared<BoundingSphere>(objPos, BUNNY_SPHERE_RADIUS);
-        
-        for (int i = 0; i < objects.size(); i++) {
-            // Check if this object collides with another object or with the player.
-            // If so, find somewhere else to place the object.
-            if (objects.at(i)->isCollidingWithBoundingSphere(boundingSphere)
-                    || boundingSphere->isColliding(camera->getPlayerSphere())) {
-                placementConflict = true;
-                break;
-            }
-        }
-        
-        // If the position doesn't conflict with other objects or the player, then set
-        // the object there.
-        if (!placementConflict) {
-            position = objPos;
-            objectPlaced = true;
-        }
-    }
-    
-    // (-1, 0, 0) points in the "forward" direction for the bunny model.
-    // We use a normal vector so we don't have to normalize it later.
-    direction = vec3(-1.0f, 0.0f, 0.0f);
-    // We want to rotate the bunny to some random direction.
-    float radiansRotated = randFloat(0, 2*M_PI);
-    // These steps rotate the direction vector. Since we aren't altering the scale of the vector,
-    // the direction vector stays normalized.
-    mat3 mat = mat3();
-    mat[0][0] = cos(radiansRotated);
-    mat[2][0] = sin(radiansRotated);
-    mat[0][2] = -sin(radiansRotated);
-    mat[2][2] = cos(radiansRotated);
-    direction = mat * direction;
-    
-    // Set the velocity, change the object material to pink, and set the object's shape to bunny.
-    velocity = 1.5f;
-    material = make_shared<Material>(vec3(0.2f, 0.2f, 0.2f), vec3(1.0f, 0.0f, 1.0f), vec3(1.0f, 0.9f, 0.8f), 200.0f);
-    shape = shapes.at(0);
-    
-    objects.push_back(make_shared<GameObject>(position, direction, velocity, boundingSphere, shape, material));
+shared_ptr<GameObject> GameManager::createObject(bool magnetic, bool deadly, bool spawnPoint, bool collectable)
+{
+    return createObject(vec3(0.0f, 0.0f, 0.0f), vec3(1.0f, 1.0f, 1.0f), vec3(0.0f, 0.0f, 0.0f), magnetic, deadly, spawnPoint, collectable);
 }
 
 void GameManager::printStringToScreen(float x, float y, const string &text, float r, float g, float b)

@@ -27,7 +27,7 @@ class Texture;
 class GameManager
 {
 public:
-    GameManager(GLFWwindow *window, const std::string &resourceDir);
+    GameManager(GLFWwindow *window, const std::string &resourceDir, const std::string &levelDir, const std::string &level);
     virtual ~GameManager();
     
     void initScene();
@@ -39,14 +39,18 @@ public:
     int getNumObjCollected() const {return numObjCollected;}
     int getNumObj() const {return objects.size();}
 private:
-    void createBunny();
+    std::shared_ptr<GameObject> createObject(bool magnetic, bool deadly, bool spawnPoint, bool collectable);
+    std::shared_ptr<GameObject> createObject(glm::vec3 position, glm::vec3 scale, glm::vec3 rotation, bool magnetic, bool deadly, bool spawnPoint, bool collectable);
+    void importLevel(std::string level);
+    std::shared_ptr<GameObject> parseObject(std::string objectString);
     void printStringToScreen(float x, float y, const std::string &text, float r, float g, float b);
     float randFloat(float l, float h);
     
     GLFWwindow *window;
-    std::string RESOURCE_DIR;
+    std::string RESOURCE_DIR, LEVEL_DIR, level;
     
     std::vector<std::shared_ptr<GameObject>> objects;
+    std::shared_ptr<GameObject> playerSpawn, spaceshipPart, tempObject;
     double objIntervalCounter;
     int numObjCollected;
     int gameWon;
@@ -65,6 +69,9 @@ private:
     std::vector<unsigned int> grassIndBuf;
     std::map<std::string,GLuint> grassBufIDs;
     int grassIndCount;
+    bool objectPlacement, setSpawn, setCollectable;
+    unsigned int currentObject;
+    int currentAxis;
 };
 
 #endif /* GameManager_hpp */
