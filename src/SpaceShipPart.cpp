@@ -21,6 +21,7 @@ using namespace glm;
 SpaceShipPart::SpaceShipPart() :
 Cuboid(),
 yOffset(0.0f),
+currTime(0.0f),
 collected(false)
 {
     
@@ -32,6 +33,7 @@ SpaceShipPart::SpaceShipPart(const vec3 &position, const vec3 &direction,
                              const shared_ptr<Material> &material) :
 Cuboid(position, direction, halfExtents, scale, 0.0f, shape, material, false),
 yOffset(0.0f),
+currTime(0.0f),
 collected(false)
 {
     
@@ -44,7 +46,7 @@ SpaceShipPart::~SpaceShipPart()
 
 void SpaceShipPart::update(float dt)
 {
-    currTime = currTime + dt;
+    currTime += dt;
     yOffset = 0.3 * sin(2 * currTime);
     
     if (currTime > 2*M_PI) {

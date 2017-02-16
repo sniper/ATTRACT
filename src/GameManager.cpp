@@ -429,7 +429,6 @@ void GameManager::updateGame(double dt) {
 
     camera->setPosition(bullet->getBulletObjectState("cam"));
 
-    // TODO: Can't play again after going back to menu.
     if (camera->checkForCollision(spaceShipPart)) {
         //cout << "Collision" << endl;
         kdtree = nullptr;
@@ -481,12 +480,13 @@ void GameManager::renderGame(int fps) {
     if (gameState == MENU) {
         gui->drawMenu();
     }/* else its in pause menu/game*/
-    else if (gameState == DEATH)
+    else if (gameState == DEATH) {
         gui->drawDeath();
-    else if (gameState == WIN)
+    }
+    else if (gameState == WIN) {
         gui->drawWin();
+    }
     else {
-
         // Apply camera transforms
         P->pushMatrix();
         camera->applyProjectionMatrix(P);
@@ -514,11 +514,8 @@ void GameManager::renderGame(int fps) {
                 objects.at(i)->draw(program);
             }
 
-
             delete temp;
-
         }
-        
         
         if (bullet->getDebugFlag()) {
             /*DRAW DEATH OBJECTS*/
@@ -526,7 +523,6 @@ void GameManager::renderGame(int fps) {
                 deathObjects.at(i)->draw(program);
             }
         }
-        //cout << "objects draw: " << objectsDrawn << endl;
 
         MV->pushMatrix();
         MV->loadIdentity();
@@ -535,8 +531,6 @@ void GameManager::renderGame(int fps) {
         magnetObj->draw(program);
         glEnable(GL_DEPTH_TEST);
         MV->popMatrix();
-
-
 
         program->unbind();
 

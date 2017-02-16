@@ -254,21 +254,33 @@ vector<shared_ptr<GameObject>> KDTree::searchTreeWithRay(shared_ptr<KDNode> node
         if (lineY >= std::min(start.y, end.y) && lineY <= std::max(start.y, end.y) &&
             lineZ >= std::min(start.z, end.z) && lineZ <= std::max(start.z, end.z)) {
             if (start.x <= node->split) {
-                left = searchTreeWithRay(node->left, start, segmentDivide);
-                right = searchTreeWithRay(node->right, segmentDivide, end);
+                if (node->left) {
+                    left = searchTreeWithRay(node->left, start, segmentDivide);
+                }
+                if (node->right) {
+                    right = searchTreeWithRay(node->right, segmentDivide, end);
+                }
             }
             else {
-                left = searchTreeWithRay(node->left, segmentDivide, end);
-                right = searchTreeWithRay(node->right, start, segmentDivide);
+                if (node->left) {
+                    left = searchTreeWithRay(node->left, segmentDivide, end);
+                }
+                if (node->right) {
+                    right = searchTreeWithRay(node->right, start, segmentDivide);
+                }
             }
         }
         // Else, check only the side that the segment is in.
         else {
             if (start.x <= node->split) {
-                left = searchTreeWithRay(node->left, start, end);
+                if (node->left) {
+                    left = searchTreeWithRay(node->left, start, end);
+                }
             }
             else {
-                right = searchTreeWithRay(node->right, start, end);
+                if (node->right) {
+                    right = searchTreeWithRay(node->right, start, end);
+                }
             }
         }
     }
