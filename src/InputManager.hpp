@@ -29,8 +29,8 @@ public:
     State processGameInputs(std::shared_ptr<BulletManager> &bullet, std::shared_ptr<FmodManager> &fmod);
     State processMenuInputs(std::shared_ptr<GuiManager> &gui, std::shared_ptr<FmodManager> &fmod);
     State processPauseInputs(std::shared_ptr<GuiManager> &gui, std::shared_ptr<FmodManager> &fmod);
-    State processDeathInputs(std::shared_ptr<GuiManager> &gui);
-    State processWinInputs(std::shared_ptr<GuiManager> &gui);
+    State processDeathInputs(std::shared_ptr<GuiManager> &gui,std::shared_ptr<FmodManager> &fmod);
+    State processWinInputs(std::shared_ptr<GuiManager> &gui,std::shared_ptr<FmodManager> &fmod);
 
 private:
     std::shared_ptr<Camera> camera;

@@ -150,14 +150,14 @@ void GameManager::initScene() {
     // Set up the bullet manager and create ground plane and camera.
     //bullet = make_shared<BulletManager>();
     //bullet->createPlane("ground", 0, 0, 0);
-    
+
     shared_ptr<Material> material = make_shared<Material>(vec3(0.2f, 0.2f, 0.2f), vec3(0.0f, 0.5f, 0.5f), vec3(1.0f, 0.9f, 0.8f), 200.0f);
     magnetObj = make_shared<GameObject>(vec3(0.4, -0.2, -1), vec3(0.4, 0, -0.2), vec3(0.5, 0.5, 0.5), 0, shapes.at(2), material);
 }
 
 void GameManager::createLevel() {
     bullet = make_shared<BulletManager>();
-    
+
     shared_ptr<Material> building = make_shared<Material>(vec3(0.9f, 0.9f, 0.9f),
             vec3(1.0f, 1.0f, 1.0f),
             vec3(0.0f, 0.0f, 0.0f),
@@ -384,31 +384,32 @@ void GameManager::createLevel() {
             CUBE_HALF_EXTENTS, scale,
             shapes.at(1), spacePart);
     objects.push_back(spaceShipPart);
-    
+
     kdtree = make_shared<KDTree>(objects);
 }
 
 State GameManager::processInputs() {
     if (gameState == GAME) {
+        if (!fmod->isPlaying("game"))
+            fmod->playSound("game", true);
         gameState = inputManager->processGameInputs(bullet, fmod);
-    }
-    else if (gameState == PAUSE) {
+    } else if (gameState == PAUSE) {
         gameState = inputManager->processPauseInputs(gui, fmod);
-    }
-    else if (gameState == MENU) {
+    } else if (gameState == MENU) {
         gameState = inputManager->processMenuInputs(gui, fmod);
+        if (!fmod->isPlaying("menu"))
+            fmod->playSound("menu", true);
+        if (gameState == GAME) {
+            fmod->stopSound("menu");
+            createLevel();
+        }
+    } else if (gameState == DEATH) {
+        gameState = inputManager->processDeathInputs(gui, fmod);
         if (gameState == GAME) {
             createLevel();
         }
-    }
-    else if (gameState == DEATH) {
-        gameState = inputManager->processDeathInputs(gui);
-        if (gameState == GAME) {
-            createLevel();
-        }
-    }
-    else if (gameState == WIN) {
-        gameState = inputManager->processWinInputs(gui);
+    } else if (gameState == WIN) {
+        gameState = inputManager->processWinInputs(gui, fmod);
         if (gameState == GAME) {
             createLevel();
         }
@@ -515,7 +516,14 @@ void GameManager::renderGame(int fps) {
             delete temp;
 
         }
-
+        
+        
+        if (bullet->getDebugFlag()) {
+            /*DRAW DEATH OBJECTS*/
+            for (unsigned int i = 0; i < deathObjects.size(); i++) {
+                deathObjects.at(i)->draw(program);
+            }
+        }
         //cout << "objects draw: " << objectsDrawn << endl;
 
         MV->pushMatrix();
@@ -526,12 +534,7 @@ void GameManager::renderGame(int fps) {
         glEnable(GL_DEPTH_TEST);
         MV->popMatrix();
 
-        if (bullet->getDebugFlag()) {
-            /*DRAW DEATH OBJECTS*/
-            for (unsigned int i = 0; i < deathObjects.size(); i++) {
-                deathObjects.at(i)->draw(program);
-            }
-        }
+
 
         program->unbind();
 
@@ -584,7 +587,7 @@ void GameManager::resolveMagneticInteractions() {
     // Limiting the number of objects to just ones near the endpoint. Not sure
     // if checking the endpoint is the best approach, but it seems to work fine
     // for now.
-    vector<shared_ptr<GameObject>> nearObjs = kdtree->findObjectsIntersectedByRay(startLoc, endLoc);
+    vector<shared_ptr < GameObject>> nearObjs = kdtree->findObjectsIntersectedByRay(startLoc, endLoc);
     shared_ptr<GameObject> obj = RayTrace::rayTrace(startLoc, endLoc, nearObjs);
     if (obj && obj->isMagnetic()) {
         camera->setLookingAtMagnet(true);
