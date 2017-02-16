@@ -36,12 +36,13 @@
 #include "BulletManager.hpp"
 #include "Cuboid.hpp"
 #include "RayTrace.hpp"
+#include "FmodManager.hpp"
 #include "VfcManager.hpp"
+#include "SpaceShipPart.hpp"
 
 #include "GuiManager.hpp"
 
 #include "KDTree.hpp"
-
 
 #include "stb_easy_font.h"
 
@@ -63,6 +64,7 @@ gameState(MENU) {
     objIntervalCounter = 0.0f;
     numObjCollected = 0;
     gameWon = false;
+    camera = make_shared<Camera>();
 
     // Set vsync.
     glfwSwapInterval(1);
@@ -76,50 +78,22 @@ gameState(MENU) {
     glfwSetMouseButtonCallback(window, Mouse::mouse_button_callback);
     // Set the window resize call back.
     glfwSetFramebufferSizeCallback(window, resize_callback);
-    // Create the camera for the scene.
-    camera = make_shared<Camera>(GRID_SIZE);
     // Set up the manager for keyboard and mouse input.
     inputManager = make_shared<InputManager>(camera);
     //init vfc
     vfc = new VfcManager();
     //init fmod
     fmod = new FmodManager();
-    fmod->createStream(RESOURCE_DIR + "bgm.mp3");
+    fmod->createStream(RESOURCE_DIR + "council.mp3");
     fmod->playSound();
-
-
+    // init gui
     gui = new GuiManager(RESOURCE_DIR);
-
 
     // Initialize the scene.
     initScene();
-    //create the level
-    createLevel();
     
     kdtree = make_shared<KDTree>(objects);
-    kdtree->printTree();
-    
-//    vector<shared_ptr<GameObject>> treeTest = kdtree->findObjectsNearPoint(vec3(0, 3, 4));
-//    cout << "Objects near (0, 3, 4): " << endl;
-//    for (int i = 0; i < treeTest.size(); i++) {
-//        string xCoord = to_string(treeTest.at(i)->getPosition().x);
-//        xCoord.erase(xCoord.find_last_not_of('0') + 1, string::npos);
-//        if (xCoord[xCoord.size()-1] == '.') {
-//            xCoord.append("0");
-//        }
-//        string yCoord = to_string(treeTest.at(i)->getPosition().y);
-//        yCoord.erase(yCoord.find_last_not_of('0') + 1, string::npos);
-//        if (yCoord[yCoord.size()-1] == '.') {
-//            yCoord.append("0");
-//        }
-//        string zCoord = to_string(treeTest.at(i)->getPosition().z);
-//        zCoord.erase(zCoord.find_last_not_of('0') + 1, string::npos);
-//        if (zCoord[zCoord.size()-1] == '.') {
-//            zCoord.append("0");
-//        }
-//        
-//        cout << "(" + xCoord + ", " + yCoord + ", " + zCoord + ")" << endl;
-//    }
+    //kdtree->printTree();
 }
 
 GameManager::~GameManager() {
@@ -154,58 +128,63 @@ void GameManager::initScene() {
     program->addUniform("s");
     program->addUniform("objTransMatrix");
 
-
-
     shared_ptr<Shape> cube = make_shared<Shape>();
     cube->loadMesh(RESOURCE_DIR + "cube.obj");
     cube->fitToUnitBox();
     cube->init();
     shapes.push_back(cube);
+    
+    shared_ptr<Shape> shipPart = make_shared<Shape>();
+    shipPart->loadMesh(RESOURCE_DIR + "cargoContainer.obj");
+    shipPart->fitToUnitBox();
+    shipPart->init();
+    shapes.push_back(shipPart);
 
     //lightPos = vec4(0.0f, 10.0f, 0.0f, 1.0f);
     lightIntensity = 0.6f;
-
-
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
     GLSL::checkError(GET_FILE_LINE);
 
-
-
     // Set up the bullet manager and create ground plane and camera.
     bullet = new BulletManager();
-    bullet->createPlane("ground", 0, 0, 0);
-
-    bullet->createBox("cam", vec3(0, 0.5, 0), CUBE_HALF_EXTENTS, vec3(1, 1, 1), 1);
-
-    //shared_ptr<Material> material = make_shared<Material>(vec3(0.2f, 0.2f, 0.2f), vec3(0.0f, 0.5f, 0.5f), vec3(1.0f, 0.9f, 0.8f), 200.0f);
-    //shared_ptr<BoundingSphere> boundingSphere = make_shared<BoundingSphere>(vec3(0, 10, 0), BUNNY_SPHERE_RADIUS);
-    //testObj = make_shared<GameObject>(vec3(0, 10, 0), vec3(1, 0, 0), 0, boundingSphere, shapes.at(0), material);
-    //objects.push_back(testObj);
+    //bullet->createPlane("ground", 0, 0, 0);
 }
 
 void GameManager::createLevel() {
+    cout << "Create Level" << endl;
     shared_ptr<Material> building = make_shared<Material>(vec3(0.9f, 0.9f, 0.9f),
-            vec3(1.0f, 1.0f, 1.0f),
-            vec3(0.0f, 0.0f, 0.0f),
-            200.0f);
+                                                          vec3(1.0f, 1.0f, 1.0f),
+                                                          vec3(0.0f, 0.0f, 0.0f),
+                                                          200.0f);
     shared_ptr<Material> ground = make_shared<Material>(vec3(0.6f, 0.6f, 0.6f),
-            vec3(0.7f, 0.7f, 0.7f),
-            vec3(0.0f, 0.0f, 0.0f),
-            200.0f);
+                                                        vec3(0.7f, 0.7f, 0.7f),
+                                                        vec3(0.0f, 0.0f, 0.0f),
+                                                        200.0f);
     shared_ptr<Material> greyBox = make_shared<Material>(vec3(0.2f, 0.2f, 0.2f),
-            vec3(0.4f, 0.4f, 0.4f),
-            vec3(0.0f, 0.0f, 0.0f),
-            200.0f);
+                                                         vec3(0.4f, 0.4f, 0.4f),
+                                                         vec3(0.0f, 0.0f, 0.0f),
+                                                         200.0f);
     shared_ptr<Material> magnetSurface = make_shared<Material>(vec3(0.2f, 0.2f, 0.2f),
-            vec3(1.0f, 0.0f, 0.0f),
-            vec3(1.0f, 0.9f, 0.8f),
-            200.0f);
+                                                               vec3(1.0f, 0.0f, 0.0f),
+                                                               vec3(1.0f, 0.9f, 0.8f),
+                                                               200.0f);
+    shared_ptr<Material> spacePart = make_shared<Material>(vec3(0.2f, 0.2f, 0.2f),
+                                                           vec3(1.0f, 1.0f, 0.0f),
+                                                           vec3(1.0f, 0.9f, 0.8f),
+                                                           200.0f);
     vec3 location, direction, scale;
+    
+    /* Camera */
+    location = vec3(0, 0.5, 0);
+    scale = vec3(1, 1, 1);
+    camera = make_shared<Camera>(location);
+    inputManager->setCamera(camera);
+    bullet->createBox("cam", location, CUBE_HALF_EXTENTS, scale, 1);
 
-    // Ground Plane
+    /* Ground Plane */
     location = vec3(25, 0, 0);
     direction = vec3(1, 0, 0);
     scale = vec3(100, 0.1, 10);
@@ -216,9 +195,7 @@ void GameManager::createLevel() {
     objects.push_back(groundPlane);
     bullet->createBox("groundPlane", location, CUBE_HALF_EXTENTS, scale, 0);
 
-    //
-    // Walls
-    //
+    /* Walls */
     location = vec3(20, 2, 3);
     direction = vec3(1, 0, 0);
     scale = vec3(70, 50, 1);
@@ -383,6 +360,17 @@ void GameManager::createLevel() {
             magnetSurface, true);
     objects.push_back(hallwayLastPad);
     bullet->createMagneticBox("hallwayLastPad", location, CUBE_HALF_EXTENTS, scale, 0);
+    
+    //
+    // Collectable
+    //
+    location = vec3(2, 0.8, 2);
+    direction = vec3(1, 0, 0);
+    scale = vec3(1, 1, 1);
+    spaceShipPart = make_shared<SpaceShipPart>(location, direction,
+                                               CUBE_HALF_EXTENTS, scale,
+                                               shapes.at(1), spacePart);
+    objects.push_back(spaceShipPart);
 }
 
 State GameManager::processInputs() {
@@ -392,8 +380,12 @@ State GameManager::processInputs() {
     else if (gameState == PAUSE) {
         gameState = inputManager->processPauseInputs(gui);
     }
-    else if (gameState == MENU)
+    else if (gameState == MENU) {
         gameState = inputManager->processMenuInputs(gui);
+        if (gameState == GAME) {
+            createLevel();
+        }
+    }
     return gameState;
 }
 
@@ -401,58 +393,18 @@ void GameManager::updateGame(double dt) {
     //bullet->rayTrace(camera->getPosition(), camera->getPosition() + (camera->getDirection() * MAGNET_RANGE));
     resolveMagneticInteractions();
 
+    spaceShipPart->update(dt);
+
     //step the bullet, update test obj
     bullet->step(dt);
 
     camera->setPosition(bullet->getBulletObjectState("cam"));
-
-    //kdtree->printTree();
     
-    /*
-    for (int i = 0; i < objects.size(); i++) {
-        shared_ptr<GameObject> currObj = objects.at(i);
-
-        // Update the current object
-        currObj->update(dt);
-
-        // Check for a collision between this object and the player
-        if (camera->checkForCollision(currObj)) {
-            // If this is the first time the player has contacted this object,
-            // then count it as a new object collected.
-            if (!currObj->isCollected()) {
-                numObjCollected++;
-                if (numObjCollected == MAX_NUM_OBJECTS) {
-                    gameWon = true;
-                }
-            }
-
-            camera->resolveCollision();
-            currObj->resolveCollision(true);
-        }
-
-        vec3 objPosition = currObj->getPosition();
-        vec3 objDirection = currObj->getDirection();
-        // Check to see if the object is leaving the grid. If it is, then make it
-        // collide with the edge of the grid. I slightly alter the GRID_SIZE so the
-        // objects don't hang over the edge of the grid.
-        if ((objPosition[0] <= -GRID_SIZE + 0.5f && objDirection[0] < 0)
-                || (objPosition[0] >= GRID_SIZE - 0.5f && objDirection[0] > 0)
-                || (objPosition[2] <= -GRID_SIZE + 0.5f && objDirection[2] < 0)
-                || (objPosition[2] >= GRID_SIZE - 0.5f && objDirection[2] > 0)) {
-            currObj->resolveCollision(false);
-        }
-
-        // Check for collision between this object and the other objects
-        for (int j = 0; j < objects.size(); j++) {
-            // First, make sure you aren't comparing the object against itself.
-            // Then, check for a collision between this object and one of the other objects.
-            if (i != j && currObj->isCollidingWithOtherObject(objects.at(j))) {
-                currObj->resolveCollision(false);
-                objects.at(j)->resolveCollision(false);
-            }
-        }
+    // TODO: Can't play again after going back to menu.
+    if (camera->checkForCollision(spaceShipPart)) {
+        //cout << "Collision" << endl;
+        gameState = MENU;
     }
-     */
 }
 
 void GameManager::renderGame(int fps) {

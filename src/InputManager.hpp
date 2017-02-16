@@ -27,6 +27,8 @@ public:
     State processGameInputs(BulletManager *bullet);
     State processMenuInputs(GuiManager *gui);
     State processPauseInputs(GuiManager *gui);
+    
+    void setCamera(const std::shared_ptr<Camera> newCamera) {camera = newCamera;}
 private:
     std::shared_ptr<Camera> camera;
 };

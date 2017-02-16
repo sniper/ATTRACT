@@ -17,7 +17,6 @@
 #include <GLFW/glfw3.h>
 #include <glm/gtc/type_ptr.hpp>
 #include "GameObject.hpp"
-#include "FmodManager.hpp"
 
 class InputManager;
 class Camera;
@@ -28,13 +27,13 @@ class Texture;
 class BulletManager;
 class VfcManager;
 class FmodManager;
+class SpaceShipPart;
 
 class GuiManager;
 
 enum State {GAME, MENU, PAUSE};
 
 struct KDTree;
-
 
 class GameManager
 {
@@ -48,6 +47,7 @@ public:
     void renderGame(int fps);
     static void resize_callback(GLFWwindow *window, int width, int height);
     
+    State getState() const {return gameState;}
     int getNumObjCollected() const {return numObjCollected;}
     int getNumObj() const {return objects.size();}
 private:
@@ -80,6 +80,8 @@ private:
     
     std::shared_ptr<Program> program;
     std::vector<std::shared_ptr<Shape>> shapes;
+    
+    std::shared_ptr<SpaceShipPart> spaceShipPart;
 
     glm::vec4 lightPos;
     float lightIntensity;

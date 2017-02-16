@@ -92,6 +92,9 @@ int main(int argc, char **argv) {
                 // Simulate movement/physics
                 gameManager->updateGame(dt);
                 elapsedTime -= dt;
+                if (gameManager->getState() != GAME) {
+                    break;
+                }
             }
         }
 

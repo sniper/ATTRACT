@@ -11,7 +11,7 @@
 
 #include "Camera.hpp"
 #include "MatrixStack.h"
-#include "BoundingSphere.hpp"
+#include "AABoundingBox.hpp"
 #include "GameObject.hpp"
 #include "InputManager.hpp"
 #include "GameManager.hpp"
@@ -30,31 +30,31 @@ using namespace std;
 using namespace glm;
 
 Camera::Camera() :
-position(0.0f, 0.49f, 0.0f),
+position(0.0f, 0.5f, 0.0f),
 yaw(0.0f),
 pitch(0.0f),
 aspect(1.0f),
 fovy(45.0f),
 znear(0.1f),
 zfar(1000.0f),
-boundingSphere(make_shared<BoundingSphere>(position, 0.25f)),
+boundingBox(make_shared<AABoundingBox>(position, vec3(0.25f, 0.25f, 0.25f))),
 lookingAtMagnet(false)
 {
 
 }
 
-Camera::Camera(int gridSize) :
-position(0.0f, 0.49f, 0.0f),
+Camera::Camera(const vec3 &position) :
+position(position),
 yaw(0.0f),
 pitch(0.0f),
 aspect(1.0f),
 fovy(45.0f),
 znear(0.1f),
 zfar(1000.0f),
-boundingSphere(make_shared<BoundingSphere>(position, 0.25f)),
+boundingBox(make_shared<AABoundingBox>(position, vec3(0.25f, 0.25f, 0.25f))),
 lookingAtMagnet(false)
 {
-
+    
 }
 
 Camera::~Camera()
@@ -182,7 +182,7 @@ void Camera::interpretPressedKeys(const vector<char> &pressedKeys,
 
     bulletCamObj->getRigidBody()->setLinearVelocity(movement);
 
-    boundingSphere->updateCenter(position);
+    boundingBox->setPosition(position);
 }
 
 void Camera::applyProjectionMatrix(shared_ptr<MatrixStack> P) const
@@ -206,13 +206,13 @@ void Camera::applyViewMatrix(shared_ptr<MatrixStack> MV) const
 
 bool Camera::checkForCollision(const std::shared_ptr<GameObject> &otherObj)
 {
-    return otherObj->isCollidingWithBoundingSphere(boundingSphere);
+    return otherObj->isCollidingWithBoundingBox(boundingBox);
 }
 
 void Camera::resolveCollision()
 {
     position = oldPosition;
-    boundingSphere->updateCenter(position);
+    boundingBox->setPosition(position);
 }
 
 void Camera::setPosition(vec3 inPos)

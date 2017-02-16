@@ -38,8 +38,8 @@ public:
                                                const glm::vec3 &end,
                                                glm::vec3 *closestPointOfIntersection);
     
-    void draw(const std::shared_ptr<Program> &prog);
-    void update(float dt);
+    virtual void draw(const std::shared_ptr<Program> &prog);
+    virtual void update(float dt);
     void resolveCollision(bool collidedWithPlayer);
     
     virtual bool isCuboid() const {return false;}

@@ -17,13 +17,13 @@ class MatrixStack;
 class BoundingSphere;
 class GameObject;
 class BulletManager;
-class BulletSphere;
+class AABoundingBox;
 
 class Camera
 {
 public:
     Camera();
-    Camera(int gridSize);
+    Camera(const glm::vec3 &position);
     virtual ~Camera();
     
     void mouseMoved(double x, double y);
@@ -34,14 +34,14 @@ public:
     void resolveCollision();
     
     void setAspect(float a) {aspect = a;}
-    void setBoundingSphere(const std::shared_ptr<BoundingSphere> &sphere) {boundingSphere = sphere;}
+    void setBoundingBox(const std::shared_ptr<AABoundingBox> &box) {boundingBox = box;}
     
     void setPosition(glm::vec3 inPos);
     void setLookingAtMagnet(bool newLookingAtMagnet) {lookingAtMagnet = newLookingAtMagnet;}
     
     glm::vec3 getPosition() const {return position;}
     glm::vec3 getDirection() const {return glm::normalize(glm::vec3(cos(pitch) * cos(yaw), sin(pitch), cos(pitch) * cos((3.14/2) - yaw)));}
-    std::shared_ptr<BoundingSphere> getPlayerSphere() const {return boundingSphere;}
+    std::shared_ptr<AABoundingBox> getPlayerSphere() const {return boundingBox;}
     bool isLookingAtMagnet() const {return lookingAtMagnet;}
     
 private:
@@ -54,7 +54,7 @@ private:
     float znear;
     float zfar;
     glm::vec2 mousePrev;
-    std::shared_ptr<BoundingSphere> boundingSphere;
+    std::shared_ptr<AABoundingBox> boundingBox;
     bool lookingAtMagnet;
 };
 
