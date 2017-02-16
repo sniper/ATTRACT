@@ -132,12 +132,6 @@ RESOURCE_DIR(resource) {
     scales.insert(make_pair("tryagain", vec3(0.7, 0.7, 1)));
     translates.insert(make_pair("tryagain", vec3(0, -0.25, 0)));
 
-
-
-
-
-
-
     // Generate 1 buffer, put the resulting identifier in vertexbuffer
     glGenBuffers(1, &vertexbuffer);
     glGenBuffers(1, &texbuffer);
@@ -150,9 +144,6 @@ RESOURCE_DIR(resource) {
     glBufferData(GL_ARRAY_BUFFER, sizeof (tex_buffer_data), tex_buffer_data, GL_STATIC_DRAW);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-
-
 }
 
 GuiManager::GuiManager(const GuiManager& orig) {
