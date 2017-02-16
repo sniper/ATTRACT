@@ -325,7 +325,6 @@ void GameManager::importLevel(string level) {
 
 
 
-
     shared_ptr<Material> ground = make_shared<Material>(vec3(0.6f, 0.6f, 0.6f),
             vec3(0.7f, 0.7f, 0.7f),
             vec3(0.0f, 0.0f, 0.0f),
@@ -507,9 +506,13 @@ void GameManager::renderGame(int fps) {
         glEnable(GL_DEPTH_TEST);
         MV->popMatrix();
 
-
-
-
+        
+        if (bullet->getDebugFlag()) {
+            /*DRAW DEATH OBJECTS*/
+            for (unsigned int i = 0; i < deathObjects.size(); i++) {
+                deathObjects.at(i)->draw(program);
+            }
+        }
         program->unbind();
 
 
@@ -559,10 +562,7 @@ void GameManager::resolveMagneticInteractions() {
     vec3 startLoc = camera->getPosition();
     vec3 endLoc = startLoc + camera->getDirection() * MAGNET_RANGE;
 
-    // Limiting the number of objects to just ones near the endpoint. Not sure
-    // if checking the endpoint is the best approach, but it seems to work fine
-    // for now.
-    vector<shared_ptr < GameObject>> nearObjs = kdtree->findObjectsIntersectedByRay(startLoc, endLoc);
+    vector<shared_ptr<GameObject>> nearObjs = kdtree->findObjectsIntersectedByRay(startLoc, endLoc);
     shared_ptr<GameObject> obj = RayTrace::rayTrace(startLoc, endLoc, nearObjs);
     if (obj && obj->isMagnetic()) {
         camera->setLookingAtMagnet(true);
