@@ -594,7 +594,7 @@ void GameManager::renderGame(int fps) {
         /*render pause menu*/
         if (gameState == PAUSE) {
             gui->drawPause(level);
-            cout << level << endl;
+
         }
     }
     //
