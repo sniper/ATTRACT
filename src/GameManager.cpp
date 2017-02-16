@@ -630,10 +630,7 @@ void GameManager::resolveMagneticInteractions() {
     vec3 startLoc = camera->getPosition();
     vec3 endLoc = startLoc + camera->getDirection() * MAGNET_RANGE;
 
-    // Limiting the number of objects to just ones near the endpoint. Not sure
-    // if checking the endpoint is the best approach, but it seems to work fine
-    // for now.
-    vector<shared_ptr < GameObject>> nearObjs = kdtree->findObjectsIntersectedByRay(startLoc, endLoc);
+    vector<shared_ptr<GameObject>> nearObjs = kdtree->findObjectsIntersectedByRay(startLoc, endLoc);
     shared_ptr<GameObject> obj = RayTrace::rayTrace(startLoc, endLoc, nearObjs);
     if (obj && obj->isMagnetic()) {
         camera->setLookingAtMagnet(true);
