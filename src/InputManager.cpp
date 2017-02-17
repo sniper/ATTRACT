@@ -108,7 +108,6 @@ vector<char> InputManager::processInputs()
         objectKeys.push_back('X');
     }
 
-
     camera->interpretPressedKeys(movementKeys);
     return objectKeys;
 }

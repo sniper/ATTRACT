@@ -18,7 +18,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#define MOUSE_SENSITIVITY 0.07f
+#define MOUSE_SENSITIVITY 1.5f
 #define MOVEMENT_SPEED 0.05f
 #define PITCH_CUTOFF 1.57
 
@@ -38,7 +38,8 @@ boundingSphere(make_shared<BoundingSphere>(position, 0.25f))
 
 }
 
-Camera::Camera(int gridSize) :
+Camera::Camera(int gridSize, GLFWwindow* window) :
+window(window),
 position(0.0f, 0.49f, 0.0f),
 yaw(0.0f),
 pitch(0.0f),
@@ -60,17 +61,13 @@ void Camera::mouseMoved(double x, double y)
 {
     vec2 mouseCurr(x, y);
     vec2 dv = mouseCurr - mousePrev;
+    int width, height;
+    glfwGetWindowSize(window, &width, &height);
 
-    if (dv[0] < 0.0f) {
-        yaw -= MOUSE_SENSITIVITY;
-    } else if (dv[0] > 0.0f) {
-        yaw += MOUSE_SENSITIVITY;
-    }
+    yaw += (dv[0] / width) * MOUSE_SENSITIVITY;
 
-    if (dv[1] > 0.0f && pitch >= -PITCH_CUTOFF) {
-        pitch -= MOUSE_SENSITIVITY;
-    } else if (dv[1] < 0.0f && pitch <= PITCH_CUTOFF) {
-        pitch += MOUSE_SENSITIVITY;
+    if (dv[1] > 0.0f && pitch >= -PITCH_CUTOFF || dv[1] < 0.0f && pitch <= PITCH_CUTOFF) {
+        pitch -= (dv[1] / height) * MOUSE_SENSITIVITY;
     }
 
     mousePrev = mouseCurr;

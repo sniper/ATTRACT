@@ -76,7 +76,7 @@ level(level)
     // Set the window resize call back.
     glfwSetFramebufferSizeCallback(window, resize_callback);
     // Create the camera for the scene.
-    camera = make_shared<Camera>(GRID_SIZE);
+    camera = make_shared<Camera>(GRID_SIZE, window);
     // Set up the manager for keyboard and mouse input.
     inputManager = make_shared<InputManager>(camera);
     // Initialize the scene.
