@@ -215,7 +215,7 @@ State GuiManager::interpretWinPressedKeys(std::vector<char> pressedKeys) {
         if (selectedName == "quit")
             exit(0);
         else if (selectedName == "nextlevel")
-            return MENU;
+            return GAME;
     }
     return WIN;
 }
