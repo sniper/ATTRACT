@@ -47,7 +47,7 @@ public:
     void drawMenu();
     void drawPause(int level);
     void drawDeath();
-    void drawWin();
+    void drawWin(int level);
     State interpretMenuPressedKeys(std::vector<char> pressedKeys);
     State interpretPausePressedKeys(std::vector<char> pressedKeys);
     State interpretDeathPressedKeys(std::vector<char> pressedKeys);

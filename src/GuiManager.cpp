@@ -42,17 +42,28 @@ RESOURCE_DIR(resource) {
     guiShader->addUniform("guiTex");
     guiShader->addUniform("M");
 
+
+
     shared_ptr<Texture> playTex = make_shared<Texture>();
-    playTex->setFilename(RESOURCE_DIR + "play.jpg");
+    playTex->setFilename(RESOURCE_DIR + "textures/menu/play_select.jpg");
     playTex->init();
     playTex->setUnit(0);
     playTex->setWrapModes(GL_REPEAT, GL_REPEAT);
-    guiTextures.insert(make_pair("play", playTex));
-    scales.insert(make_pair("play", vec3(0.5, 0.5, 1)));
-    translates.insert(make_pair("play", vec3(0, -0.2, 0)));
+    guiTextures.insert(make_pair("play_select", playTex));
+    scales.insert(make_pair("play_select", vec3(1, 0.7, 1)));
+    translates.insert(make_pair("play_select", vec3(0, -0.1, 0)));
+
+    playTex = make_shared<Texture>();
+    playTex->setFilename(RESOURCE_DIR + "textures/menu/play_noselect.jpg");
+    playTex->init();
+    playTex->setUnit(0);
+    playTex->setWrapModes(GL_REPEAT, GL_REPEAT);
+    guiTextures.insert(make_pair("play_noselect", playTex));
+    scales.insert(make_pair("play_noselect", vec3(1, 0.7, 1)));
+    translates.insert(make_pair("play_noselect", vec3(0, -0.1, 0)));
 
     shared_ptr<Texture> playTex1 = make_shared<Texture>();
-    playTex1->setFilename(RESOURCE_DIR + "attract.jpg");
+    playTex1->setFilename(RESOURCE_DIR + "textures/menu/attract.jpg");
     playTex1->init();
     playTex1->setUnit(0);
     playTex1->setWrapModes(GL_REPEAT, GL_REPEAT);
@@ -61,13 +72,31 @@ RESOURCE_DIR(resource) {
     translates.insert(make_pair("attract", vec3(0, 0.5, 0)));
 
     shared_ptr<Texture> playTex2 = make_shared<Texture>();
-    playTex2->setFilename(RESOURCE_DIR + "quit.jpg");
+    playTex2->setFilename(RESOURCE_DIR + "quit.png");
     playTex2->init();
     playTex2->setUnit(0);
     playTex2->setWrapModes(GL_REPEAT, GL_REPEAT);
     guiTextures.insert(make_pair("quit", playTex2));
     scales.insert(make_pair("quit", vec3(1, 0.35, 1)));
     translates.insert(make_pair("quit", vec3(0, -0.8, 0)));
+
+    playTex2 = make_shared<Texture>();
+    playTex2->setFilename(RESOURCE_DIR + "quit_select.png");
+    playTex2->init();
+    playTex2->setUnit(0);
+    playTex2->setWrapModes(GL_REPEAT, GL_REPEAT);
+    guiTextures.insert(make_pair("quit_select", playTex2));
+    scales.insert(make_pair("quit_select", vec3(1, 0.7, 1)));
+    translates.insert(make_pair("quit_select", vec3(0, -0.6, 0)));
+
+    playTex2 = make_shared<Texture>();
+    playTex2->setFilename(RESOURCE_DIR + "quit_noselect.png");
+    playTex2->init();
+    playTex2->setUnit(0);
+    playTex2->setWrapModes(GL_REPEAT, GL_REPEAT);
+    guiTextures.insert(make_pair("quit_noselect", playTex2));
+    scales.insert(make_pair("quit_noselect", vec3(1, 0.7, 1)));
+    translates.insert(make_pair("quit_noselect", vec3(0, -0.6, 0)));
 
     shared_ptr<Texture> playTex3 = make_shared<Texture>();
     playTex3->setFilename(RESOURCE_DIR + "arrow.jpg");
@@ -79,7 +108,7 @@ RESOURCE_DIR(resource) {
     translates.insert(make_pair("arrow", vec3(-0.5, -0.2, 0)));
 
     shared_ptr<Texture> playTex4 = make_shared<Texture>();
-    playTex4->setFilename(RESOURCE_DIR + "pause.jpg");
+    playTex4->setFilename(RESOURCE_DIR + "pause.png");
     playTex4->init();
     playTex4->setUnit(0);
     playTex4->setWrapModes(GL_REPEAT, GL_REPEAT);
@@ -88,25 +117,25 @@ RESOURCE_DIR(resource) {
     translates.insert(make_pair("pause", vec3(-0.5, 0.5, 0)));
 
     shared_ptr<Texture> playTex5 = make_shared<Texture>();
-    playTex5->setFilename(RESOURCE_DIR + "shipparts0.jpg");
+    playTex5->setFilename(RESOURCE_DIR + "shipparts.png");
     playTex5->init();
     playTex5->setUnit(0);
     playTex5->setWrapModes(GL_REPEAT, GL_REPEAT);
-    guiTextures.insert(make_pair("shipparts0", playTex5));
-    scales.insert(make_pair("shipparts0", vec3(0.7, 0.7, 1)));
-    translates.insert(make_pair("shipparts0", vec3(0.5, 0.5, 0)));
+    guiTextures.insert(make_pair("shipparts", playTex5));
+    scales.insert(make_pair("shipparts", vec3(0.7, 0.7, 1)));
+    translates.insert(make_pair("shipparts", vec3(0.5, 0.5, 0)));
 
     playTex5 = make_shared<Texture>();
-    playTex5->setFilename(RESOURCE_DIR + "shipparts1.jpg");
+    playTex5->setFilename(RESOURCE_DIR + "shipparts1.png");
     playTex5->init();
     playTex5->setUnit(0);
     playTex5->setWrapModes(GL_REPEAT, GL_REPEAT);
     guiTextures.insert(make_pair("shipparts1", playTex5));
-    scales.insert(make_pair("shipparts1", vec3(0.7, 0.7, 1)));
-    translates.insert(make_pair("shipparts1", vec3(0.5, 0.5, 0)));
+    scales.insert(make_pair("shipparts1", vec3(1.5, 1.5, 1)));
+    translates.insert(make_pair("shipparts1", vec3(0.5, 0.2, 0)));
 
     playTex5 = make_shared<Texture>();
-    playTex5->setFilename(RESOURCE_DIR + "death.jpg");
+    playTex5->setFilename(RESOURCE_DIR + "death.png");
     playTex5->init();
     playTex5->setUnit(0);
     playTex5->setWrapModes(GL_REPEAT, GL_REPEAT);
@@ -133,13 +162,22 @@ RESOURCE_DIR(resource) {
     translates.insert(make_pair("nextlevel", vec3(0, -0.25, 0)));
 
     playTex5 = make_shared<Texture>();
-    playTex5->setFilename(RESOURCE_DIR + "tryagain.jpg");
+    playTex5->setFilename(RESOURCE_DIR + "tryagain_noselect.png");
     playTex5->init();
     playTex5->setUnit(0);
     playTex5->setWrapModes(GL_REPEAT, GL_REPEAT);
-    guiTextures.insert(make_pair("tryagain", playTex5));
-    scales.insert(make_pair("tryagain", vec3(0.7, 0.7, 1)));
-    translates.insert(make_pair("tryagain", vec3(0, -0.25, 0)));
+    guiTextures.insert(make_pair("tryagain_noselect", playTex5));
+    scales.insert(make_pair("tryagain_noselect", vec3(0.7, 0.7, 1)));
+    translates.insert(make_pair("tryagain_noselect", vec3(0, -0.18, 0)));
+
+    playTex5 = make_shared<Texture>();
+    playTex5->setFilename(RESOURCE_DIR + "tryagain_select.png");
+    playTex5->init();
+    playTex5->setUnit(0);
+    playTex5->setWrapModes(GL_REPEAT, GL_REPEAT);
+    guiTextures.insert(make_pair("tryagain_select", playTex5));
+    scales.insert(make_pair("tryagain_select", vec3(0.7, 0.7, 1)));
+    translates.insert(make_pair("tryagain_select", vec3(0, -0.18, 0)));
 
     // Generate 1 buffer, put the resulting identifier in vertexbuffer
     glGenBuffers(1, &vertexbuffer);
@@ -190,10 +228,10 @@ State GuiManager::interpretPausePressedKeys(std::vector<char> pressedKeys) {
 
 State GuiManager::interpretDeathPressedKeys(std::vector<char> pressedKeys) {
     if (find(pressedKeys.begin(), pressedKeys.end(), 's') != pressedKeys.end()) {
-        translates["arrow"] = vec3(-0.8, -0.8, 0);
+
         selectedName = "quit";
     } else if (find(pressedKeys.begin(), pressedKeys.end(), 'w') != pressedKeys.end()) {
-        translates["arrow"] = vec3(-0.5, -0.2, 0);
+
         selectedName = "tryagain";
     } else if (find(pressedKeys.begin(), pressedKeys.end(), '\n') != pressedKeys.end()) {
         if (selectedName == "quit")
@@ -221,44 +259,97 @@ State GuiManager::interpretWinPressedKeys(std::vector<char> pressedKeys) {
 }
 
 void GuiManager::drawMenu() {
+    glDepthMask(GL_FALSE);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
     draw("attract");
-    draw("play");
-    draw("quit");
-    draw("arrow");
+    if (selectedName == "play") {
+        draw("play_select");
+        draw("quit_noselect");
+    } else {
+        draw("play_noselect");
+        draw("quit_select");
+    }
+
+    glDisable(GL_BLEND);
+    glDepthMask(GL_TRUE);
+
+
 
 }
 
 void GuiManager::drawPause(int level) {
-    translates["arrow"] = vec3(-0.8, -0.8, 0);
-    draw("arrow");
+
+
+    glDepthMask(GL_FALSE);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     draw("pause");
-    draw("quit");
+    draw("quit_select");
+    draw("shipparts");
+
+
     selectedName = "quit";
     switch (level) {
         case 1:
-            draw("shipparts0");
             break;
+
         case 2:
             draw("shipparts1");
             break;
     }
+
+    glDisable(GL_BLEND);
+    glDepthMask(GL_TRUE);
 }
 
 void GuiManager::drawDeath() {
+    glDepthMask(GL_FALSE);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     draw("death");
-    draw("tryagain");
-    draw("quit");
-    draw("arrow");
+    
+    if (selectedName == "quit") {
+        draw("quit_select");
+        draw("tryagain_noselect");
+    } else {
+        draw("quit_noselect");
+        draw("tryagain_select");
+    }
+
+
+
+    glDisable(GL_BLEND);
+    glDepthMask(GL_TRUE);
 }
 
-void GuiManager::drawWin() {
-
+void GuiManager::drawWin(int level) {
+    glDepthMask(GL_FALSE);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    
     draw("win");
     draw("nextlevel");
-    draw("quit");
-    draw("arrow");
-    draw("shipparts1");
+    
+    if(selectedName == "quit") {
+        draw("quit_select");
+    }
+    else {
+        draw("quit_noselect");
+    }
+    
+    draw("shipparts");
+    switch(level) {
+        case 1:
+            draw("shipparts1");
+            break;
+    }
+    
+    
+    glDisable(GL_BLEND);
+    glDepthMask(GL_TRUE);
 }
 
 void GuiManager::drawAll() {

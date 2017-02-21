@@ -422,7 +422,7 @@ void GameManager::renderGame(int fps) {
     else if (gameState == DEATH) {
         gui->drawDeath();
     } else if (gameState == WIN) {
-        gui->drawWin();
+        gui->drawWin(level);
     } else {
         // Apply camera transforms
         P->pushMatrix();
