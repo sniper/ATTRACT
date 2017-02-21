@@ -44,6 +44,7 @@
 #include "GuiManager.hpp"
 
 #include "KDTree.hpp"
+#include "BVH.hpp"
 
 #include "stb_easy_font.h"
 
@@ -214,9 +215,9 @@ void GameManager::parseCamera(string objectString) {
     bool playerSpawn = toBool(elems[11]);
     bool collectable = toBool(elems[12]);
 
-    cerr << "new camera" << endl;
-    cerr << pos.x << " " << pos.y << endl;
-    cerr << scale.x << " " << scale.y << endl;
+//    cerr << "new camera" << endl;
+//    cerr << pos.x << " " << pos.y << endl;
+//    cerr << scale.x << " " << scale.y << endl;
 
     camera = make_shared<Camera>(pos);
     inputManager->setCamera(camera);
@@ -246,9 +247,9 @@ void GameManager::parseObject(string objectString, shared_ptr<Material> greyBox,
     bool deadly = toBool(elems[10]);
     bool playerSpawn = toBool(elems[11]);
     bool collectable = toBool(elems[12]);
-    cerr << "new obj" << endl;
-    cerr << pos.x << " " << pos.y << endl;
-    cerr << scale.x << " " << scale.y << endl;
+//    cerr << "new obj" << endl;
+//    cerr << pos.x << " " << pos.y << endl;
+//    cerr << scale.x << " " << scale.y << endl;
 
     /*TODO: MAGNETIC AND DEADLY*/
     if (magnetic) {
@@ -265,7 +266,7 @@ void GameManager::parseObject(string objectString, shared_ptr<Material> greyBox,
                 greyBox, false);
         deathObjects.push_back(dobj1);
 
-        cout << "death box" << endl;
+        //cout << "death box" << endl;
     } else if (collectable) {
         spaceShipPart = make_shared<SpaceShipPart>(pos, vec3(0, 0, 0),
                 CUBE_HALF_EXTENTS, scale,
@@ -317,8 +318,10 @@ void GameManager::importLevel(string level) {
     } else {
         cout << "Unable to open level '" << level << "'" << endl;
     }
-
-    kdtree = make_shared<KDTree>(objects);
+    
+    //kdtree = make_shared<KDTree>(objects);
+    bvh = make_shared<BVH>(objects);
+    //bvh->printTree();
 }
 
 State GameManager::processInputs() {
@@ -371,6 +374,7 @@ void GameManager::updateGame(double dt) {
     if (camera->checkForCollision(spaceShipPart)) {
         //cout << "Collision" << endl;
         kdtree = nullptr;
+        bvh = nullptr;
         objects.clear();
         deathObjects.clear();
         fmod->playSound("win", false);
@@ -385,7 +389,6 @@ void GameManager::updateGame(double dt) {
             gameState = DEATH;
         }
     }
-
 }
 
 void GameManager::renderGame(int fps) {
@@ -466,7 +469,7 @@ void GameManager::renderGame(int fps) {
 
             delete temp;
         }
-
+        
         if (bullet->getDebugFlag()) {
             /*DRAW DEATH OBJECTS*/
             for (unsigned int i = 0; i < deathObjects.size(); i++) {
@@ -543,7 +546,8 @@ void GameManager::resolveMagneticInteractions() {
     vec3 endLoc = startLoc + camera->getDirection() * MAGNET_RANGE;
 
     //vector<shared_ptr<GameObject>> nearObjs = kdtree->findObjectsIntersectedByRay(startLoc, endLoc);
-    shared_ptr<GameObject> obj = RayTrace::rayTrace(startLoc, endLoc, objects);
+    //shared_ptr<GameObject> obj = RayTrace::rayTrace(startLoc, endLoc, objects);
+    shared_ptr<GameObject> obj = bvh->findClosestHitObject(startLoc, endLoc);
     if (obj && obj->isMagnetic()) {
         camera->setLookingAtMagnet(true);
         if (Mouse::isLeftMouseButtonPressed()) {
