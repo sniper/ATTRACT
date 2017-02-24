@@ -19,13 +19,18 @@ class AABoundingBox
 {
 public:
     AABoundingBox();
-    AABoundingBox(const glm::vec3 position, const glm::vec3 halfExtents);
+    AABoundingBox(const glm::vec3 &position, const glm::vec3 &halfExtents);
     virtual ~AABoundingBox();
     
-    bool isCollidingWithSphere(const std::shared_ptr<BoundingSphere> sphere);
-    bool isCollidingWithAABox(const std::shared_ptr<AABoundingBox> box);
+    bool isCollidingWithSphere(const std::shared_ptr<BoundingSphere> &sphere);
+    bool isCollidingWithAABox(const std::shared_ptr<AABoundingBox> &box);
+    bool isIntersectingWithRay(const glm::vec3 &start, const glm::vec3 &end,
+                               glm::vec3 *closestPointOfIntersection);
     
-    void setPosition(const glm::vec3 newPos) {position = newPos;}
+    void setPosition(const glm::vec3 &newPos) {position = newPos;}
+    
+    std::string getMinString() const;
+    std::string getMaxString() const;
     
     glm::vec3 getPosition() const {return position;}
     float getXHalfExtent() const {return halfExtents.x;}

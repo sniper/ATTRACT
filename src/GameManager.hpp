@@ -36,6 +36,7 @@ enum State {
 };
 
 struct KDTree;
+class BVH;
 
 class GameManager {
 public:
@@ -83,6 +84,7 @@ private:
     std::shared_ptr<GuiManager> gui;
 
     std::shared_ptr<KDTree> kdtree;
+    std::shared_ptr<BVH> bvh;
 
     std::vector<std::shared_ptr<GameObject>> objects;
 

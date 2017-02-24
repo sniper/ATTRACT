@@ -13,7 +13,6 @@
 #include <algorithm>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "KDTree.hpp"
 #include "GameObject.hpp"
 #include "AABoundingBox.hpp"
 #include "Cuboid.hpp"
