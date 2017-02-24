@@ -11,6 +11,8 @@
 
 #include <memory>
 #include <vector>
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
 #include <glm/gtc/type_ptr.hpp>
 
 class MatrixStack;
@@ -24,7 +26,7 @@ class Camera
 {
 public:
     Camera();
-    Camera(const glm::vec3 &position);
+    Camera(const glm::vec3 &position, GLFWwindow *window);
     virtual ~Camera();
     
     void mouseMoved(double x, double y);
@@ -48,6 +50,7 @@ public:
 private:
     glm::vec3 position;
     glm::vec3 oldPosition;
+    GLFWwindow *window;
     float yaw;
     float pitch;
     float aspect;

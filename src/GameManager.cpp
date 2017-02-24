@@ -219,7 +219,7 @@ void GameManager::parseCamera(string objectString) {
 //    cerr << pos.x << " " << pos.y << endl;
 //    cerr << scale.x << " " << scale.y << endl;
 
-    camera = make_shared<Camera>(pos);
+    camera = make_shared<Camera>(pos, window);
     inputManager->setCamera(camera);
     bullet->createBox("cam", pos, CUBE_HALF_EXTENTS, scale, 1);
 }

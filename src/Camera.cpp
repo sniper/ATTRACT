@@ -22,7 +22,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <BulletCollision/Gimpact/btGImpactCollisionAlgorithm.h>
 
-#define MOUSE_SENSITIVITY 0.07f
+#define MOUSE_SENSITIVITY 1.5f
 #define MOVEMENT_SPEED 3.0f
 #define PITCH_CUTOFF 1.57
 #define JUMP_CUTOFF 1.25
@@ -45,8 +45,9 @@ lookingAtMagnet(false)
 
 }
 
-Camera::Camera(const vec3 &position) :
+Camera::Camera(const vec3 &position, GLFWwindow *window) :
 position(position),
+window(window),
 yaw(0.0f),
 pitch(0.0f),
 aspect(1.0f),
@@ -66,17 +67,13 @@ Camera::~Camera() {
 void Camera::mouseMoved(double x, double y) {
     vec2 mouseCurr(x, y);
     vec2 dv = mouseCurr - mousePrev;
+    int width, height;
+    glfwGetWindowSize(window, &width, &height);
 
-    if (dv[0] < 0.0f) {
-        yaw -= MOUSE_SENSITIVITY;
-    } else if (dv[0] > 0.0f) {
-        yaw += MOUSE_SENSITIVITY;
-    }
+    yaw += (dv[0] / width) * MOUSE_SENSITIVITY;
 
-    if (dv[1] > 0.0f && pitch >= -PITCH_CUTOFF) {
-        pitch -= MOUSE_SENSITIVITY;
-    } else if (dv[1] < 0.0f && pitch <= PITCH_CUTOFF) {
-        pitch += MOUSE_SENSITIVITY;
+    if (dv[1] > 0.0f && pitch >= -PITCH_CUTOFF || dv[1] < 0.0f && pitch <= PITCH_CUTOFF) {
+        pitch -= (dv[1] / height) * MOUSE_SENSITIVITY;
     }
 
     mousePrev = mouseCurr;
