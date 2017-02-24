@@ -70,7 +70,7 @@ shared_ptr<GameObject> BVH::findClosestHitObject(vec3 &start, vec3 &end)
 {
     BVHNode curNode = nodeList.at(0);
     shared_ptr<GameObject> closestHit = nullptr;
-    float closestDist = MAXFLOAT;
+    float closestDist = numeric_limits<float>::max();
     stack<StackItem> nodeStack;
     StackItem si;
     
