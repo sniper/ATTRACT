@@ -25,8 +25,10 @@ RESOURCE_DIR(resource) {
         -0.5f, -0.5f, 0.0f,
         0.5f, -0.5f, 0.0f,
         0.5f, 0.5f, 0.0f,
-        -0.5f, -0.5f, 0.0f,
-        0.5f, -0.5f, 0.0f,
+        -0.5f, 0.5f, 0.0f,
+
+        
+
     };
 
     static const GLfloat tex_buffer_data[] = {
@@ -48,7 +50,7 @@ RESOURCE_DIR(resource) {
 
     GLSL::checkError(GET_FILE_LINE);
 
-    /*
+    
 
     shared_ptr<Texture> playTex = make_shared<Texture>();
 
@@ -75,7 +77,7 @@ RESOURCE_DIR(resource) {
         guiTextures.insert(make_pair("play_noselect", playTex));
         scales.insert(make_pair("play_noselect", vec3(1, 0.7, 1)));
         translates.insert(make_pair("play_noselect", vec3(0, -0.1, 0)));
-     */
+     
 
     shared_ptr<Texture> playTex1 = make_shared<Texture>();
     playTex1->setFilename(RESOURCE_DIR + "textures/attract.png");
@@ -85,7 +87,7 @@ RESOURCE_DIR(resource) {
     guiTextures.insert(make_pair("attract", playTex1));
     scales.insert(make_pair("attract", vec3(1, 0.55, 1)));
     translates.insert(make_pair("attract", vec3(0, 0.5, 0)));
-    /*
+    
      shared_ptr<Texture> playTex2 = make_shared<Texture>();
      playTex2->setFilename(RESOURCE_DIR + "textures/quit.png");
      playTex2->init();
@@ -193,7 +195,7 @@ RESOURCE_DIR(resource) {
      guiTextures.insert(make_pair("tryagain_select", playTex5));
      scales.insert(make_pair("tryagain_select", vec3(0.7, 0.7, 1)));
      translates.insert(make_pair("tryagain_select", vec3(0, -0.18, 0)));
-     */
+     
 
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
@@ -288,7 +290,7 @@ void GuiManager::drawMenu() {
 
     draw("attract");
 
-    /*
+   
     if (selectedName == "play") {
         draw("play_select");
         draw("quit_noselect");
@@ -296,7 +298,7 @@ void GuiManager::drawMenu() {
         draw("play_noselect");
         draw("quit_select");
     }
-     */
+     
     glDisable(GL_BLEND);
     glDepthMask(GL_TRUE);
 
@@ -431,8 +433,8 @@ void GuiManager::draw(string name) {
     GLSL::checkError(GET_FILE_LINE);
 
     // Draw the triangle !
-    glDrawArrays(GL_TRIANGLES, 0, 3); // Starting from vertex 0; 3 vertices total -> 1 triangle
-    glDrawArrays(GL_TRIANGLES, 3, 3);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 5); // Starting from vertex 0; 3 vertices total -> 1 triangle
+   
     GLSL::checkError(GET_FILE_LINE);
 
     glDisableVertexAttribArray(pos);
