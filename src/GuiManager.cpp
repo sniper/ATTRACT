@@ -24,7 +24,9 @@ RESOURCE_DIR(resource) {
         -0.5f, 0.5f, 0.0f,
         -0.5f, -0.5f, 0.0f,
         0.5f, -0.5f, 0.0f,
-        0.5f, 0.5f, 0.0f
+        0.5f, 0.5f, 0.0f,
+        -0.5f, -0.5f, 0.0f,
+        0.5f, -0.5f, 0.0f,
     };
 
     static const GLfloat tex_buffer_data[] = {
@@ -74,6 +76,7 @@ RESOURCE_DIR(resource) {
         scales.insert(make_pair("play_noselect", vec3(1, 0.7, 1)));
         translates.insert(make_pair("play_noselect", vec3(0, -0.1, 0)));
      */
+
     shared_ptr<Texture> playTex1 = make_shared<Texture>();
     playTex1->setFilename(RESOURCE_DIR + "textures/attract.png");
     playTex1->init();
@@ -83,113 +86,113 @@ RESOURCE_DIR(resource) {
     scales.insert(make_pair("attract", vec3(1, 0.55, 1)));
     translates.insert(make_pair("attract", vec3(0, 0.5, 0)));
     /*
-    shared_ptr<Texture> playTex2 = make_shared<Texture>();
-    playTex2->setFilename(RESOURCE_DIR + "textures/quit.png");
-    playTex2->init();
-    playTex2->setUnit(0);
-    playTex2->setWrapModes(GL_REPEAT, GL_REPEAT);
-    guiTextures.insert(make_pair("quit", playTex2));
-    scales.insert(make_pair("quit", vec3(1, 0.35, 1)));
-    translates.insert(make_pair("quit", vec3(0, -0.8, 0)));
+     shared_ptr<Texture> playTex2 = make_shared<Texture>();
+     playTex2->setFilename(RESOURCE_DIR + "textures/quit.png");
+     playTex2->init();
+     playTex2->setUnit(0);
+     playTex2->setWrapModes(GL_REPEAT, GL_REPEAT);
+     guiTextures.insert(make_pair("quit", playTex2));
+     scales.insert(make_pair("quit", vec3(1, 0.35, 1)));
+     translates.insert(make_pair("quit", vec3(0, -0.8, 0)));
 
-    playTex2 = make_shared<Texture>();
-    playTex2->setFilename(RESOURCE_DIR + "textures/quit_select.png");
-    playTex2->init();
-    playTex2->setUnit(0);
-    playTex2->setWrapModes(GL_REPEAT, GL_REPEAT);
-    guiTextures.insert(make_pair("quit_select", playTex2));
-    scales.insert(make_pair("quit_select", vec3(1, 0.7, 1)));
-    translates.insert(make_pair("quit_select", vec3(0, -0.6, 0)));
+     playTex2 = make_shared<Texture>();
+     playTex2->setFilename(RESOURCE_DIR + "textures/quit_select.png");
+     playTex2->init();
+     playTex2->setUnit(0);
+     playTex2->setWrapModes(GL_REPEAT, GL_REPEAT);
+     guiTextures.insert(make_pair("quit_select", playTex2));
+     scales.insert(make_pair("quit_select", vec3(1, 0.7, 1)));
+     translates.insert(make_pair("quit_select", vec3(0, -0.6, 0)));
 
-    playTex2 = make_shared<Texture>();
-    playTex2->setFilename(RESOURCE_DIR + "textures/quit_noselect.png");
-    playTex2->init();
-    playTex2->setUnit(0);
-    playTex2->setWrapModes(GL_REPEAT, GL_REPEAT);
-    guiTextures.insert(make_pair("quit_noselect", playTex2));
-    scales.insert(make_pair("quit_noselect", vec3(1, 0.7, 1)));
-    translates.insert(make_pair("quit_noselect", vec3(0, -0.6, 0)));
+     playTex2 = make_shared<Texture>();
+     playTex2->setFilename(RESOURCE_DIR + "textures/quit_noselect.png");
+     playTex2->init();
+     playTex2->setUnit(0);
+     playTex2->setWrapModes(GL_REPEAT, GL_REPEAT);
+     guiTextures.insert(make_pair("quit_noselect", playTex2));
+     scales.insert(make_pair("quit_noselect", vec3(1, 0.7, 1)));
+     translates.insert(make_pair("quit_noselect", vec3(0, -0.6, 0)));
 
-    shared_ptr<Texture> playTex4 = make_shared<Texture>();
-    playTex4->setFilename(RESOURCE_DIR + "textures/pause.png");
-    playTex4->init();
-    playTex4->setUnit(0);
-    playTex4->setWrapModes(GL_REPEAT, GL_REPEAT);
-    guiTextures.insert(make_pair("pause", playTex4));
-    scales.insert(make_pair("pause", vec3(1, 1, 1)));
-    translates.insert(make_pair("pause", vec3(-0.5, 0.5, 0)));
+     shared_ptr<Texture> playTex4 = make_shared<Texture>();
+     playTex4->setFilename(RESOURCE_DIR + "textures/pause.png");
+     playTex4->init();
+     playTex4->setUnit(0);
+     playTex4->setWrapModes(GL_REPEAT, GL_REPEAT);
+     guiTextures.insert(make_pair("pause", playTex4));
+     scales.insert(make_pair("pause", vec3(1, 1, 1)));
+     translates.insert(make_pair("pause", vec3(-0.5, 0.5, 0)));
 
-    shared_ptr<Texture> playTex5 = make_shared<Texture>();
-    playTex5->setFilename(RESOURCE_DIR + "textures/shipparts.png");
-    playTex5->init();
-    playTex5->setUnit(0);
-    playTex5->setWrapModes(GL_REPEAT, GL_REPEAT);
-    guiTextures.insert(make_pair("shipparts", playTex5));
-    scales.insert(make_pair("shipparts", vec3(0.7, 0.7, 1)));
-    translates.insert(make_pair("shipparts", vec3(0.5, 0.5, 0)));
+     shared_ptr<Texture> playTex5 = make_shared<Texture>();
+     playTex5->setFilename(RESOURCE_DIR + "textures/shipparts.png");
+     playTex5->init();
+     playTex5->setUnit(0);
+     playTex5->setWrapModes(GL_REPEAT, GL_REPEAT);
+     guiTextures.insert(make_pair("shipparts", playTex5));
+     scales.insert(make_pair("shipparts", vec3(0.7, 0.7, 1)));
+     translates.insert(make_pair("shipparts", vec3(0.5, 0.5, 0)));
 
-    playTex5 = make_shared<Texture>();
-    playTex5->setFilename(RESOURCE_DIR + "textures/shipparts1.png");
-    playTex5->init();
-    playTex5->setUnit(0);
-    playTex5->setWrapModes(GL_REPEAT, GL_REPEAT);
-    guiTextures.insert(make_pair("shipparts1", playTex5));
-    scales.insert(make_pair("shipparts1", vec3(1.5, 1.5, 1)));
-    translates.insert(make_pair("shipparts1", vec3(0.5, 0.2, 0)));
+     playTex5 = make_shared<Texture>();
+     playTex5->setFilename(RESOURCE_DIR + "textures/shipparts1.png");
+     playTex5->init();
+     playTex5->setUnit(0);
+     playTex5->setWrapModes(GL_REPEAT, GL_REPEAT);
+     guiTextures.insert(make_pair("shipparts1", playTex5));
+     scales.insert(make_pair("shipparts1", vec3(1.5, 1.5, 1)));
+     translates.insert(make_pair("shipparts1", vec3(0.5, 0.2, 0)));
 
-    playTex5 = make_shared<Texture>();
-    playTex5->setFilename(RESOURCE_DIR + "textures/death.png");
-    playTex5->init();
-    playTex5->setUnit(0);
-    playTex5->setWrapModes(GL_REPEAT, GL_REPEAT);
-    guiTextures.insert(make_pair("death", playTex5));
-    scales.insert(make_pair("death", vec3(0.7, 0.7, 1)));
-    translates.insert(make_pair("death", vec3(0, 0.5, 0)));
+     playTex5 = make_shared<Texture>();
+     playTex5->setFilename(RESOURCE_DIR + "textures/death.png");
+     playTex5->init();
+     playTex5->setUnit(0);
+     playTex5->setWrapModes(GL_REPEAT, GL_REPEAT);
+     guiTextures.insert(make_pair("death", playTex5));
+     scales.insert(make_pair("death", vec3(0.7, 0.7, 1)));
+     translates.insert(make_pair("death", vec3(0, 0.5, 0)));
 
-    playTex5 = make_shared<Texture>();
-    playTex5->setFilename(RESOURCE_DIR + "textures/win.png");
-    playTex5->init();
-    playTex5->setUnit(0);
-    playTex5->setWrapModes(GL_REPEAT, GL_REPEAT);
-    guiTextures.insert(make_pair("win", playTex5));
-    scales.insert(make_pair("win", vec3(0.7, 0.7, 1)));
-    translates.insert(make_pair("win", vec3(-0.4, 0.5, 0)));
+     playTex5 = make_shared<Texture>();
+     playTex5->setFilename(RESOURCE_DIR + "textures/win.png");
+     playTex5->init();
+     playTex5->setUnit(0);
+     playTex5->setWrapModes(GL_REPEAT, GL_REPEAT);
+     guiTextures.insert(make_pair("win", playTex5));
+     scales.insert(make_pair("win", vec3(0.7, 0.7, 1)));
+     translates.insert(make_pair("win", vec3(-0.4, 0.5, 0)));
 
-    playTex5 = make_shared<Texture>();
-    playTex5->setFilename(RESOURCE_DIR + "textures/nextlevel_select.png");
-    playTex5->init();
-    playTex5->setUnit(0);
-    playTex5->setWrapModes(GL_REPEAT, GL_REPEAT);
-    guiTextures.insert(make_pair("nextlevel_select", playTex5));
-    scales.insert(make_pair("nextlevel_select", vec3(0.7, 0.7, 1)));
-    translates.insert(make_pair("nextlevel_select", vec3(0, -0.25, 0)));
+     playTex5 = make_shared<Texture>();
+     playTex5->setFilename(RESOURCE_DIR + "textures/nextlevel_select.png");
+     playTex5->init();
+     playTex5->setUnit(0);
+     playTex5->setWrapModes(GL_REPEAT, GL_REPEAT);
+     guiTextures.insert(make_pair("nextlevel_select", playTex5));
+     scales.insert(make_pair("nextlevel_select", vec3(0.7, 0.7, 1)));
+     translates.insert(make_pair("nextlevel_select", vec3(0, -0.25, 0)));
 
-    playTex5 = make_shared<Texture>();
-    playTex5->setFilename(RESOURCE_DIR + "textures/nextlevel_noselect.png");
-    playTex5->init();
-    playTex5->setUnit(0);
-    playTex5->setWrapModes(GL_REPEAT, GL_REPEAT);
-    guiTextures.insert(make_pair("nextlevel_noselect", playTex5));
-    scales.insert(make_pair("nextlevel_noselect", vec3(0.7, 0.7, 1)));
-    translates.insert(make_pair("nextlevel_noselect", vec3(0, -0.25, 0)));
+     playTex5 = make_shared<Texture>();
+     playTex5->setFilename(RESOURCE_DIR + "textures/nextlevel_noselect.png");
+     playTex5->init();
+     playTex5->setUnit(0);
+     playTex5->setWrapModes(GL_REPEAT, GL_REPEAT);
+     guiTextures.insert(make_pair("nextlevel_noselect", playTex5));
+     scales.insert(make_pair("nextlevel_noselect", vec3(0.7, 0.7, 1)));
+     translates.insert(make_pair("nextlevel_noselect", vec3(0, -0.25, 0)));
 
-    playTex5 = make_shared<Texture>();
-    playTex5->setFilename(RESOURCE_DIR + "textures/tryagain_noselect.png");
-    playTex5->init();
-    playTex5->setUnit(0);
-    playTex5->setWrapModes(GL_REPEAT, GL_REPEAT);
-    guiTextures.insert(make_pair("tryagain_noselect", playTex5));
-    scales.insert(make_pair("tryagain_noselect", vec3(0.7, 0.7, 1)));
-    translates.insert(make_pair("tryagain_noselect", vec3(0, -0.18, 0)));
+     playTex5 = make_shared<Texture>();
+     playTex5->setFilename(RESOURCE_DIR + "textures/tryagain_noselect.png");
+     playTex5->init();
+     playTex5->setUnit(0);
+     playTex5->setWrapModes(GL_REPEAT, GL_REPEAT);
+     guiTextures.insert(make_pair("tryagain_noselect", playTex5));
+     scales.insert(make_pair("tryagain_noselect", vec3(0.7, 0.7, 1)));
+     translates.insert(make_pair("tryagain_noselect", vec3(0, -0.18, 0)));
 
-    playTex5 = make_shared<Texture>();
-    playTex5->setFilename(RESOURCE_DIR + "textures/tryagain_select.png");
-    playTex5->init();
-    playTex5->setUnit(0);
-    playTex5->setWrapModes(GL_REPEAT, GL_REPEAT);
-    guiTextures.insert(make_pair("tryagain_select", playTex5));
-    scales.insert(make_pair("tryagain_select", vec3(0.7, 0.7, 1)));
-    translates.insert(make_pair("tryagain_select", vec3(0, -0.18, 0)));
+     playTex5 = make_shared<Texture>();
+     playTex5->setFilename(RESOURCE_DIR + "textures/tryagain_select.png");
+     playTex5->init();
+     playTex5->setUnit(0);
+     playTex5->setWrapModes(GL_REPEAT, GL_REPEAT);
+     guiTextures.insert(make_pair("tryagain_select", playTex5));
+     scales.insert(make_pair("tryagain_select", vec3(0.7, 0.7, 1)));
+     translates.insert(make_pair("tryagain_select", vec3(0, -0.18, 0)));
      */
 
     glGenVertexArrays(1, &vao);
@@ -278,6 +281,7 @@ State GuiManager::interpretWinPressedKeys(std::vector<char> pressedKeys) {
 }
 
 void GuiManager::drawMenu() {
+
     glDepthMask(GL_FALSE);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -292,7 +296,7 @@ void GuiManager::drawMenu() {
         draw("play_noselect");
         draw("quit_select");
     }
-     * */
+     */
     glDisable(GL_BLEND);
     glDepthMask(GL_TRUE);
 
@@ -396,7 +400,7 @@ void GuiManager::draw(string name) {
 
     guiShader->bind();
 
-    glBindVertexArray(vao);
+    //glBindVertexArray(vao);
 
     guiTextures[name]->bind(guiShader->getUniform("guiTex"));
 
@@ -405,6 +409,7 @@ void GuiManager::draw(string name) {
     glUniformMatrix4fv(guiShader->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix()));
 
     int pos = guiShader->getAttribute("pos");
+
     glEnableVertexAttribArray(pos);
     glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
     GLSL::checkError(GET_FILE_LINE);
@@ -427,7 +432,8 @@ void GuiManager::draw(string name) {
 
     // Draw the triangle !
     glDrawArrays(GL_TRIANGLES, 0, 3); // Starting from vertex 0; 3 vertices total -> 1 triangle
-        GLSL::checkError(GET_FILE_LINE);
+    glDrawArrays(GL_TRIANGLES, 3, 3);
+    GLSL::checkError(GET_FILE_LINE);
 
     glDisableVertexAttribArray(pos);
 

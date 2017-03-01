@@ -421,7 +421,7 @@ void GameManager::renderGame(int fps) {
     /*if in gamestate menu render menu*/
     if (gameState == MENU) {
         //cout << "SHOULD BE HERE" << endl;
-        //gui->drawMenu();
+        gui->drawMenu();
     }/* else its in pause menu/game*/
     else if (gameState == DEATH) {
         gui->drawDeath();
