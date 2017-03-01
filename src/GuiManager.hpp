@@ -65,6 +65,7 @@ private:
     
     GLuint vertexbuffer;
     GLuint texbuffer;
+    GLuint vao;
     
     void draw(std::string name);
 };

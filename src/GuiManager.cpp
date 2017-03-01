@@ -12,6 +12,7 @@
  */
 
 #include "GuiManager.hpp"
+#include "GLSL.h"
 
 using namespace std;
 using namespace glm;
@@ -43,25 +44,36 @@ RESOURCE_DIR(resource) {
     guiShader->addUniform("M");
 
 
+    GLSL::checkError(GET_FILE_LINE);
+
+    /*
 
     shared_ptr<Texture> playTex = make_shared<Texture>();
+
     playTex->setFilename(RESOURCE_DIR + "textures/play_select.png");
+
     playTex->init();
+
+
     playTex->setUnit(0);
+
+
     playTex->setWrapModes(GL_REPEAT, GL_REPEAT);
+
+
     guiTextures.insert(make_pair("play_select", playTex));
     scales.insert(make_pair("play_select", vec3(1, 0.7, 1)));
     translates.insert(make_pair("play_select", vec3(0, -0.1, 0)));
-
-    playTex = make_shared<Texture>();
-    playTex->setFilename(RESOURCE_DIR + "textures/play_noselect.png");
-    playTex->init();
-    playTex->setUnit(0);
-    playTex->setWrapModes(GL_REPEAT, GL_REPEAT);
-    guiTextures.insert(make_pair("play_noselect", playTex));
-    scales.insert(make_pair("play_noselect", vec3(1, 0.7, 1)));
-    translates.insert(make_pair("play_noselect", vec3(0, -0.1, 0)));
-
+    
+        playTex = make_shared<Texture>();
+        playTex->setFilename(RESOURCE_DIR + "textures/play_noselect.png");
+        playTex->init();
+        playTex->setUnit(0);
+        playTex->setWrapModes(GL_REPEAT, GL_REPEAT);
+        guiTextures.insert(make_pair("play_noselect", playTex));
+        scales.insert(make_pair("play_noselect", vec3(1, 0.7, 1)));
+        translates.insert(make_pair("play_noselect", vec3(0, -0.1, 0)));
+     */
     shared_ptr<Texture> playTex1 = make_shared<Texture>();
     playTex1->setFilename(RESOURCE_DIR + "textures/attract.png");
     playTex1->init();
@@ -70,7 +82,7 @@ RESOURCE_DIR(resource) {
     guiTextures.insert(make_pair("attract", playTex1));
     scales.insert(make_pair("attract", vec3(1, 0.55, 1)));
     translates.insert(make_pair("attract", vec3(0, 0.5, 0)));
-
+    /*
     shared_ptr<Texture> playTex2 = make_shared<Texture>();
     playTex2->setFilename(RESOURCE_DIR + "textures/quit.png");
     playTex2->init();
@@ -178,10 +190,15 @@ RESOURCE_DIR(resource) {
     guiTextures.insert(make_pair("tryagain_select", playTex5));
     scales.insert(make_pair("tryagain_select", vec3(0.7, 0.7, 1)));
     translates.insert(make_pair("tryagain_select", vec3(0, -0.18, 0)));
+     */
 
+    glGenVertexArrays(1, &vao);
+    glBindVertexArray(vao);
+    GLSL::checkError(GET_FILE_LINE);
     // Generate 1 buffer, put the resulting identifier in vertexbuffer
     glGenBuffers(1, &vertexbuffer);
     glGenBuffers(1, &texbuffer);
+    GLSL::checkError(GET_FILE_LINE);
     // The following commands will talk about our 'vertexbuffer' buffer
     glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
     // Give our vertices to OpenGL.
@@ -191,6 +208,8 @@ RESOURCE_DIR(resource) {
     glBufferData(GL_ARRAY_BUFFER, sizeof (tex_buffer_data), tex_buffer_data, GL_STATIC_DRAW);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
+    GLSL::checkError(GET_FILE_LINE);
+
 }
 
 GuiManager::GuiManager(const GuiManager& orig) {
@@ -264,6 +283,8 @@ void GuiManager::drawMenu() {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     draw("attract");
+
+    /*
     if (selectedName == "play") {
         draw("play_select");
         draw("quit_noselect");
@@ -271,7 +292,7 @@ void GuiManager::drawMenu() {
         draw("play_noselect");
         draw("quit_select");
     }
-
+     * */
     glDisable(GL_BLEND);
     glDepthMask(GL_TRUE);
 
@@ -331,7 +352,7 @@ void GuiManager::drawWin(int level) {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     draw("win");
-    
+
 
     if (selectedName == "quit") {
         draw("quit_select");
@@ -371,15 +392,23 @@ void GuiManager::draw(string name) {
 
     glDisable(GL_DEPTH_TEST);
 
+    GLSL::checkError(GET_FILE_LINE);
+
     guiShader->bind();
+
+    glBindVertexArray(vao);
+
     guiTextures[name]->bind(guiShader->getUniform("guiTex"));
 
+    GLSL::checkError(GET_FILE_LINE);
 
     glUniformMatrix4fv(guiShader->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix()));
 
     int pos = guiShader->getAttribute("pos");
     glEnableVertexAttribArray(pos);
     glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+    GLSL::checkError(GET_FILE_LINE);
+
     glVertexAttribPointer(
             pos, // attribute 0. No particular reason for 0, but must match the layout in the shader.
             3, // size
@@ -388,16 +417,21 @@ void GuiManager::draw(string name) {
             0, // stride
             (void*) 0 // array buffer offset
             );
+    GLSL::checkError(GET_FILE_LINE);
 
     glEnableVertexAttribArray(guiShader->getAttribute("posTex"));
     glBindBuffer(GL_ARRAY_BUFFER, texbuffer);
     glVertexAttribPointer(guiShader->getAttribute("posTex"), 2, GL_FLOAT, GL_FALSE, 0, (void *) 0);
 
+    GLSL::checkError(GET_FILE_LINE);
 
     // Draw the triangle !
-    glDrawArrays(GL_QUADS, 0, 4); // Starting from vertex 0; 3 vertices total -> 1 triangle
+    glDrawArrays(GL_TRIANGLES, 0, 3); // Starting from vertex 0; 3 vertices total -> 1 triangle
+        GLSL::checkError(GET_FILE_LINE);
+
     glDisableVertexAttribArray(pos);
 
+    GLSL::checkError(GET_FILE_LINE);
 
     guiShader->unbind();
     glEnable(GL_DEPTH_TEST);

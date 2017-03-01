@@ -1,7 +1,7 @@
-#version 120 
+#version 330 core
 
-attribute vec3 pos;
-attribute vec2 posTex;
+layout(location = 0) in vec3 pos;
+layout(location = 1) in vec2 posTex;
 
 uniform mat4 M;
 

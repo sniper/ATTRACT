@@ -87,9 +87,9 @@ level(1) {
     vfc = make_shared<VfcManager>();
     fmod = make_shared<FmodManager>(RESOURCE_DIR);
     gui = make_shared<GuiManager>(RESOURCE_DIR);
-
+    glClearColor(0.5f, 1.0f, 1.0f, 1.0f);
     // Initialize the scene.
-    initScene();
+    //initScene();
 }
 
 GameManager::~GameManager() {
@@ -420,7 +420,8 @@ void GameManager::renderGame(int fps) {
 
     /*if in gamestate menu render menu*/
     if (gameState == MENU) {
-        gui->drawMenu();
+        //cout << "SHOULD BE HERE" << endl;
+        //gui->drawMenu();
     }/* else its in pause menu/game*/
     else if (gameState == DEATH) {
         gui->drawDeath();
@@ -477,7 +478,7 @@ void GameManager::renderGame(int fps) {
 
             }
         }
-
+        /*
         // Draw magnet gun
         MV->pushMatrix();
         MV->loadIdentity();
@@ -489,9 +490,8 @@ void GameManager::renderGame(int fps) {
 
         
         if (bullet->getDebugFlag()) {
-            /*DRAW DEATH OBJECTS*/
+            
             for (unsigned int i = 0; i < deathObjects.size(); i++) {
-                //deathObjects.at(i)->draw(program);
                 
             }
         }
@@ -505,11 +505,11 @@ void GameManager::renderGame(int fps) {
         P->popMatrix();
 
 
-        /*render pause menu*/
         if (gameState == PAUSE) {
             gui->drawPause(level);
 
         }
+        */
     }
     
     //
@@ -518,6 +518,7 @@ void GameManager::renderGame(int fps) {
 
     // Prints a crosshair to the center of the screen. Color depends on if you're looking at a magnet surface.
 
+    /*
     if (camera->isLookingAtMagnet()) {
         if (Mouse::isLeftMouseButtonPressed()) {
             printStringToScreen(0.0f, 0.0f, "+", 0.0f, 1.0f, 1.0f);
@@ -531,7 +532,7 @@ void GameManager::renderGame(int fps) {
     }
     // Prints the frame rate to the screen.
     printStringToScreen(60.0f, 90.0f, to_string(fps) + " FPS", 0.0f, 0.0f, 0.0f);
-
+     */
     GLSL::checkError(GET_FILE_LINE);
 }
 
