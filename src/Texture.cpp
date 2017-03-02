@@ -94,7 +94,7 @@ void Texture::loadDDS(const char * imagepath){
 	fp = fopen(imagepath, "rb"); 
 	if (fp == NULL){
 		printf("%s could not be opened. Are you in the right directory ? Don't forget to read the FAQ !\n", imagepath); getchar(); 
-		return 0;
+	
 	}
    
 	/* verify the type of file */ 
@@ -102,7 +102,7 @@ void Texture::loadDDS(const char * imagepath){
 	fread(filecode, 1, 4, fp); 
 	if (strncmp(filecode, "DDS ", 4) != 0) { 
 		fclose(fp); 
-		return 0; 
+
 	}
 	
 	/* get the surface desc */ 
@@ -139,7 +139,7 @@ void Texture::loadDDS(const char * imagepath){
 		break; 
 	default: 
 		free(buffer); 
-		return 0; 
+                
 	}
 
 	// Create one OpenGL texture

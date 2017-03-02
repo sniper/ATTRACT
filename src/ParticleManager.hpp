@@ -14,6 +14,8 @@
 #ifndef PARTICLEMANAGER_HPP
 #define PARTICLEMANAGER_HPP
 
+#define MAXPARTICLES 100000
+
 #include <iostream>
 
 class Program;
@@ -23,7 +25,7 @@ class MatrixStack;
 
 // CPU representation of a particle
 
-struct Particle {
+typedef struct Particle {
     glm::vec3 pos, speed;
     unsigned char r, g, b, a; // Color
     float size, angle, weight;
@@ -34,13 +36,13 @@ struct Particle {
         // Sort in reverse order : far particles drawn first.
         return this->cameradistance > that.cameradistance;
     }
-};
+} Particle;
 
 class ParticleManager {
 public:
     ParticleManager(std::string resource);
     void update(double delta, glm::vec3 camPos);
-    void draw(glm::mat4 VP);
+    void draw(glm::mat4 &VP);
 
 
 private:
@@ -54,19 +56,15 @@ private:
     GLuint particles_color_buffer;
 
 
-    const int MaxParticles = 100000;
-    Particle ParticlesContainer[MaxParticles];
+
+    Particle ParticlesContainer[MAXPARTICLES];
     int LastUsedParticle = 0;
+    int ParticlesCount = 0;
 
-    static GLfloat* g_particule_position_size_data = new GLfloat[MaxParticles * 4];
-    static GLubyte* g_particule_color_data = new GLubyte[MaxParticles * 4];
+    GLfloat* g_particule_position_size_data;
+    GLubyte* g_particule_color_data;
 
-    static const GLfloat g_vertex_buffer_data[] = {
-        -0.5f, -0.5f, 0.0f,
-        0.5f, -0.5f, 0.0f,
-        -0.5f, 0.5f, 0.0f,
-        0.5f, 0.5f, 0.0f,
-    };
+
 
     int FindUnusedParticle();
 

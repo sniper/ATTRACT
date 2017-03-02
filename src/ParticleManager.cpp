@@ -7,12 +7,10 @@
 
 #include <GL/glew.h>
 
-#include <glfw3.h>
-GLFWwindow* window;
-
 #include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtx/norm.hpp>
+
 
 #include "ParticleManager.hpp"
 #include "Program.h"
@@ -33,7 +31,7 @@ using namespace std;
 
 int ParticleManager::FindUnusedParticle() {
 
-    for (int i = LastUsedParticle; i < MaxParticles; i++) {
+    for (int i = LastUsedParticle; i < MAXPARTICLES; i++) {
         if (ParticlesContainer[i].life < 0) {
             LastUsedParticle = i;
             return i;
@@ -51,7 +49,7 @@ int ParticleManager::FindUnusedParticle() {
 }
 
 void ParticleManager::SortParticles() {
-    std::sort(&ParticlesContainer[0], &ParticlesContainer[MaxParticles]);
+    std::sort(&ParticlesContainer[0], &ParticlesContainer[MAXPARTICLES]);
 }
 
 ParticleManager::ParticleManager(std::string resource) :
@@ -68,20 +66,29 @@ RESOURCE_DIR(resource) {
     particleShader->addUniform("VP");
     particleShader->addUniform("myTextureSampler");
 
+    
     particleTex = make_shared<Texture>();
-    particleTex->loadDDS(RESOURCE_DIR + "particle.DDS");
+    particleTex->loadDDS((RESOURCE_DIR + "particle.DDS").c_str());
     particleTex->setUnit(0);
 
 
 
 
-    for (int i = 0; i < MaxParticles; i++) {
+    for (int i = 0; i < MAXPARTICLES; i++) {
         ParticlesContainer[i].life = -1.0f;
         ParticlesContainer[i].cameradistance = -1.0f;
     }
 
 
+    g_particule_position_size_data = new GLfloat[MAXPARTICLES * 4];
+    g_particule_color_data = new GLubyte[MAXPARTICLES * 4];
 
+    static const GLfloat g_vertex_buffer_data[] = {
+        -0.5f, -0.5f, 0.0f,
+        0.5f, -0.5f, 0.0f,
+        -0.5f, 0.5f, 0.0f,
+        0.5f, 0.5f, 0.0f,
+    };
 
     glGenBuffers(1, &billboard_vertex_buffer);
     glBindBuffer(GL_ARRAY_BUFFER, billboard_vertex_buffer);
@@ -92,14 +99,14 @@ RESOURCE_DIR(resource) {
     glGenBuffers(1, &particles_position_buffer);
     glBindBuffer(GL_ARRAY_BUFFER, particles_position_buffer);
     // Initialize with empty (NULL) buffer : it will be updated later, each frame.
-    glBufferData(GL_ARRAY_BUFFER, MaxParticles * 4 * sizeof (GLfloat), NULL, GL_STREAM_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, MAXPARTICLES * 4 * sizeof (GLfloat), NULL, GL_STREAM_DRAW);
 
     // The VBO containing the colors of the particles
 
     glGenBuffers(1, &particles_color_buffer);
     glBindBuffer(GL_ARRAY_BUFFER, particles_color_buffer);
     // Initialize with empty (NULL) buffer : it will be updated later, each frame.
-    glBufferData(GL_ARRAY_BUFFER, MaxParticles * 4 * sizeof (GLubyte), NULL, GL_STREAM_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, MAXPARTICLES * 4 * sizeof (GLubyte), NULL, GL_STREAM_DRAW);
 
 
 
@@ -107,7 +114,7 @@ RESOURCE_DIR(resource) {
 
 }
 
-ParticleManager::update(double delta, vec3 cameraPosition) {
+void ParticleManager::update(double delta, vec3 cameraPosition) {
     // Generate 10 new particule each millisecond,
     // but limit this to 16 ms (60 fps), or if you have 1 long frame (1sec),
     // newparticles will be huge and the next frame even longer.
@@ -148,7 +155,7 @@ ParticleManager::update(double delta, vec3 cameraPosition) {
 
     // Simulate all particles
     int ParticlesCount = 0;
-    for (int i = 0; i < MaxParticles; i++) {
+    for (int i = 0; i < MAXPARTICLES; i++) {
 
         Particle& p = ParticlesContainer[i]; // shortcut
 
@@ -189,14 +196,14 @@ ParticleManager::update(double delta, vec3 cameraPosition) {
     SortParticles();
 }
 
-ParticleManager::draw(mat4 VP) {
+void ParticleManager::draw(mat4 &VP) {
 
     glBindBuffer(GL_ARRAY_BUFFER, particles_position_buffer);
-    glBufferData(GL_ARRAY_BUFFER, MaxParticles * 4 * sizeof (GLfloat), NULL, GL_STREAM_DRAW); // Buffer orphaning, a common way to improve streaming perf. See above link for details.
+    glBufferData(GL_ARRAY_BUFFER, MAXPARTICLES * 4 * sizeof (GLfloat), NULL, GL_STREAM_DRAW); // Buffer orphaning, a common way to improve streaming perf. See above link for details.
     glBufferSubData(GL_ARRAY_BUFFER, 0, ParticlesCount * sizeof (GLfloat) * 4, g_particule_position_size_data);
 
     glBindBuffer(GL_ARRAY_BUFFER, particles_color_buffer);
-    glBufferData(GL_ARRAY_BUFFER, MaxParticles * 4 * sizeof (GLubyte), NULL, GL_STREAM_DRAW); // Buffer orphaning, a common way to improve streaming perf. See above link for details.
+    glBufferData(GL_ARRAY_BUFFER, MAXPARTICLES * 4 * sizeof (GLubyte), NULL, GL_STREAM_DRAW); // Buffer orphaning, a common way to improve streaming perf. See above link for details.
     glBufferSubData(GL_ARRAY_BUFFER, 0, ParticlesCount * sizeof (GLubyte) * 4, g_particule_color_data);
 
 
@@ -211,7 +218,7 @@ ParticleManager::draw(mat4 VP) {
     glUniform3f(particleShader->getUniform("CameraRight_worldspace"), 1, 0, 0);
     glUniform3f(particleShader->getUniform("CameraUp_worldspace"), 0, 1, 0);
 
-    glUniformMatrix4fv(particleShader->getUniform("VP"), 1, GL_FALSE, VP);
+    glUniformMatrix4fv(particleShader->getUniform("VP"), 1, GL_FALSE, value_ptr(VP));
 
     // 1rst attribute buffer : vertices
     glEnableVertexAttribArray(0);
