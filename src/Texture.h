@@ -19,7 +19,7 @@ public:
 	void bind(GLint handle);
 	void unbind();
 	void setWrapModes(GLint wrapS, GLint wrapT); // Must be called after init()
-	
+	void loadDDS(const char * imagepath);
 private:
 	std::string filename;
 	int width;
