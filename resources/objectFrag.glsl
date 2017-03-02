@@ -1,4 +1,4 @@
-#version 120
+#version 330 core
 
 uniform float lightIntensity;
 uniform vec4 lightPos;
@@ -10,6 +10,8 @@ uniform float s;
 varying vec4 fragPosInCam; // passed from vert shader
 varying vec4 fragNorInCam; // passed from vert shader
 
+out vec4 color;
+
 void main()
 {
     vec3 n = normalize(fragNorInCam.xyz);
@@ -20,5 +22,5 @@ void main()
     vec3 cd = kd * max(0, dot(l, n));
     vec3 cs = ks * pow(max(0, dot(h, n)), s);
     
-    gl_FragColor = vec4(lightIntensity * (ka + cd + cs), 1.0);
+    color = vec4(lightIntensity * (ka + cd + cs), 1.0);
 }

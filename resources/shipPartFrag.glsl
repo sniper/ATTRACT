@@ -1,4 +1,4 @@
-#version 120
+#version 330 core
 
 uniform sampler2D colorTexture;
 uniform sampler2D specularTexture;
@@ -7,6 +7,8 @@ uniform vec3 lightPos;
 varying vec2 vTex;
 varying vec4 fragPosInCam;
 varying vec4 fragNorInCam;
+
+out vec4 color;
 
 void main()
 {
@@ -20,5 +22,5 @@ void main()
     vec3 cd = kd * max(0, dot(l, n));
     vec3 cs = ks * pow(max(0, dot(h, n)), 50.0f);
     
-    gl_FragColor = vec4(cd + cs, 1.0);
+    color = vec4(cd + cs, 1.0);
 }

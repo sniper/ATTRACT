@@ -1,11 +1,11 @@
-#version 120
+#version 330 core
 
 uniform mat4 P;
 uniform mat4 MV;
 uniform mat4 objTransMatrix;
 
-attribute vec4 aPos; // in object space
-attribute vec3 aNor; // in object space
+layout(location = 0) in vec4 aPos; // in object space
+layout(location = 1) in vec3 aNor; // in object space
 
 varying vec4 fragPosInCam; // aPos in camera space
 varying vec4 fragNorInCam; // aNor in camera space

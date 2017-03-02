@@ -30,8 +30,8 @@ void Texture::init()
 		cerr << filename << " not found" << endl;
 	}
 	if(ncomps != 3) {
-		cerr << filename << " must have 3 components (RGB)" << endl;
-                cerr << ncomps << endl;
+		//cerr << filename << " must have 3 components (RGB)" << endl;
+                //cerr << ncomps << endl;
 	}
 	if((w & (w - 1)) != 0 || (h & (h - 1)) != 0) {
 		cerr << filename << " must be a power of 2" << endl;
@@ -90,17 +90,13 @@ void Texture::setWrapModes(GLint wrapS, GLint wrapT)
 
 void Texture::bind(GLint handle)
 {   
-        cerr <<unit << endl;
-	glActiveTexture(GL_TEXTURE0);
-        cerr <<"HERE" << endl;
+	glActiveTexture(GL_TEXTURE0 + unit);
 	glBindTexture(GL_TEXTURE_2D, tid);
-	cerr <<"HERE" << endl;
         glUniform1i(handle, unit);
-        cerr <<"HERE" << endl;
 }
 
 void Texture::unbind()
 {
-	glActiveTexture(GL_TEXTURE0);
+	glActiveTexture(GL_TEXTURE0 + unit);
 	glBindTexture(GL_TEXTURE_2D, 0);
 }

@@ -38,6 +38,7 @@ RESOURCE_DIR(resource) {
         1.0f, 0.0f
     };
 
+    
     guiShader = make_shared<Program>();
     guiShader->setShaderNames(RESOURCE_DIR + "guiVert.glsl", RESOURCE_DIR + "guiFrag.glsl");
     guiShader->init();
@@ -214,6 +215,7 @@ RESOURCE_DIR(resource) {
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     GLSL::checkError(GET_FILE_LINE);
+     
 
 }
 
@@ -283,6 +285,9 @@ State GuiManager::interpretWinPressedKeys(std::vector<char> pressedKeys) {
 }
 
 void GuiManager::drawMenu() {
+    
+    
+    
 
     glDepthMask(GL_FALSE);
     glEnable(GL_BLEND);
@@ -301,6 +306,7 @@ void GuiManager::drawMenu() {
      
     glDisable(GL_BLEND);
     glDepthMask(GL_TRUE);
+ 
 
 
 
