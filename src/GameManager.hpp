@@ -28,6 +28,7 @@ class BulletManager;
 class VfcManager;
 class FmodManager;
 class SpaceShipPart;
+class ParticleManager;
 
 class GuiManager;
 
@@ -82,6 +83,7 @@ private:
     std::shared_ptr<FmodManager> fmod;
 
     std::shared_ptr<GuiManager> gui;
+    std::shared_ptr<ParticleManager> psystem;
 
     std::shared_ptr<KDTree> kdtree;
     std::shared_ptr<BVH> bvh;

@@ -171,7 +171,7 @@ void Texture::loadDDS(const char * imagepath){
 	} 
 
 	free(buffer); 
-
+        cout <<"herezzzz" << endl;
 	tid = textureID;
 
 

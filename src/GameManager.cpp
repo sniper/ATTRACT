@@ -42,6 +42,7 @@
 #include <fstream>
 
 #include "GuiManager.hpp"
+#include "ParticleManager.hpp"
 
 #include "KDTree.hpp"
 #include "BVH.hpp"
@@ -87,6 +88,7 @@ level(1) {
     vfc = make_shared<VfcManager>();
     fmod = make_shared<FmodManager>(RESOURCE_DIR);
     gui = make_shared<GuiManager>(RESOURCE_DIR);
+    psystem = make_shared<ParticleManager>(RESOURCE_DIR);
 
     // Initialize the scene.
     initScene();
@@ -131,7 +133,7 @@ void GameManager::initScene() {
             RESOURCE_DIR + "shipPartFrag.glsl");
     shipPartProgram->setVerbose(true);
     shipPartProgram->init();
-    
+
     shipPartProgram->addAttribute("aPos");
     shipPartProgram->addAttribute("aNor");
     shipPartProgram->addAttribute("aTex");
@@ -141,7 +143,7 @@ void GameManager::initScene() {
     shipPartProgram->addUniform("specularTexture");
     shipPartProgram->addUniform("lightPos");
     shipPartProgram->addUniform("objTransMatrix");
-    
+
     shipPartColorTexture = make_shared<Texture>();
     shipPartColorTexture->setFilename(RESOURCE_DIR + "shipPartColor.jpg");
     shipPartColorTexture->init();
@@ -213,9 +215,9 @@ void GameManager::parseCamera(string objectString) {
     bool playerSpawn = toBool(elems[11]);
     bool collectable = toBool(elems[12]);
 
-//    cerr << "new camera" << endl;
-//    cerr << pos.x << " " << pos.y << endl;
-//    cerr << scale.x << " " << scale.y << endl;
+    //    cerr << "new camera" << endl;
+    //    cerr << pos.x << " " << pos.y << endl;
+    //    cerr << scale.x << " " << scale.y << endl;
 
     camera = make_shared<Camera>(pos, window);
     inputManager->setCamera(camera);
@@ -245,9 +247,9 @@ void GameManager::parseObject(string objectString, shared_ptr<Material> greyBox,
     bool deadly = toBool(elems[10]);
     bool playerSpawn = toBool(elems[11]);
     bool collectable = toBool(elems[12]);
-//    cerr << "new obj" << endl;
-//    cerr << pos.x << " " << pos.y << endl;
-//    cerr << scale.x << " " << scale.y << endl;
+    //    cerr << "new obj" << endl;
+    //    cerr << pos.x << " " << pos.y << endl;
+    //    cerr << scale.x << " " << scale.y << endl;
 
     /*TODO: MAGNETIC AND DEADLY*/
     if (magnetic) {
@@ -285,7 +287,7 @@ void GameManager::importLevel(string level) {
     bullet = make_shared<BulletManager>();
     file.open(RESOURCE_DIR + "levels/" + level);
 
-   shared_ptr<Material> greyBox = make_shared<Material>(vec3(0.9f, 0.9f, 0.9f),
+    shared_ptr<Material> greyBox = make_shared<Material>(vec3(0.9f, 0.9f, 0.9f),
             vec3(1.0f, 1.0f, 1.0f),
             vec3(0.0f, 0.0f, 0.0f),
             200.0f);
@@ -297,7 +299,7 @@ void GameManager::importLevel(string level) {
             vec3(1.0f, 1.0f, 0.0f),
             vec3(1.0f, 0.9f, 0.8f),
             200.0f);
-    
+
     if (file.is_open()) {
         if (getline(file, line)) {
             /*get camera position*/
@@ -305,7 +307,7 @@ void GameManager::importLevel(string level) {
         }
         if (getline(file, line)) {
             /*get spaceship positions*/
-            parseObject(line,greyBox, magnetSurface, spacePart);
+            parseObject(line, greyBox, magnetSurface, spacePart);
         }
         while (getline(file, line)) {
             /*objects here*/
@@ -316,7 +318,7 @@ void GameManager::importLevel(string level) {
     } else {
         cout << "Unable to open level '" << level << "'" << endl;
     }
-    
+
     //kdtree = make_shared<KDTree>(objects);
     bvh = make_shared<BVH>(objects);
     //bvh->printTree();
@@ -349,8 +351,7 @@ State GameManager::processInputs() {
         if (gameState == GAME) {
             level++;
             importLevel(to_string(level));
-        }
-        else if(gameState == MENU) {
+        } else if (gameState == MENU) {
             fmod->stopSound("menu");
         }
     }
@@ -364,10 +365,14 @@ void GameManager::updateGame(double dt) {
 
     spaceShipPart->update(dt);
 
+
+
     //step the bullet, update test obj
     bullet->step(dt);
 
     camera->setPosition(bullet->getBulletObjectState("cam"));
+
+    psystem->update(dt, camera->getPosition());
 
     if (camera->checkForCollision(spaceShipPart)) {
         //cout << "Collision" << endl;
@@ -432,9 +437,11 @@ void GameManager::renderGame(int fps) {
         MV->pushMatrix();
         camera->applyViewMatrix(MV);
 
+
+
         lightPos = vec4(camera->getPosition(), 1.0);
         vec4 l = MV->topMatrix() * lightPos;
-        
+
         // Draw ship part
         shipPartProgram->bind();
         shipPartColorTexture->bind(shipPartProgram->getUniform("colorTexture"));
@@ -468,7 +475,7 @@ void GameManager::renderGame(int fps) {
 
             delete temp;
         }
-        
+
         if (bullet->getDebugFlag()) {
             /*DRAW DEATH OBJECTS*/
             for (unsigned int i = 0; i < deathObjects.size(); i++) {
@@ -476,7 +483,6 @@ void GameManager::renderGame(int fps) {
 
             }
         }
-        
         // Draw magnet gun
         MV->pushMatrix();
         MV->loadIdentity();
@@ -486,18 +492,24 @@ void GameManager::renderGame(int fps) {
         glEnable(GL_DEPTH_TEST);
         MV->popMatrix();
 
-        
+
         if (bullet->getDebugFlag()) {
-            
+
             for (unsigned int i = 0; i < deathObjects.size(); i++) {
-                
+
             }
         }
         program->unbind();
 
+        psystem->draw(MV->topMatrix());
+
+
 
         if (bullet->getDebugFlag())
             bullet->renderDebug(P->topMatrix(), MV->topMatrix());
+
+
+
 
         MV->popMatrix();
         P->popMatrix();
@@ -507,9 +519,13 @@ void GameManager::renderGame(int fps) {
             gui->drawPause(level);
 
         }
-        
+
+
+
     }
-    
+
+
+
     //
     // stb_easy_font.h is used for printing fonts to the screen.
     //

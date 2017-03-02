@@ -14,13 +14,14 @@
 #ifndef PARTICLEMANAGER_HPP
 #define PARTICLEMANAGER_HPP
 
-#define MAXPARTICLES 100000
+#define MAXPARTICLES 10
 
 #include <iostream>
 
 class Program;
 class Texture;
 class MatrixStack;
+class Texture2;
 
 
 // CPU representation of a particle
@@ -42,14 +43,14 @@ class ParticleManager {
 public:
     ParticleManager(std::string resource);
     void update(double delta, glm::vec3 camPos);
-    void draw(glm::mat4 &VP);
+    void draw(glm::mat4 VP);
 
 
 private:
     std::string RESOURCE_DIR;
     GLuint vao;
     std::shared_ptr<Program> particleShader;
-    std::shared_ptr<Texture> particleTex;
+    std::shared_ptr<Texture2> particleTex;
 
     GLuint billboard_vertex_buffer;
     GLuint particles_position_buffer;

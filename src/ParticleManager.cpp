@@ -16,6 +16,8 @@
 #include "Program.h"
 #include "Texture.h"
 #include "MatrixStack.h"
+#include "Texture2.h"
+#include "GLSL.h"
 
 using namespace glm;
 using namespace std;
@@ -65,11 +67,15 @@ RESOURCE_DIR(resource) {
     particleShader->addUniform("CameraUp_worldspace");
     particleShader->addUniform("VP");
     particleShader->addUniform("myTextureSampler");
+    particleShader->addAttribute("squareVertices");
+    particleShader->addAttribute("xyz");
+    particleShader->addAttribute("color");
 
-    
-    particleTex = make_shared<Texture>();
-    particleTex->loadDDS((RESOURCE_DIR + "particle.DDS").c_str());
-    particleTex->setUnit(0);
+
+    particleTex = make_shared<Texture2>();
+    particleTex->setFilename(RESOURCE_DIR + "alpha.bmp");
+    particleTex->setHandle(0);
+    particleTex->init();
 
 
 
@@ -125,7 +131,7 @@ void ParticleManager::update(double delta, vec3 cameraPosition) {
     for (int i = 0; i < newparticles; i++) {
         int particleIndex = FindUnusedParticle();
         ParticlesContainer[particleIndex].life = 5.0f; // This particle will live 5 seconds.
-        ParticlesContainer[particleIndex].pos = glm::vec3(0, 0, -20.0f);
+        ParticlesContainer[particleIndex].pos = cameraPosition;
 
         float spread = 1.5f;
         glm::vec3 maindir = glm::vec3(0.0f, 10.0f, 0.0f);
@@ -154,7 +160,7 @@ void ParticleManager::update(double delta, vec3 cameraPosition) {
 
 
     // Simulate all particles
-    int ParticlesCount = 0;
+    ParticlesCount = 0;
     for (int i = 0; i < MAXPARTICLES; i++) {
 
         Particle& p = ParticlesContainer[i]; // shortcut
@@ -196,7 +202,7 @@ void ParticleManager::update(double delta, vec3 cameraPosition) {
     SortParticles();
 }
 
-void ParticleManager::draw(mat4 &VP) {
+void ParticleManager::draw(mat4 VP) {
 
     glBindBuffer(GL_ARRAY_BUFFER, particles_position_buffer);
     glBufferData(GL_ARRAY_BUFFER, MAXPARTICLES * 4 * sizeof (GLfloat), NULL, GL_STREAM_DRAW); // Buffer orphaning, a common way to improve streaming perf. See above link for details.
@@ -208,12 +214,18 @@ void ParticleManager::draw(mat4 &VP) {
 
 
     // Enable depth test
-    glEnable(GL_DEPTH_TEST);
+    //glEnable(GL_DEPTH_TEST);
     // Accept fragment if it closer to the camera than the former one
-    glDepthFunc(GL_LESS);
+    //glDepthFunc(GL_LESS);
+
+    //glEnable(GL_BLEND);
+    //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 
     particleShader->bind();
     particleTex->bind(particleShader->getUniform("myTextureSampler"));
+
+    //glBindVertexArray(vao);
 
     glUniform3f(particleShader->getUniform("CameraRight_worldspace"), 1, 0, 0);
     glUniform3f(particleShader->getUniform("CameraUp_worldspace"), 0, 1, 0);
@@ -221,6 +233,7 @@ void ParticleManager::draw(mat4 &VP) {
     glUniformMatrix4fv(particleShader->getUniform("VP"), 1, GL_FALSE, value_ptr(VP));
 
     // 1rst attribute buffer : vertices
+    //cout << particleShader->getAttribute("squareVertices") << endl;
     glEnableVertexAttribArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, billboard_vertex_buffer);
     glVertexAttribPointer(
@@ -271,9 +284,22 @@ void ParticleManager::draw(mat4 &VP) {
     // but faster.
     glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, ParticlesCount);
 
+
+    glVertexAttribDivisor(0, 0);
+    glVertexAttribDivisor(1, 0);
+    glVertexAttribDivisor(2, 0);
+
     glDisableVertexAttribArray(0);
     glDisableVertexAttribArray(1);
     glDisableVertexAttribArray(2);
+
+
+
+    particleShader->unbind();
+    particleTex->unbind();
+    GLSL::checkError(GET_FILE_LINE);
+
+    //glDisable(GL_BLEND);
 
 }
 
