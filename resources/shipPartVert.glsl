@@ -8,9 +8,9 @@ layout(location = 0) in vec4 aPos;
 layout(location = 1) in vec3 aNor;
 layout(location = 2) in vec2 aTex;
 
-varying vec2 vTex;
-varying vec4 fragPosInCam;
-varying vec4 fragNorInCam;
+out vec2 vTex;
+out vec4 fragPosInCam;
+out vec4 fragNorInCam;
 
 void main()
 {

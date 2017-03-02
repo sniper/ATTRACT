@@ -4,16 +4,16 @@ uniform sampler2D colorTexture;
 uniform sampler2D specularTexture;
 uniform vec3 lightPos;
 
-varying vec2 vTex;
-varying vec4 fragPosInCam;
-varying vec4 fragNorInCam;
+in vec2 vTex;
+in vec4 fragPosInCam;
+in vec4 fragNorInCam;
 
 out vec4 color;
 
 void main()
 {
-    vec3 kd = texture2D(colorTexture, vTex).rgb;
-    vec3 ks = texture2D(specularTexture, vTex).rgb;
+    vec3 kd = texture(colorTexture, vTex).rgb;
+    vec3 ks = texture(specularTexture, vTex).rgb;
     
     vec3 n = normalize(fragNorInCam.xyz);
     vec3 l = normalize(lightPos - fragPosInCam.xyz);

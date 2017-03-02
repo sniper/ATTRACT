@@ -123,6 +123,7 @@ void GameManager::initScene() {
     program->addUniform("ks");
     program->addUniform("s");
     program->addUniform("objTransMatrix");
+    
     //
     // Ship Parts (with Texture)
     //

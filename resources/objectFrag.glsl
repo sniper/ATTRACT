@@ -7,8 +7,8 @@ uniform vec3 kd;
 uniform vec3 ks;
 uniform float s;
 
-varying vec4 fragPosInCam; // passed from vert shader
-varying vec4 fragNorInCam; // passed from vert shader
+in vec4 fragPosInCam; // passed from vert shader
+in vec4 fragNorInCam; // passed from vert shader
 
 out vec4 color;
 

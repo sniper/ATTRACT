@@ -5,13 +5,12 @@ layout(location = 1) in vec2 posTex;
 
 uniform mat4 M;
 
-varying vec2 vTex;
+out vec2 vTex;
 
 void main(){
   vec4 temp = vec4(pos.x, pos.y, pos.z, 1);
   gl_Position = M * temp;
   gl_Position.w = 1;
-
 
   vTex = posTex;
   vTex.y = vTex.y * -1;
