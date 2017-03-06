@@ -16,4 +16,5 @@ void main() {
 	MV0[2] = vec4(0.0, 0.0, 1.0, 0.0);
 	gl_Position = P * MV* vec4(vertPos, 1.0);
 	partCol = Pcolor;
+        gl_PointSize = 14;
 }

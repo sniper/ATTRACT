@@ -14,7 +14,7 @@
 #ifndef PARTICLEMANAGER_HPP
 #define PARTICLEMANAGER_HPP
 
-#define MAXPARTICLES 10
+#define MAXPARTICLES 50
 
 #include <iostream>
 
@@ -28,7 +28,7 @@ class Texture2;
 
 typedef struct Particle {
     glm::vec3 pos, speed;
-    unsigned char r, g, b, a; // Color
+    float r, g, b, a; // Color
     float size, angle, weight;
     float life; // Remaining life of the particle. if <0 : dead and unused.
     float cameradistance; // *Squared* distance to the camera. if dead : -1.0f
@@ -63,7 +63,7 @@ private:
     int ParticlesCount = 0;
 
     GLfloat* g_particule_position_size_data;
-    GLubyte* g_particule_color_data;
+    GLfloat* g_particule_color_data;
 
 
 

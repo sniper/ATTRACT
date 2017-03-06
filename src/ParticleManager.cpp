@@ -86,7 +86,7 @@ RESOURCE_DIR(resource) {
 
 
     g_particule_position_size_data = new GLfloat[MAXPARTICLES * 3];
-    g_particule_color_data = new GLubyte[MAXPARTICLES * 4];
+    g_particule_color_data = new GLfloat[MAXPARTICLES * 4];
 
     static const GLfloat g_vertex_buffer_data[] = {
         -0.5f, -0.5f, 0.0f,
@@ -112,8 +112,8 @@ RESOURCE_DIR(resource) {
     glGenBuffers(1, &particles_color_buffer);
     glBindBuffer(GL_ARRAY_BUFFER, particles_color_buffer);
     // Initialize with empty (NULL) buffer : it will be updated later, each frame.
-    glBufferData(GL_ARRAY_BUFFER, MAXPARTICLES * 4 * sizeof (GLubyte), NULL, GL_STREAM_DRAW);
-
+    glBufferData(GL_ARRAY_BUFFER, MAXPARTICLES * 4 * sizeof (GLfloat), NULL, GL_STREAM_DRAW);
+    glEnable( GL_PROGRAM_POINT_SIZE );
 
 
 
@@ -131,7 +131,7 @@ void ParticleManager::update(double delta, vec3 cameraPosition) {
     for (int i = 0; i < newparticles; i++) {
         int particleIndex = FindUnusedParticle();
         ParticlesContainer[particleIndex].life = 5.0f; // This particle will live 5 seconds.
-        ParticlesContainer[particleIndex].pos = cameraPosition;
+        ParticlesContainer[particleIndex].pos = vec3(1,1,16);
 
         float spread = 1.5f;
         glm::vec3 maindir = glm::vec3(0.0f, 10.0f, 0.0f);
@@ -148,10 +148,10 @@ void ParticleManager::update(double delta, vec3 cameraPosition) {
 
 
         // Very bad way to generate a random color
-        ParticlesContainer[particleIndex].r = rand() % 256;
-        ParticlesContainer[particleIndex].g = rand() % 256;
-        ParticlesContainer[particleIndex].b = rand() % 256;
-        ParticlesContainer[particleIndex].a = (rand() % 256) / 3;
+        ParticlesContainer[particleIndex].r = 0.4;
+        ParticlesContainer[particleIndex].g = 0.7;
+        ParticlesContainer[particleIndex].b = 0.1;
+        ParticlesContainer[particleIndex].a = 0.3;
 
         ParticlesContainer[particleIndex].size = (rand() % 1000) / 2000.0f + 0.1f;
 
@@ -177,9 +177,6 @@ void ParticleManager::update(double delta, vec3 cameraPosition) {
                 p.cameradistance = glm::length(p.pos - cameraPosition);
                 //ParticlesContainer[i].pos += glm::vec3(0.0f,10.0f, 0.0f) * (float)delta;
 
-                cout << p.pos.x << endl;
-                cout << p.pos.y << endl;
-                cout << p.pos.z << endl;
 
                 // Fill the GPU buffer
                 g_particule_position_size_data[3 * ParticlesCount + 0] = p.pos.x;
@@ -216,15 +213,15 @@ void ParticleManager::draw(mat4 VP, mat4 P, float camRot) {
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glPointSize(14.0f);
+    //glPointSize(14.0f);
 
     glBindBuffer(GL_ARRAY_BUFFER, particles_position_buffer);
     glBufferData(GL_ARRAY_BUFFER, MAXPARTICLES * 3 * sizeof (GLfloat), NULL, GL_STREAM_DRAW); // Buffer orphaning, a common way to improve streaming perf. See above link for details.
     glBufferSubData(GL_ARRAY_BUFFER, 0, ParticlesCount * sizeof (GLfloat) * 3, g_particule_position_size_data);
 
     glBindBuffer(GL_ARRAY_BUFFER, particles_color_buffer);
-    glBufferData(GL_ARRAY_BUFFER, MAXPARTICLES * 4 * sizeof (GLubyte), NULL, GL_STREAM_DRAW); // Buffer orphaning, a common way to improve streaming perf. See above link for details.
-    glBufferSubData(GL_ARRAY_BUFFER, 0, ParticlesCount * sizeof (GLubyte) * 4, g_particule_color_data);
+    glBufferData(GL_ARRAY_BUFFER, MAXPARTICLES * 4 * sizeof (GLfloat), NULL, GL_STREAM_DRAW); // Buffer orphaning, a common way to improve streaming perf. See above link for details.
+    glBufferSubData(GL_ARRAY_BUFFER, 0, ParticlesCount * sizeof (GLfloat) * 4, g_particule_color_data);
 
 
 
@@ -260,7 +257,7 @@ void ParticleManager::draw(mat4 VP, mat4 P, float camRot) {
     glVertexAttribPointer(
             1, // attribute. No particular reason for 1, but must match the layout in the shader.
             4, // size : r + g + b + a => 4
-            GL_UNSIGNED_BYTE, // type
+            GL_FLOAT, // type
             GL_FALSE, // normalized?    *** YES, this means that the unsigned char[4] will be accessible with a vec4 (floats) in the shader ***
             0, // stride
             (void*) 0 // array buffer offset
