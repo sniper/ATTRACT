@@ -197,7 +197,7 @@ RESOURCE_DIR(resource) {
      playTex5->setUnit(0);
      playTex5->setWrapModes(GL_REPEAT, GL_REPEAT);
      guiTextures.insert(make_pair("reticle_center_off", playTex5));
-     scales.insert(make_pair("reticle_center_off", vec3(1, 1, 1)));
+     scales.insert(make_pair("reticle_center_off", vec3(0.25, 0.25, 1)));
      translates.insert(make_pair("reticle_center_off", vec3(0, 0, 0)));
 
      playTex5 = make_shared<Texture>();
@@ -206,7 +206,7 @@ RESOURCE_DIR(resource) {
      playTex5->setUnit(0);
      playTex5->setWrapModes(GL_REPEAT, GL_REPEAT);
      guiTextures.insert(make_pair("reticle_center_on", playTex5));
-     scales.insert(make_pair("reticle_center_on", vec3(1, 1, 1)));
+     scales.insert(make_pair("reticle_center_on", vec3(0.25, 0.25, 1)));
      translates.insert(make_pair("reticle_center_on", vec3(0, 0, 0)));
 
      playTex5 = make_shared<Texture>();
@@ -215,7 +215,7 @@ RESOURCE_DIR(resource) {
      playTex5->setUnit(0);
      playTex5->setWrapModes(GL_REPEAT, GL_REPEAT);
      guiTextures.insert(make_pair("reticle_top_off", playTex5));
-     scales.insert(make_pair("reticle_top_off", vec3(1, 1, 1)));
+     scales.insert(make_pair("reticle_top_off", vec3(0.25, 0.25, 1)));
      translates.insert(make_pair("reticle_top_off", vec3(0, 0, 0)));
 
      playTex5 = make_shared<Texture>();
@@ -224,7 +224,7 @@ RESOURCE_DIR(resource) {
      playTex5->setUnit(0);
      playTex5->setWrapModes(GL_REPEAT, GL_REPEAT);
      guiTextures.insert(make_pair("reticle_top_on", playTex5));
-     scales.insert(make_pair("reticle_top_on", vec3(1, 1, 1)));
+     scales.insert(make_pair("reticle_top_on", vec3(0.25, 0.25, 1)));
      translates.insert(make_pair("reticle_top_on", vec3(0, 0, 0)));
 
      playTex5 = make_shared<Texture>();
@@ -233,7 +233,7 @@ RESOURCE_DIR(resource) {
      playTex5->setUnit(0);
      playTex5->setWrapModes(GL_REPEAT, GL_REPEAT);
      guiTextures.insert(make_pair("reticle_bottom_off", playTex5));
-     scales.insert(make_pair("reticle_bottom_off", vec3(1, 1, 1)));
+     scales.insert(make_pair("reticle_bottom_off", vec3(0.25, 0.25, 1)));
      translates.insert(make_pair("reticle_bottom_off", vec3(0, 0, 0)));
 
      playTex5 = make_shared<Texture>();
@@ -242,7 +242,7 @@ RESOURCE_DIR(resource) {
      playTex5->setUnit(0);
      playTex5->setWrapModes(GL_REPEAT, GL_REPEAT);
      guiTextures.insert(make_pair("reticle_bottom_on", playTex5));
-     scales.insert(make_pair("reticle_bottom_on", vec3(1, 1, 1)));
+     scales.insert(make_pair("reticle_bottom_on", vec3(0.25, 0.25, 1)));
      translates.insert(make_pair("reticle_bottom_on", vec3(0, 0, 0)));
 
     glGenVertexArrays(1, &vao);
@@ -465,7 +465,8 @@ void GuiManager::draw(string name) {
 
     //auto P = make_shared<MatrixStack>();
     //P->ortho(0.0f, (float) width, 0.0f, (float) height, 0.0f, 10.0f);
-    mat4 P = glm::ortho(0.0f, (float) width, 0.0f, (float) height);
+    float aspect = (float) width / (float) height;
+    mat4 P = glm::perspective(80.0f, aspect,0.0f, 1.0f);
 
     glDisable(GL_DEPTH_TEST);
 

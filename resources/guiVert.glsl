@@ -12,7 +12,8 @@ void main(){
   vec4 temp = vec4(pos.x, pos.y, pos.z, 1);
   gl_Position = P * M * temp;
   gl_Position.w = 1;
-
+  gl_Position.y = -gl_Position.y;
+  gl_Position.x = -gl_Position.x;
   vTex = posTex;
   vTex.y = vTex.y * -1;
 }
