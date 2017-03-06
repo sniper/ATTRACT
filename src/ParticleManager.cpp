@@ -16,7 +16,7 @@
 #include "Program.h"
 #include "Texture.h"
 #include "MatrixStack.h"
-#include "Texture2.h"
+
 #include "GLSL.h"
 
 using namespace glm;
@@ -71,8 +71,8 @@ RESOURCE_DIR(resource) {
     particleShader->addAttribute("Pcolor");
 
 
-    particleTex = make_shared<Texture2>();
-    particleTex->setHandle(0);
+    particleTex = make_shared<Texture>();
+    particleTex->setUnit(0);
     particleTex->setFilename(RESOURCE_DIR + "alpha.bmp");
     particleTex->init();
 
@@ -224,7 +224,7 @@ void ParticleManager::draw(mat4 VP, mat4 P, float camRot) {
     glBufferSubData(GL_ARRAY_BUFFER, 0, ParticlesCount * sizeof (GLfloat) * 4, g_particule_color_data);
 
 
-
+    
 
 
     particleShader->bind();

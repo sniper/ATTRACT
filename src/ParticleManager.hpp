@@ -21,7 +21,7 @@
 class Program;
 class Texture;
 class MatrixStack;
-class Texture2;
+
 
 
 // CPU representation of a particle
@@ -50,7 +50,7 @@ private:
     std::string RESOURCE_DIR;
     GLuint vao;
     std::shared_ptr<Program> particleShader;
-    std::shared_ptr<Texture2> particleTex;
+    std::shared_ptr<Texture> particleTex;
 
     GLuint billboard_vertex_buffer;
     GLuint particles_position_buffer;
