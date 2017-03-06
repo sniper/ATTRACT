@@ -91,6 +91,7 @@ private:
     std::vector<std::shared_ptr<GameObject>> objects;
 
     std::shared_ptr<GameObject> magnetGun;
+    std::shared_ptr<GameObject> magnetBeam;
 
     std::vector<std::shared_ptr<GameObject>> deathObjects;
 

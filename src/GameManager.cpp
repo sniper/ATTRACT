@@ -174,6 +174,14 @@ void GameManager::initScene() {
     gun->fitToUnitBox();
     gun->init();
     shapes.push_back(gun);
+    
+    shared_ptr<Shape> cylinder = make_shared<Shape>();
+    cylinder->loadMesh(RESOURCE_DIR + "cylinder.obj");
+    cylinder->fitToUnitBox();
+    cylinder->init();
+    shapes.push_back(cylinder);
+    
+
 
     //lightPos = vec4(0.0f, 10.0f, 0.0f, 1.0f);
     lightIntensity = 0.6f;
@@ -189,6 +197,7 @@ void GameManager::initScene() {
 
     shared_ptr<Material> material = make_shared<Material>(vec3(0.2f, 0.2f, 0.2f), vec3(0.0f, 0.5f, 0.5f), vec3(1.0f, 0.9f, 0.8f), 200.0f);
     magnetGun = make_shared<GameObject>(vec3(0.4, -0.2, -1), vec3(0.4, 0, -0.2), vec3(0.5, 0.5, 0.5), 0, shapes.at(2), material);
+    magnetBeam = make_shared<GameObject>(vec3(0.4, -0.2, -3), vec3(0.4, 0, -0.2), vec3(0.5, 0.5, 0.5), 0, shapes.at(3), material);
 }
 
 bool GameManager::toBool(string s) {
@@ -489,6 +498,7 @@ void GameManager::renderGame(int fps) {
         glUniformMatrix4fv(program->getUniform("MV"), 1, GL_FALSE, value_ptr(MV->topMatrix()));
         glDisable(GL_DEPTH_TEST);
         magnetGun->draw(program);
+        magnetBeam->draw(program);
         glEnable(GL_DEPTH_TEST);
         MV->popMatrix();
 
