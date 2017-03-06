@@ -543,16 +543,15 @@ void GameManager::renderGame(int fps) {
 
         magnetBeam->draw(program);
         glEnable(GL_DEPTH_TEST);
-        MV->popMatrix();
         program->unbind();
 
         if (bullet->getDebugFlag()) {
             psystem->draw( MV->topMatrix() , P->topMatrix(), 0);
             bullet->renderDebug(P->topMatrix(), MV->topMatrix());
         }
+
         MV->popMatrix();
         P->popMatrix();
-
 
         if (gameState == PAUSE) {
             gui->drawPause(level);
