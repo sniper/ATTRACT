@@ -412,6 +412,7 @@ void GameManager::renderGame(int fps) {
     int width, height;
     glfwGetFramebufferSize(window, &width, &height);
     camera->setAspect((float) width / (float) height);
+    gui->setWindowSize(width, height);
 
     // Matrix stacks
     auto P = make_shared<MatrixStack>();
@@ -486,7 +487,6 @@ void GameManager::renderGame(int fps) {
         magnetGun->draw(program);
         glEnable(GL_DEPTH_TEST);
         MV->popMatrix();
-
         
         if (bullet->getDebugFlag()) {
             
@@ -496,21 +496,19 @@ void GameManager::renderGame(int fps) {
         }
         program->unbind();
 
-
         if (bullet->getDebugFlag())
             bullet->renderDebug(P->topMatrix(), MV->topMatrix());
 
         MV->popMatrix();
         P->popMatrix();
 
-
         if (gameState == PAUSE) {
             gui->drawPause(level);
-
+        } else {
+            gui->drawHUD(camera->isLookingAtMagnet(), Mouse::isLeftMouseButtonPressed(), Mouse::isRightMouseButtonPressed());
         }
-        
     }
-    
+
     //
     // stb_easy_font.h is used for printing fonts to the screen.
     //

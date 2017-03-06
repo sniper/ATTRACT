@@ -26,9 +26,6 @@ RESOURCE_DIR(resource) {
         0.5f, -0.5f, 0.0f,
         0.5f, 0.5f, 0.0f,
         -0.5f, 0.5f, 0.0f,
-
-        
-
     };
 
     static const GLfloat tex_buffer_data[] = {
@@ -38,7 +35,6 @@ RESOURCE_DIR(resource) {
         1.0f, 0.0f
     };
 
-    
     guiShader = make_shared<Program>();
     guiShader->setShaderNames(RESOURCE_DIR + "guiVert.glsl", RESOURCE_DIR + "guiFrag.glsl");
     guiShader->init();
@@ -47,11 +43,9 @@ RESOURCE_DIR(resource) {
     guiShader->addAttribute("posTex");
     guiShader->addUniform("guiTex");
     guiShader->addUniform("M");
-
+    guiShader->addUniform("P");
 
     GLSL::checkError(GET_FILE_LINE);
-
-    
 
     shared_ptr<Texture> playTex = make_shared<Texture>();
 
@@ -69,7 +63,7 @@ RESOURCE_DIR(resource) {
     guiTextures.insert(make_pair("play_select", playTex));
     scales.insert(make_pair("play_select", vec3(1, 0.7, 1)));
     translates.insert(make_pair("play_select", vec3(0, -0.1, 0)));
-    
+
         playTex = make_shared<Texture>();
         playTex->setFilename(RESOURCE_DIR + "textures/play_noselect.png");
         playTex->init();
@@ -197,6 +191,59 @@ RESOURCE_DIR(resource) {
      scales.insert(make_pair("tryagain_select", vec3(0.7, 0.7, 1)));
      translates.insert(make_pair("tryagain_select", vec3(0, -0.18, 0)));
      
+     playTex5 = make_shared<Texture>();
+     playTex5->setFilename(RESOURCE_DIR + "textures/reticle_center_off.png");
+     playTex5->init();
+     playTex5->setUnit(0);
+     playTex5->setWrapModes(GL_REPEAT, GL_REPEAT);
+     guiTextures.insert(make_pair("reticle_center_off", playTex5));
+     scales.insert(make_pair("reticle_center_off", vec3(1, 1, 1)));
+     translates.insert(make_pair("reticle_center_off", vec3(0, 0, 0)));
+
+     playTex5 = make_shared<Texture>();
+     playTex5->setFilename(RESOURCE_DIR + "textures/reticle_center_on.png");
+     playTex5->init();
+     playTex5->setUnit(0);
+     playTex5->setWrapModes(GL_REPEAT, GL_REPEAT);
+     guiTextures.insert(make_pair("reticle_center_on", playTex5));
+     scales.insert(make_pair("reticle_center_on", vec3(1, 1, 1)));
+     translates.insert(make_pair("reticle_center_on", vec3(0, 0, 0)));
+
+     playTex5 = make_shared<Texture>();
+     playTex5->setFilename(RESOURCE_DIR + "textures/reticle_top_off.png");
+     playTex5->init();
+     playTex5->setUnit(0);
+     playTex5->setWrapModes(GL_REPEAT, GL_REPEAT);
+     guiTextures.insert(make_pair("reticle_top_off", playTex5));
+     scales.insert(make_pair("reticle_top_off", vec3(1, 1, 1)));
+     translates.insert(make_pair("reticle_top_off", vec3(0, 0, 0)));
+
+     playTex5 = make_shared<Texture>();
+     playTex5->setFilename(RESOURCE_DIR + "textures/reticle_top_on.png");
+     playTex5->init();
+     playTex5->setUnit(0);
+     playTex5->setWrapModes(GL_REPEAT, GL_REPEAT);
+     guiTextures.insert(make_pair("reticle_top_on", playTex5));
+     scales.insert(make_pair("reticle_top_on", vec3(1, 1, 1)));
+     translates.insert(make_pair("reticle_top_on", vec3(0, 0, 0)));
+
+     playTex5 = make_shared<Texture>();
+     playTex5->setFilename(RESOURCE_DIR + "textures/reticle_bottom_off.png");
+     playTex5->init();
+     playTex5->setUnit(0);
+     playTex5->setWrapModes(GL_REPEAT, GL_REPEAT);
+     guiTextures.insert(make_pair("reticle_bottom_off", playTex5));
+     scales.insert(make_pair("reticle_bottom_off", vec3(1, 1, 1)));
+     translates.insert(make_pair("reticle_bottom_off", vec3(0, 0, 0)));
+
+     playTex5 = make_shared<Texture>();
+     playTex5->setFilename(RESOURCE_DIR + "textures/reticle_bottom_on.png");
+     playTex5->init();
+     playTex5->setUnit(0);
+     playTex5->setWrapModes(GL_REPEAT, GL_REPEAT);
+     guiTextures.insert(make_pair("reticle_bottom_on", playTex5));
+     scales.insert(make_pair("reticle_bottom_on", vec3(1, 1, 1)));
+     translates.insert(make_pair("reticle_bottom_on", vec3(0, 0, 0)));
 
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
@@ -285,16 +332,11 @@ State GuiManager::interpretWinPressedKeys(std::vector<char> pressedKeys) {
 }
 
 void GuiManager::drawMenu() {
-    
-    
-    
-
     glDepthMask(GL_FALSE);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     draw("attract");
-
    
     if (selectedName == "play") {
         draw("play_select");
@@ -306,10 +348,31 @@ void GuiManager::drawMenu() {
      
     glDisable(GL_BLEND);
     glDepthMask(GL_TRUE);
- 
+}
 
-
-
+void GuiManager::drawHUD(bool lookingAtMagnet, bool leftClick, bool rightClick) {
+    glDepthMask(GL_FALSE);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    if (lookingAtMagnet) {
+        draw("reticle_center_on");
+        if (leftClick) {
+            draw("reticle_top_on");
+            draw("reticle_bottom_off");
+        } else if (rightClick) {
+            draw("reticle_top_off");
+            draw("reticle_bottom_on");
+        } else {
+            draw("reticle_top_off");
+            draw("reticle_bottom_off");
+        }
+    } else {
+        draw("reticle_center_off");
+        draw("reticle_top_off");
+        draw("reticle_bottom_off");
+    }
+    glDisable(GL_BLEND);
+    glDepthMask(GL_TRUE);
 }
 
 void GuiManager::drawPause(int level) {
@@ -390,17 +453,19 @@ void GuiManager::drawAll() {
     for (std::map<string, shared_ptr < Texture>>::iterator it = guiTextures.begin(); it != guiTextures.end(); ++it) {
         draw(it->first);
     }
-
 }
 
 void GuiManager::draw(string name) {
-
     auto M = make_shared<MatrixStack>();
     M->pushMatrix();
     M->loadIdentity();
 
     M->translate(translates[name]);
     M->scale(scales[name]);
+
+    //auto P = make_shared<MatrixStack>();
+    //P->ortho(0.0f, (float) width, 0.0f, (float) height, 0.0f, 10.0f);
+    mat4 P = glm::ortho(0.0f, (float) width, 0.0f, (float) height);
 
     glDisable(GL_DEPTH_TEST);
 
@@ -415,6 +480,7 @@ void GuiManager::draw(string name) {
     GLSL::checkError(GET_FILE_LINE);
 
     glUniformMatrix4fv(guiShader->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix()));
+    glUniformMatrix4fv(guiShader->getUniform("P"), 1, GL_FALSE, value_ptr(P));
 
     int pos = guiShader->getAttribute("pos");
 
