@@ -116,7 +116,8 @@ void GameManager::initScene() {
     program->init();
     program->addAttribute("aPos");
     program->addAttribute("aNor");
-    program->addUniform("MV");
+    program->addUniform("M");
+    program->addUniform("V");
     program->addUniform("P");
     program->addUniform("lightPos");
     program->addUniform("lightIntensity");
@@ -124,7 +125,6 @@ void GameManager::initScene() {
     program->addUniform("kd");
     program->addUniform("ks");
     program->addUniform("s");
-    program->addUniform("objTransMatrix");
     
     //
     // Skyscrapers
@@ -136,7 +136,8 @@ void GameManager::initScene() {
     skyscraperProgram->addAttribute("aPos");
     skyscraperProgram->addAttribute("aNor");
     skyscraperProgram->addAttribute("aTex");
-    skyscraperProgram->addUniform("MV");
+    skyscraperProgram->addUniform("M");
+    skyscraperProgram->addUniform("V");
     skyscraperProgram->addUniform("P");
     skyscraperProgram->addUniform("diffuseTex");
     skyscraperProgram->addUniform("specularTex");
@@ -157,12 +158,12 @@ void GameManager::initScene() {
     shipPartProgram->addAttribute("aPos");
     shipPartProgram->addAttribute("aNor");
     shipPartProgram->addAttribute("aTex");
+    shipPartProgram->addUniform("M");
+    shipPartProgram->addUniform("V");
     shipPartProgram->addUniform("P");
-    shipPartProgram->addUniform("MV");
     shipPartProgram->addUniform("diffuseTex");
     shipPartProgram->addUniform("specularTex");
     shipPartProgram->addUniform("lightPos");
-    shipPartProgram->addUniform("objTransMatrix");
 
     shipPartColorTexture = make_shared<Texture>();
     shipPartColorTexture->setFilename(RESOURCE_DIR + "shipPartColor.jpg");
@@ -452,7 +453,7 @@ void GameManager::renderGame(int fps) {
 
     // Matrix stacks
     auto P = make_shared<MatrixStack>();
-    auto MV = make_shared<MatrixStack>();
+    auto V = make_shared<MatrixStack>();
 
     /*if in gamestate menu render menu*/
     if (gameState == MENU) {
@@ -467,18 +468,18 @@ void GameManager::renderGame(int fps) {
         // Apply camera transforms
         P->pushMatrix();
         camera->applyProjectionMatrix(P);
-        MV->pushMatrix();
-        camera->applyViewMatrix(MV);
+        V->pushMatrix();
+        camera->applyViewMatrix(V);
 
         lightPos = vec4(camera->getPosition(), 1.0);
-        vec4 l = MV->topMatrix() * lightPos;
+        vec4 l = V->topMatrix() * lightPos;
 
         // Draw ship part
         shipPartProgram->bind();
         shipPartColorTexture->bind(shipPartProgram->getUniform("diffuseTex"));
         shipPartSpecularTexture->bind(shipPartProgram->getUniform("specularTex"));
         glUniformMatrix4fv(shipPartProgram->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
-        glUniformMatrix4fv(shipPartProgram->getUniform("MV"), 1, GL_FALSE, value_ptr(MV->topMatrix()));
+        glUniformMatrix4fv(shipPartProgram->getUniform("V"), 1, GL_FALSE, value_ptr(V->topMatrix()));
         glUniform3fv(shipPartProgram->getUniform("lightPos"), 1, value_ptr(vec3(l)));
         spaceShipPart->draw(shipPartProgram);
         shipPartSpecularTexture->unbind();
@@ -492,7 +493,7 @@ void GameManager::renderGame(int fps) {
 //        glUniform3fv(skyscraperProgram->getUniform("lightPos"), 1, value_ptr(vec3(l)));
 //        glUniform1f(skyscraperProgram->getUniform("lightIntensity"), lightIntensity);
 
-        vfc->extractVFPlanes(P->topMatrix(), MV->topMatrix());
+        vfc->extractVFPlanes(P->topMatrix(), V->topMatrix());
         for (unsigned int i = 0; i < objects.size(); i++) {
             if (objects.at(i)->isCuboid()) {
                 std::shared_ptr<Cuboid> cub = dynamic_pointer_cast<Cuboid>(objects.at(i));
@@ -503,7 +504,7 @@ void GameManager::renderGame(int fps) {
                     if (cub->isMagnetic()) {
                         program->bind();
                         glUniformMatrix4fv(program->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
-                        glUniformMatrix4fv(program->getUniform("MV"), 1, GL_FALSE, value_ptr(MV->topMatrix()));
+                        glUniformMatrix4fv(program->getUniform("V"), 1, GL_FALSE, value_ptr(V->topMatrix()));
                         glUniform4f(program->getUniform("lightPos"), l[0], l[1], l[2], l[3]);
                         glUniform1f(program->getUniform("lightIntensity"), lightIntensity);
                         cub->draw(program);
@@ -512,7 +513,7 @@ void GameManager::renderGame(int fps) {
                     else {
                         skyscraperProgram->bind();
                         glUniformMatrix4fv(skyscraperProgram->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
-                        glUniformMatrix4fv(skyscraperProgram->getUniform("MV"), 1, GL_FALSE, value_ptr(MV->topMatrix()));
+                        glUniformMatrix4fv(skyscraperProgram->getUniform("V"), 1, GL_FALSE, value_ptr(V->topMatrix()));
                         glUniform3fv(skyscraperProgram->getUniform("lightPos"), 1, value_ptr(vec3(l)));
                         glUniform1f(skyscraperProgram->getUniform("lightIntensity"), lightIntensity);
                         glUniform3fv(skyscraperProgram->getUniform("scalingFactor"), 1, value_ptr(cub->getScale()));
@@ -538,26 +539,25 @@ void GameManager::renderGame(int fps) {
         // Render magnet gun
         program->bind();
         glUniformMatrix4fv(program->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
-        //glUniformMatrix4fv(program->getUniform("MV"), 1, GL_FALSE, value_ptr(MV->topMatrix()));
         glUniform4f(program->getUniform("lightPos"), l[0], l[1], l[2], l[3]);
         glUniform1f(program->getUniform("lightIntensity"), lightIntensity);
-        MV->pushMatrix();
-        MV->loadIdentity();
-        glUniformMatrix4fv(program->getUniform("MV"), 1, GL_FALSE, value_ptr(MV->topMatrix()));
+        V->pushMatrix();
+        V->loadIdentity();
+        glUniformMatrix4fv(program->getUniform("V"), 1, GL_FALSE, value_ptr(V->topMatrix()));
         glClear(GL_DEPTH_BUFFER_BIT);
         magnetGun->draw(program);
-        MV->popMatrix();
+        V->popMatrix();
 
         magnetBeam->draw(program);
         glEnable(GL_DEPTH_TEST);
         program->unbind();
 
         if (bullet->getDebugFlag()) {
-            psystem->draw( MV->topMatrix() , P->topMatrix(), 0);
-            bullet->renderDebug(P->topMatrix(), MV->topMatrix());
+            psystem->draw(V->topMatrix() , P->topMatrix(), 0);
+            bullet->renderDebug(P->topMatrix(), V->topMatrix());
         }
 
-        MV->popMatrix();
+        V->popMatrix();
         P->popMatrix();
 
         if (gameState == PAUSE) {

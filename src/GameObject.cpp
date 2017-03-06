@@ -89,11 +89,11 @@ void GameObject::draw(const shared_ptr<Program> &prog)
         material->setUniforms(prog);
     }
 
-    auto transMat = make_shared<MatrixStack>();
-    transMat->translate(position);
-    transMat->rotate(M_PI - atan2(direction.z, direction.x), vec3(0.0f, 1.0f, 0.0f));
-    transMat->scale(scale);
-    glUniformMatrix4fv(prog->getUniform("objTransMatrix"), 1, GL_FALSE, value_ptr(transMat->topMatrix()));
+    auto M = make_shared<MatrixStack>();
+    M->translate(position);
+    M->rotate(M_PI - atan2(direction.z, direction.x), vec3(0.0f, 1.0f, 0.0f));
+    M->scale(scale);
+    glUniformMatrix4fv(prog->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix()));
 
     shape->draw(prog);
 }

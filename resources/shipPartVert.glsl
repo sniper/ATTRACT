@@ -1,8 +1,8 @@
 #version 330 core
 
 uniform mat4 P;
-uniform mat4 MV;
-uniform mat4 objTransMatrix;
+uniform mat4 V;
+uniform mat4 M;
 
 layout(location = 0) in vec4 aPos;
 layout(location = 1) in vec3 aNor;
@@ -14,8 +14,8 @@ out vec4 fragNorInCam;
 
 void main()
 {
-    gl_Position = P * MV * objTransMatrix * aPos;
+    gl_Position = P * V * M * aPos;
     vTex = aTex;
-    fragPosInCam = MV * objTransMatrix * aPos;
-    fragNorInCam = MV * objTransMatrix * vec4(aNor, 0);
+    fragPosInCam = V * M * aPos;
+    fragNorInCam = V * M * vec4(aNor, 0);
 }

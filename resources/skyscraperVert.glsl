@@ -1,8 +1,8 @@
 #version 330 core
 
 uniform mat4 P;
-uniform mat4 MV;
-uniform mat4 objTransMatrix;
+uniform mat4 V;
+uniform mat4 M;
 uniform vec3 scalingFactor;
 
 layout(location = 0) in vec4 aPos;
@@ -17,7 +17,7 @@ float epsilon = 0.00001;
 
 void main()
 {
-    gl_Position = P * MV * objTransMatrix * aPos;
+    gl_Position = P * V * M * aPos;
     if (aNor.x > epsilon || aNor.x < -epsilon) {
         vTex = vec2(aTex.x * scalingFactor.z, aTex.y * scalingFactor.y);
     }
@@ -28,6 +28,6 @@ void main()
         vTex = vec2(aTex.x * scalingFactor.x, aTex.y * scalingFactor.y);
     }
     
-    fragPosInCam = MV * objTransMatrix * aPos;
-    fragNorInCam = MV * objTransMatrix * vec4(aNor, 0);
+    fragPosInCam = V * M * aPos;
+    fragNorInCam = V * M * vec4(aNor, 0);
 }
