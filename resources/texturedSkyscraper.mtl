@@ -1,0 +1,10 @@
+# Blender MTL File: 'None'
+# Material Count: 2
+
+newmtl Skyscraper_Top
+Kd 0.640000 0.640000 0.640000
+map_Kd skyscraperTop14.jpg
+
+newmtl Skyscraper_Side
+Kd 0.640000 0.640000 0.640000
+map_Kd skyscraperSide14.jpg

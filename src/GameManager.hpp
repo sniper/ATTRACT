@@ -100,9 +100,10 @@ private:
     std::shared_ptr<InputManager> inputManager;
     std::shared_ptr<Camera> camera;
 
-    std::shared_ptr<Program> program, shipPartProgram;
-    std::shared_ptr<Texture> shipPartColorTexture, shipPartSpecularTexture;
-    std::vector<std::shared_ptr<Shape>> shapes;
+    std::shared_ptr<Program> program, shipPartProgram, skyscraperProgram;
+    std::shared_ptr<Texture> shipPartColorTexture, shipPartSpecularTexture,
+        skyscraperColorTexture, skyscraperSpecularTexture;
+    std::map<std::string, std::shared_ptr<Shape>> shapes;
 
     std::shared_ptr<SpaceShipPart> spaceShipPart;
 

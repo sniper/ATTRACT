@@ -58,8 +58,6 @@ void SpaceShipPart::update(float dt)
 
 void SpaceShipPart::draw(const std::shared_ptr<Program> &prog)
 {
-    //material->setUniforms(prog);
-    
     auto transMat = make_shared<MatrixStack>();
     transMat->translate(vec3(position.x, position.y + yOffset, position.z));
     transMat->rotate(M_PI - atan2(direction.z, direction.x), vec3(0.0f, 1.0f, 0.0f));

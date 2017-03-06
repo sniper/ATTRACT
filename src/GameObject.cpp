@@ -84,7 +84,9 @@ void GameObject::setPosition(vec3 pos)
 
 void GameObject::draw(const shared_ptr<Program> &prog)
 {
-    material->setUniforms(prog);
+    if (material != nullptr) {
+        material->setUniforms(prog);
+    }
 
     auto transMat = make_shared<MatrixStack>();
     transMat->translate(position);

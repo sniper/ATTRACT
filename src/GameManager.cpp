@@ -125,12 +125,42 @@ void GameManager::initScene() {
     program->addUniform("objTransMatrix");
     
     //
-    // Ship Parts (with Texture)
+    // Skyscrapers
+    //
+    skyscraperProgram = make_shared<Program>();
+    skyscraperProgram->setShaderNames(RESOURCE_DIR + "skyscraperVert.glsl", RESOURCE_DIR + "skyscraperFrag.glsl");
+    skyscraperProgram->setVerbose(false);
+    skyscraperProgram->init();
+    skyscraperProgram->addAttribute("aPos");
+    skyscraperProgram->addAttribute("aNor");
+    skyscraperProgram->addAttribute("aTex");
+    skyscraperProgram->addUniform("MV");
+    skyscraperProgram->addUniform("P");
+    skyscraperProgram->addUniform("diffuseTex");
+    skyscraperProgram->addUniform("specularTex");
+    skyscraperProgram->addUniform("lightPos");
+    skyscraperProgram->addUniform("lightIntensity");
+    skyscraperProgram->addUniform("objTransMatrix");
+    
+//    skyscraperColorTexture = make_shared<Texture>();
+//    skyscraperColorTexture->setFilename(RESOURCE_DIR + "skyscraperSide14.jpg");
+//    skyscraperColorTexture->init();
+//    skyscraperColorTexture->setUnit(0);
+//    skyscraperColorTexture->setWrapModes(GL_REPEAT, GL_REPEAT);
+//    
+//    skyscraperSpecularTexture = make_shared<Texture>();
+//    skyscraperSpecularTexture->setFilename(RESOURCE_DIR + "skyscraperSideSpecular14.jpg");
+//    skyscraperSpecularTexture->init();
+//    skyscraperSpecularTexture->setUnit(1);
+//    skyscraperSpecularTexture->setWrapModes(GL_REPEAT, GL_REPEAT);
+
+    //
+    // Ship Parts
     //
     shipPartProgram = make_shared<Program>();
     shipPartProgram->setShaderNames(RESOURCE_DIR + "shipPartVert.glsl",
             RESOURCE_DIR + "shipPartFrag.glsl");
-    shipPartProgram->setVerbose(true);
+    shipPartProgram->setVerbose(false);
     shipPartProgram->init();
     
     shipPartProgram->addAttribute("aPos");
@@ -138,41 +168,43 @@ void GameManager::initScene() {
     shipPartProgram->addAttribute("aTex");
     shipPartProgram->addUniform("P");
     shipPartProgram->addUniform("MV");
-    shipPartProgram->addUniform("colorTexture");
-    shipPartProgram->addUniform("specularTexture");
+    shipPartProgram->addUniform("diffuseTex");
+    shipPartProgram->addUniform("specularTex");
     shipPartProgram->addUniform("lightPos");
     shipPartProgram->addUniform("objTransMatrix");
     
     shipPartColorTexture = make_shared<Texture>();
     shipPartColorTexture->setFilename(RESOURCE_DIR + "shipPartColor.jpg");
     shipPartColorTexture->init();
-    shipPartColorTexture->setUnit(0);
+    shipPartColorTexture->setUnit(2);
     shipPartColorTexture->setWrapModes(GL_REPEAT, GL_REPEAT);
     shipPartSpecularTexture = make_shared<Texture>();
     shipPartSpecularTexture->setFilename(RESOURCE_DIR + "shipPartSpecular.jpg");
     shipPartSpecularTexture->init();
-    shipPartSpecularTexture->setUnit(1);
+    shipPartSpecularTexture->setUnit(3);
     shipPartSpecularTexture->setWrapModes(GL_REPEAT, GL_REPEAT);
+    
     //
     // Loading obj files
     //
-    shared_ptr<Shape> cube = make_shared<Shape>();
-    cube->loadMesh(RESOURCE_DIR + "cube.obj");
-    cube->fitToUnitBox();
-    cube->init();
-    shapes.push_back(cube);
+    shared_ptr<Shape> temp = make_shared<Shape>();
+    
+    temp->loadMesh(RESOURCE_DIR + "texturedSkyscraper.obj", RESOURCE_DIR);
+    temp->fitToUnitBox();
+    temp->init();
+    shapes.insert(make_pair("plainCube", temp));
 
-    shared_ptr<Shape> shipPart = make_shared<Shape>();
-    shipPart->loadMesh(RESOURCE_DIR + "shipPart.obj");
-    shipPart->fitToUnitBox();
-    shipPart->init();
-    shapes.push_back(shipPart);
+    temp = make_shared<Shape>();
+    temp->loadMesh(RESOURCE_DIR + "shipPart.obj", RESOURCE_DIR);
+    temp->fitToUnitBox();
+    temp->init();
+    shapes.insert(make_pair("shipPart", temp));
 
-    shared_ptr<Shape> gun = make_shared<Shape>();
-    gun->loadMesh(RESOURCE_DIR + "MP5K.obj");
-    gun->fitToUnitBox();
-    gun->init();
-    shapes.push_back(gun);
+    temp = make_shared<Shape>();
+    temp->loadMesh(RESOURCE_DIR + "Magnagun.obj", RESOURCE_DIR);
+    temp->fitToUnitBox();
+    temp->init();
+    shapes.insert(make_pair("magnetGun", temp));
 
     //lightPos = vec4(0.0f, 10.0f, 0.0f, 1.0f);
     lightIntensity = 0.6f;
@@ -186,8 +218,9 @@ void GameManager::initScene() {
     //bullet = make_shared<BulletManager>();
     //bullet->createPlane("ground", 0, 0, 0);
 
-    shared_ptr<Material> material = make_shared<Material>(vec3(0.2f, 0.2f, 0.2f), vec3(0.0f, 0.5f, 0.5f), vec3(1.0f, 0.9f, 0.8f), 200.0f);
-    magnetGun = make_shared<GameObject>(vec3(0.4, -0.2, -1), vec3(0.4, 0, -0.2), vec3(0.5, 0.5, 0.5), 0, shapes.at(2), material);
+    //shared_ptr<Material> material = make_shared<Material>(vec3(0.2f, 0.2f, 0.2f), vec3(0.0f, 0.5f, 0.5f), vec3(1.0f, 0.9f, 0.8f), 200.0f);
+//    magnetGun = make_shared<GameObject>(vec3(0.4, -0.2, -1), vec3(0.4, 0, -0.2), vec3(0.5, 0.5, 0.5), 0, shapes["magnetGun"], material);
+        magnetGun = make_shared<GameObject>(vec3(0.4, -0.2, -1), vec3(0.4, 0, -0.2), vec3(1, 1, 1), 0, shapes["magnetGun"], nullptr);
 }
 
 bool GameManager::toBool(string s) {
@@ -254,14 +287,14 @@ void GameManager::parseObject(string objectString, shared_ptr<Material> greyBox,
     if (magnetic) {
         shared_ptr<Cuboid> magnet = make_shared<Cuboid>(pos, vec3(0, 0, 0),
                 CUBE_HALF_EXTENTS,
-                scale, 0, shapes.at(0),
+                scale, 0, shapes["plainCube"],
                 magnetSurface, true);
         objects.push_back(magnet);
         bullet->createMagneticBox(to_string(name++), pos, CUBE_HALF_EXTENTS, scale, 0);
     } else if (deadly) {
         shared_ptr<Cuboid> dobj1 = make_shared<Cuboid>(pos, vec3(0, 0, 0),
                 CUBE_HALF_EXTENTS,
-                scale, 0, shapes.at(0),
+                scale, 0, shapes["plainCube"],
                 greyBox, false);
         deathObjects.push_back(dobj1);
 
@@ -269,12 +302,12 @@ void GameManager::parseObject(string objectString, shared_ptr<Material> greyBox,
     } else if (collectable) {
         spaceShipPart = make_shared<SpaceShipPart>(pos, vec3(0, 0, 0),
                 CUBE_HALF_EXTENTS, scale,
-                shapes.at(1), spacePart);
+                shapes["shipPart"], spacePart);
     } else {
         shared_ptr<Cuboid> groundPlane = make_shared<Cuboid>(pos, vec3(0, 0, 0),
                 CUBE_HALF_EXTENTS,
-                scale, 0, shapes.at(0),
-                greyBox, false);
+                scale, 0, shapes["plainCube"],
+                nullptr, false);
         objects.push_back(groundPlane);
         bullet->createBox(to_string(name++), pos, CUBE_HALF_EXTENTS, scale, 0);
     }
@@ -438,8 +471,8 @@ void GameManager::renderGame(int fps) {
         
         // Draw ship part
         shipPartProgram->bind();
-        shipPartColorTexture->bind(shipPartProgram->getUniform("colorTexture"));
-        shipPartSpecularTexture->bind(shipPartProgram->getUniform("specularTexture"));
+        shipPartColorTexture->bind(shipPartProgram->getUniform("colorTex"));
+        shipPartSpecularTexture->bind(shipPartProgram->getUniform("specularTex"));
         glUniformMatrix4fv(shipPartProgram->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
         glUniformMatrix4fv(shipPartProgram->getUniform("MV"), 1, GL_FALSE, value_ptr(MV->topMatrix()));
         glUniform3fv(shipPartProgram->getUniform("lightPos"), 1, value_ptr(vec3(l)));
@@ -448,57 +481,61 @@ void GameManager::renderGame(int fps) {
         shipPartColorTexture->unbind();
         shipPartProgram->unbind();
 
-        // Render objects
-        program->bind();
-        glUniformMatrix4fv(program->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
-        glUniformMatrix4fv(program->getUniform("MV"), 1, GL_FALSE, value_ptr(MV->topMatrix()));
-        glUniform4f(program->getUniform("lightPos"), l[0], l[1], l[2], l[3]);
-        glUniform1f(program->getUniform("lightIntensity"), lightIntensity);
+        // Render skyscrapers
+        skyscraperProgram->bind();
+//        skyscraperColorTexture->bind(skyscraperProgram->getUniform("colorTex"));
+//        skyscraperSpecularTexture->bind(skyscraperProgram->getUniform("specularTex"));
+        glUniformMatrix4fv(skyscraperProgram->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
+        glUniformMatrix4fv(skyscraperProgram->getUniform("MV"), 1, GL_FALSE, value_ptr(MV->topMatrix()));
+        glUniform3fv(skyscraperProgram->getUniform("lightPos"), 1, value_ptr(vec3(l)));
+        glUniform1f(skyscraperProgram->getUniform("lightIntensity"), lightIntensity);
 
         vfc->extractVFPlanes(P->topMatrix(), MV->topMatrix());
         for (unsigned int i = 0; i < objects.size(); i++) {
-            //this will fail if we have different types TODO: FIX THIS
-            //meme leaks????
-            std::shared_ptr<Cuboid> cub = dynamic_pointer_cast<Cuboid>(objects.at(i));
-            std::vector<vec3> *temp = cub->getAabbMinsMaxs();
+            if (objects.at(i)->isCuboid()) {
+                std::shared_ptr<Cuboid> cub = dynamic_pointer_cast<Cuboid>(objects.at(i));
+                std::vector<vec3> *temp = cub->getAabbMinsMaxs();
 
-            if (!vfc->viewFrustCull(temp)) {
-                objectsDrawn++;
-                objects.at(i)->draw(program);
-            }
+                if (!vfc->viewFrustCull(temp)) {
+                    objectsDrawn++;
+                    cub->draw(skyscraperProgram);
+                }
 
-            delete temp;
-        }
-        
-        if (bullet->getDebugFlag()) {
-            /*DRAW DEATH OBJECTS*/
-            for (unsigned int i = 0; i < deathObjects.size(); i++) {
-                deathObjects.at(i)->draw(program);
-
+                delete temp;
             }
         }
+        skyscraperProgram->unbind();
         
-        // Draw magnet gun
+//        if (bullet->getDebugFlag()) {
+//            /*DRAW DEATH OBJECTS*/
+//            for (unsigned int i = 0; i < deathObjects.size(); i++) {
+//                deathObjects.at(i)->draw(program);
+//
+//            }
+//        }
+        
+        // Render magnet gun
+        program->bind();
+        glUniformMatrix4fv(program->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
+        //glUniformMatrix4fv(program->getUniform("MV"), 1, GL_FALSE, value_ptr(MV->topMatrix()));
+        glUniform4f(program->getUniform("lightPos"), l[0], l[1], l[2], l[3]);
+        glUniform1f(program->getUniform("lightIntensity"), lightIntensity);
         MV->pushMatrix();
         MV->loadIdentity();
         glUniformMatrix4fv(program->getUniform("MV"), 1, GL_FALSE, value_ptr(MV->topMatrix()));
-        glDisable(GL_DEPTH_TEST);
+        glClear(GL_DEPTH_BUFFER_BIT);
         magnetGun->draw(program);
-        glEnable(GL_DEPTH_TEST);
         MV->popMatrix();
-
         
         if (bullet->getDebugFlag()) {
-            
             for (unsigned int i = 0; i < deathObjects.size(); i++) {
-                
             }
         }
         program->unbind();
 
-
-        if (bullet->getDebugFlag())
+        if (bullet->getDebugFlag()) {
             bullet->renderDebug(P->topMatrix(), MV->topMatrix());
+        }
 
         MV->popMatrix();
         P->popMatrix();
@@ -506,32 +543,10 @@ void GameManager::renderGame(int fps) {
 
         if (gameState == PAUSE) {
             gui->drawPause(level);
-
         }
         
     }
     
-    //
-    // stb_easy_font.h is used for printing fonts to the screen.
-    //
-
-    // Prints a crosshair to the center of the screen. Color depends on if you're looking at a magnet surface.
-
-    /*
-    if (camera->isLookingAtMagnet()) {
-        if (Mouse::isLeftMouseButtonPressed()) {
-            printStringToScreen(0.0f, 0.0f, "+", 0.0f, 1.0f, 1.0f);
-        } else if (Mouse::isRightMouseButtonPressed()) {
-            printStringToScreen(0.0f, 0.0f, "+", 1.0f, 0.6f, 0.0f);
-        } else {
-            printStringToScreen(0.0f, 0.0f, "+", 0.0f, 1.0f, 0.0f);
-        }
-    } else {
-        printStringToScreen(0.0f, 0.0f, "+", 0.0f, 0.0f, 0.0f);
-    }
-    // Prints the frame rate to the screen.
-    printStringToScreen(60.0f, 90.0f, to_string(fps) + " FPS", 0.0f, 0.0f, 0.0f);
-     */
     GLSL::checkError(GET_FILE_LINE);
 }
 
