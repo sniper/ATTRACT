@@ -501,7 +501,7 @@ void GameManager::renderGame(int fps) {
         }
         program->unbind();
 
-        psystem->draw(MV->topMatrix());
+        psystem->draw( MV->topMatrix() , P->topMatrix(), 0);
 
 
 

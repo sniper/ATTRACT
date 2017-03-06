@@ -43,7 +43,7 @@ class ParticleManager {
 public:
     ParticleManager(std::string resource);
     void update(double delta, glm::vec3 camPos);
-    void draw(glm::mat4 VP);
+    void draw(glm::mat4 VP, glm::mat4 P, float camRot);
 
 
 private:

@@ -57,24 +57,23 @@ void ParticleManager::SortParticles() {
 ParticleManager::ParticleManager(std::string resource) :
 RESOURCE_DIR(resource) {
 
-    glGenVertexArrays(1, &vao);
-    glBindVertexArray(vao);
+
 
     particleShader = make_shared<Program>();
     particleShader->setShaderNames(RESOURCE_DIR + "particleVert.glsl", RESOURCE_DIR + "particleFrag.glsl");
     particleShader->init();
-    particleShader->addUniform("CameraRight_worldspace");
-    particleShader->addUniform("CameraUp_worldspace");
-    particleShader->addUniform("VP");
+
+    particleShader->addUniform("P");
+    particleShader->addUniform("MV");
     particleShader->addUniform("myTextureSampler");
-    particleShader->addAttribute("squareVertices");
-    particleShader->addAttribute("xyz");
-    particleShader->addAttribute("color");
+
+    particleShader->addAttribute("vertPos");
+    particleShader->addAttribute("Pcolor");
 
 
     particleTex = make_shared<Texture2>();
-    particleTex->setFilename(RESOURCE_DIR + "alpha.bmp");
     particleTex->setHandle(0);
+    particleTex->setFilename(RESOURCE_DIR + "alpha.bmp");
     particleTex->init();
 
 
@@ -86,7 +85,7 @@ RESOURCE_DIR(resource) {
     }
 
 
-    g_particule_position_size_data = new GLfloat[MAXPARTICLES * 4];
+    g_particule_position_size_data = new GLfloat[MAXPARTICLES * 3];
     g_particule_color_data = new GLubyte[MAXPARTICLES * 4];
 
     static const GLfloat g_vertex_buffer_data[] = {
@@ -96,11 +95,12 @@ RESOURCE_DIR(resource) {
         0.5f, 0.5f, 0.0f,
     };
 
-    glGenBuffers(1, &billboard_vertex_buffer);
-    glBindBuffer(GL_ARRAY_BUFFER, billboard_vertex_buffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof (g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
+
 
     // The VBO containing the positions and sizes of the particles
+
+    glGenVertexArrays(1, &vao);
+    glBindVertexArray(vao);
 
     glGenBuffers(1, &particles_position_buffer);
     glBindBuffer(GL_ARRAY_BUFFER, particles_position_buffer);
@@ -177,12 +177,16 @@ void ParticleManager::update(double delta, vec3 cameraPosition) {
                 p.cameradistance = glm::length(p.pos - cameraPosition);
                 //ParticlesContainer[i].pos += glm::vec3(0.0f,10.0f, 0.0f) * (float)delta;
 
-                // Fill the GPU buffer
-                g_particule_position_size_data[4 * ParticlesCount + 0] = p.pos.x;
-                g_particule_position_size_data[4 * ParticlesCount + 1] = p.pos.y;
-                g_particule_position_size_data[4 * ParticlesCount + 2] = p.pos.z;
+                cout << p.pos.x << endl;
+                cout << p.pos.y << endl;
+                cout << p.pos.z << endl;
 
-                g_particule_position_size_data[4 * ParticlesCount + 3] = p.size;
+                // Fill the GPU buffer
+                g_particule_position_size_data[3 * ParticlesCount + 0] = p.pos.x;
+                g_particule_position_size_data[3 * ParticlesCount + 1] = p.pos.y;
+                g_particule_position_size_data[3 * ParticlesCount + 2] = p.pos.z;
+
+
 
                 g_particule_color_data[4 * ParticlesCount + 0] = p.r;
                 g_particule_color_data[4 * ParticlesCount + 1] = p.g;
@@ -202,24 +206,28 @@ void ParticleManager::update(double delta, vec3 cameraPosition) {
     SortParticles();
 }
 
-void ParticleManager::draw(mat4 VP) {
+void ParticleManager::draw(mat4 VP, mat4 P, float camRot) {
+
+
+    // Enable depth test
+    glEnable(GL_DEPTH_TEST);
+    // Accept fragment if it closer to the camera than the former one
+    glDepthFunc(GL_LESS);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glPointSize(14.0f);
 
     glBindBuffer(GL_ARRAY_BUFFER, particles_position_buffer);
-    glBufferData(GL_ARRAY_BUFFER, MAXPARTICLES * 4 * sizeof (GLfloat), NULL, GL_STREAM_DRAW); // Buffer orphaning, a common way to improve streaming perf. See above link for details.
-    glBufferSubData(GL_ARRAY_BUFFER, 0, ParticlesCount * sizeof (GLfloat) * 4, g_particule_position_size_data);
+    glBufferData(GL_ARRAY_BUFFER, MAXPARTICLES * 3 * sizeof (GLfloat), NULL, GL_STREAM_DRAW); // Buffer orphaning, a common way to improve streaming perf. See above link for details.
+    glBufferSubData(GL_ARRAY_BUFFER, 0, ParticlesCount * sizeof (GLfloat) * 3, g_particule_position_size_data);
 
     glBindBuffer(GL_ARRAY_BUFFER, particles_color_buffer);
     glBufferData(GL_ARRAY_BUFFER, MAXPARTICLES * 4 * sizeof (GLubyte), NULL, GL_STREAM_DRAW); // Buffer orphaning, a common way to improve streaming perf. See above link for details.
     glBufferSubData(GL_ARRAY_BUFFER, 0, ParticlesCount * sizeof (GLubyte) * 4, g_particule_color_data);
 
 
-    // Enable depth test
-    //glEnable(GL_DEPTH_TEST);
-    // Accept fragment if it closer to the camera than the former one
-    //glDepthFunc(GL_LESS);
 
-    //glEnable(GL_BLEND);
-    //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 
     particleShader->bind();
@@ -227,30 +235,19 @@ void ParticleManager::draw(mat4 VP) {
 
     //glBindVertexArray(vao);
 
-    glUniform3f(particleShader->getUniform("CameraRight_worldspace"), 1, 0, 0);
-    glUniform3f(particleShader->getUniform("CameraUp_worldspace"), 0, 1, 0);
 
-    glUniformMatrix4fv(particleShader->getUniform("VP"), 1, GL_FALSE, value_ptr(VP));
 
-    // 1rst attribute buffer : vertices
-    //cout << particleShader->getAttribute("squareVertices") << endl;
-    glEnableVertexAttribArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, billboard_vertex_buffer);
-    glVertexAttribPointer(
-            0, // attribute. No particular reason for 0, but must match the layout in the shader.
-            3, // size
-            GL_FLOAT, // type
-            GL_FALSE, // normalized?
-            0, // stride
-            (void*) 0 // array buffer offset
-            );
+    glUniformMatrix4fv(particleShader->getUniform("MV"), 1, GL_FALSE, value_ptr(VP));
+
+    glUniformMatrix4fv(particleShader->getUniform("P"), 1, GL_FALSE, value_ptr(P));
+
 
     // 2nd attribute buffer : positions of particles' centers
-    glEnableVertexAttribArray(1);
+    glEnableVertexAttribArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, particles_position_buffer);
     glVertexAttribPointer(
-            1, // attribute. No particular reason for 1, but must match the layout in the shader.
-            4, // size : x + y + z + size => 4
+            0, // attribute. No particular reason for 1, but must match the layout in the shader.
+            3, // size : x + y + z + size => 4
             GL_FLOAT, // type
             GL_FALSE, // normalized?
             0, // stride
@@ -258,13 +255,13 @@ void ParticleManager::draw(mat4 VP) {
             );
 
     // 3rd attribute buffer : particles' colors
-    glEnableVertexAttribArray(2);
+    glEnableVertexAttribArray(1);
     glBindBuffer(GL_ARRAY_BUFFER, particles_color_buffer);
     glVertexAttribPointer(
-            2, // attribute. No particular reason for 1, but must match the layout in the shader.
+            1, // attribute. No particular reason for 1, but must match the layout in the shader.
             4, // size : r + g + b + a => 4
             GL_UNSIGNED_BYTE, // type
-            GL_TRUE, // normalized?    *** YES, this means that the unsigned char[4] will be accessible with a vec4 (floats) in the shader ***
+            GL_FALSE, // normalized?    *** YES, this means that the unsigned char[4] will be accessible with a vec4 (floats) in the shader ***
             0, // stride
             (void*) 0 // array buffer offset
             );
@@ -273,25 +270,25 @@ void ParticleManager::draw(mat4 VP) {
     // The first parameter is the attribute buffer we're talking about.
     // The second parameter is the "rate at which generic vertex attributes advance when rendering multiple instances"
     // http://www.opengl.org/sdk/docs/man/xhtml/glVertexAttribDivisor.xml
-    glVertexAttribDivisor(0, 0); // particles vertices : always reuse the same 4 vertices -> 0
-    glVertexAttribDivisor(1, 1); // positions : one per quad (its center)                 -> 1
-    glVertexAttribDivisor(2, 1); // color : one per quad                                  -> 1
+
+    glVertexAttribDivisor(0, 1); // positions : one per quad (its center)                 -> 1
+    glVertexAttribDivisor(1, 1); // color : one per quad                                  -> 1
 
     // Draw the particules !
     // This draws many times a small triangle_strip (which looks like a quad).
     // This is equivalent to :
     // for(i in ParticlesCount) : glDrawArrays(GL_TRIANGLE_STRIP, 0, 4), 
     // but faster.
-    glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, ParticlesCount);
+    glDrawArraysInstanced(GL_POINTS, 0, 1, ParticlesCount);
 
 
     glVertexAttribDivisor(0, 0);
     glVertexAttribDivisor(1, 0);
-    glVertexAttribDivisor(2, 0);
+
 
     glDisableVertexAttribArray(0);
     glDisableVertexAttribArray(1);
-    glDisableVertexAttribArray(2);
+
 
 
 

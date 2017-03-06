@@ -1,17 +1,10 @@
 #version 330 core
-
-// Interpolated values from the vertex shaders
-in vec2 UV;
-in vec4 particlecolor;
-
-// Ouput data
-out vec4 color;
-
 uniform sampler2D myTextureSampler;
+in vec4 partCol;
+out vec4 Outcolor;
 
-void main(){
-	// Output color = color of the texture at the specified UV
-        
-	color = texture( myTextureSampler, UV ) ;
-
+void main()
+{
+	float alpha = texture(myTextureSampler, gl_PointCoord).r;
+	Outcolor = vec4(partCol.rgb/256, alpha);
 }
