@@ -19,13 +19,13 @@ void main()
 {
     gl_Position = P * V * M * aPos;
     if (aNor.x > epsilon || aNor.x < -epsilon) {
-        vTex = vec2(aTex.x * scalingFactor.z, aTex.y * scalingFactor.y);
+        vTex = vec2(aTex.x * scalingFactor.z, aTex.y * scalingFactor.y)/5;
     }
     else if (aNor.y > epsilon || aNor.y < -epsilon) {
-        vTex = vec2(aTex.x * scalingFactor.x, aTex.y * scalingFactor.z);
+        vTex = vec2(aTex.x * scalingFactor.x, aTex.y * scalingFactor.z)/5;
     }
     else {
-        vTex = vec2(aTex.x * scalingFactor.x, aTex.y * scalingFactor.y);
+        vTex = vec2(aTex.x * scalingFactor.x, aTex.y * scalingFactor.y)/5;
     }
     
     fragPosInCam = V * M * aPos;
