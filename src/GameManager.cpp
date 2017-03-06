@@ -143,6 +143,7 @@ void GameManager::initScene() {
     skyscraperProgram->addUniform("lightPos");
     skyscraperProgram->addUniform("lightIntensity");
     skyscraperProgram->addUniform("objTransMatrix");
+    skyscraperProgram->addUniform("scalingFactor");
 
     //
     // Ship Parts
@@ -514,6 +515,7 @@ void GameManager::renderGame(int fps) {
                         glUniformMatrix4fv(skyscraperProgram->getUniform("MV"), 1, GL_FALSE, value_ptr(MV->topMatrix()));
                         glUniform3fv(skyscraperProgram->getUniform("lightPos"), 1, value_ptr(vec3(l)));
                         glUniform1f(skyscraperProgram->getUniform("lightIntensity"), lightIntensity);
+                        glUniform3fv(skyscraperProgram->getUniform("scalingFactor"), 1, value_ptr(cub->getScale()));
                         cub->draw(skyscraperProgram);
                         skyscraperProgram->unbind();
                     }

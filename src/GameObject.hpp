@@ -49,6 +49,7 @@ public:
     virtual bool isMagnetic() const {return false;}
     glm::vec3 getPosition() const {return position;}
     glm::vec3 getDirection() const {return direction;}
+    glm::vec3 getScale() const {return scale;}
 protected:
     glm::vec3 position;
     glm::vec3 oldPosition;
