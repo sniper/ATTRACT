@@ -208,8 +208,13 @@ void BVH::buildBranch(int leftIndex, int rightIndex, BVHNode *node, int depth)
         nodeList.insert(nodeList.begin()+node->index+1, right);
         
         // Build for left and right nodes.
-        buildBranch(leftIndex, splitIndex, &nodeList.at(node->index), depth+1);
-        buildBranch(splitIndex, rightIndex, &nodeList.at(node->index + 1), depth+1);
+        if (node->index + 1 < nodeList.size()) {
+            buildBranch(leftIndex, splitIndex, &nodeList.at(node->index), depth+1);
+            buildBranch(splitIndex, rightIndex, &nodeList.at(node->index + 1), depth+1);
+        }
+        else {
+            printTree();
+        }
     }
 }
 
