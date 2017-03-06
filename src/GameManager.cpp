@@ -47,8 +47,6 @@
 #include "KDTree.hpp"
 #include "BVH.hpp"
 
-#include "stb_easy_font.h"
-
 #define MAX_NUM_OBJECTS 15
 #define GRID_SIZE 8
 #define OBJ_SPAWN_INTERVAL 2
@@ -450,6 +448,7 @@ void GameManager::renderGame(int fps) {
     int width, height;
     glfwGetFramebufferSize(window, &width, &height);
     camera->setAspect((float) width / (float) height);
+    gui->setWindowSize(width, height);
 
     // Matrix stacks
     auto P = make_shared<MatrixStack>();
@@ -562,6 +561,8 @@ void GameManager::renderGame(int fps) {
 
         if (gameState == PAUSE) {
             gui->drawPause(level);
+        } else {
+            gui->drawHUD(camera->isLookingAtMagnet(), Mouse::isLeftMouseButtonPressed(), Mouse::isRightMouseButtonPressed());
         }
     }
 }
@@ -604,34 +605,6 @@ void GameManager::resolveMagneticInteractions() {
                 fmod->playSound("click", false, 1);
         }
     }
-}
-
-void GameManager::printStringToScreen(float x, float y, const string &text, float r, float g, float b) {
-    static char buffer[99999]; // ~500 chars
-    int num_quads;
-
-    char *toScreen = new char[text.size() + 1];
-    strcpy(toScreen, text.c_str());
-
-    // With this disabled, text will always be printed to the screen, even if
-    // an object is "in front" of it.
-    glDisable(GL_DEPTH_TEST);
-
-    //
-    glPushMatrix();
-    num_quads = stb_easy_font_print(x, y, toScreen, NULL, buffer, sizeof (buffer));
-    glScalef(0.01f, -0.01f, 1.0f);
-    glColor3f(r, g, b);
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glVertexPointer(2, GL_FLOAT, 16, buffer);
-    glDrawArrays(GL_QUADS, 0, num_quads * 4);
-    glDisableClientState(GL_VERTEX_ARRAY);
-    glPopMatrix();
-
-    // Re-enable depth test for further render calls.
-    glEnable(GL_DEPTH_TEST);
-
-    delete[] toScreen;
 }
 
 // Returns a random float between the provided low and high floats.

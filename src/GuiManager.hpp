@@ -48,6 +48,8 @@ public:
     void drawPause(int level);
     void drawDeath();
     void drawWin(int level);
+    void drawHUD(bool lookingAtMagnet, bool leftClick, bool rightClick);
+    void setWindowSize(float w, float h) {width = w; height = h;}
     State interpretMenuPressedKeys(std::vector<char> pressedKeys);
     State interpretPausePressedKeys(std::vector<char> pressedKeys);
     State interpretDeathPressedKeys(std::vector<char> pressedKeys);
@@ -68,6 +70,8 @@ private:
     GLuint vao;
     
     void draw(std::string name);
+
+    int width, height;
 };
 
 #endif /* GUIMANAGER_HPP */
