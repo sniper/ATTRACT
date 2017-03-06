@@ -143,18 +143,6 @@ void GameManager::initScene() {
     skyscraperProgram->addUniform("lightPos");
     skyscraperProgram->addUniform("lightIntensity");
     skyscraperProgram->addUniform("objTransMatrix");
-    
-//    skyscraperColorTexture = make_shared<Texture>();
-//    skyscraperColorTexture->setFilename(RESOURCE_DIR + "skyscraperSide14.jpg");
-//    skyscraperColorTexture->init();
-//    skyscraperColorTexture->setUnit(0);
-//    skyscraperColorTexture->setWrapModes(GL_REPEAT, GL_REPEAT);
-//    
-//    skyscraperSpecularTexture = make_shared<Texture>();
-//    skyscraperSpecularTexture->setFilename(RESOURCE_DIR + "skyscraperSideSpecular14.jpg");
-//    skyscraperSpecularTexture->init();
-//    skyscraperSpecularTexture->setUnit(1);
-//    skyscraperSpecularTexture->setWrapModes(GL_REPEAT, GL_REPEAT);
 
     //
     // Ship Parts
@@ -191,10 +179,16 @@ void GameManager::initScene() {
     //
     shared_ptr<Shape> temp = make_shared<Shape>();
     
-    temp->loadMesh(RESOURCE_DIR + "texturedSkyscraper.obj", RESOURCE_DIR);
+    temp->loadMesh(RESOURCE_DIR + "cube.obj", RESOURCE_DIR);
     temp->fitToUnitBox();
     temp->init();
     shapes.insert(make_pair("plainCube", temp));
+    
+    temp = make_shared<Shape>();
+    temp->loadMesh(RESOURCE_DIR + "texturedSkyscraper.obj", RESOURCE_DIR);
+    temp->fitToUnitBox();
+    temp->init();
+    shapes.insert(make_pair("skyscraper", temp));
 
     temp = make_shared<Shape>();
     temp->loadMesh(RESOURCE_DIR + "shipPart.obj", RESOURCE_DIR);
@@ -314,7 +308,7 @@ void GameManager::parseObject(string objectString, shared_ptr<Material> greyBox,
     } else {
         shared_ptr<Cuboid> groundPlane = make_shared<Cuboid>(pos, vec3(0, 0, 0),
                 CUBE_HALF_EXTENTS,
-                scale, 0, shapes["plainCube"],
+                scale, 0, shapes["skyscraper"],
                 nullptr, false);
         objects.push_back(groundPlane);
         bullet->createBox(to_string(name++), pos, CUBE_HALF_EXTENTS, scale, 0);
@@ -405,8 +399,6 @@ void GameManager::updateGame(double dt) {
 
     spaceShipPart->update(dt);
 
-
-
     //step the bullet, update test obj
     bullet->step(dt);
 
@@ -477,14 +469,12 @@ void GameManager::renderGame(int fps) {
         MV->pushMatrix();
         camera->applyViewMatrix(MV);
 
-
-
         lightPos = vec4(camera->getPosition(), 1.0);
         vec4 l = MV->topMatrix() * lightPos;
 
         // Draw ship part
         shipPartProgram->bind();
-        shipPartColorTexture->bind(shipPartProgram->getUniform("colorTex"));
+        shipPartColorTexture->bind(shipPartProgram->getUniform("diffuseTex"));
         shipPartSpecularTexture->bind(shipPartProgram->getUniform("specularTex"));
         glUniformMatrix4fv(shipPartProgram->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
         glUniformMatrix4fv(shipPartProgram->getUniform("MV"), 1, GL_FALSE, value_ptr(MV->topMatrix()));
@@ -495,13 +485,11 @@ void GameManager::renderGame(int fps) {
         shipPartProgram->unbind();
 
         // Render skyscrapers
-        skyscraperProgram->bind();
-//        skyscraperColorTexture->bind(skyscraperProgram->getUniform("colorTex"));
-//        skyscraperSpecularTexture->bind(skyscraperProgram->getUniform("specularTex"));
-        glUniformMatrix4fv(skyscraperProgram->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
-        glUniformMatrix4fv(skyscraperProgram->getUniform("MV"), 1, GL_FALSE, value_ptr(MV->topMatrix()));
-        glUniform3fv(skyscraperProgram->getUniform("lightPos"), 1, value_ptr(vec3(l)));
-        glUniform1f(skyscraperProgram->getUniform("lightIntensity"), lightIntensity);
+//        skyscraperProgram->bind();
+//        glUniformMatrix4fv(skyscraperProgram->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
+//        glUniformMatrix4fv(skyscraperProgram->getUniform("MV"), 1, GL_FALSE, value_ptr(MV->topMatrix()));
+//        glUniform3fv(skyscraperProgram->getUniform("lightPos"), 1, value_ptr(vec3(l)));
+//        glUniform1f(skyscraperProgram->getUniform("lightIntensity"), lightIntensity);
 
         vfc->extractVFPlanes(P->topMatrix(), MV->topMatrix());
         for (unsigned int i = 0; i < objects.size(); i++) {
@@ -511,7 +499,24 @@ void GameManager::renderGame(int fps) {
 
                 if (!vfc->viewFrustCull(temp)) {
                     objectsDrawn++;
-                    cub->draw(skyscraperProgram);
+                    if (cub->isMagnetic()) {
+                        program->bind();
+                        glUniformMatrix4fv(program->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
+                        glUniformMatrix4fv(program->getUniform("MV"), 1, GL_FALSE, value_ptr(MV->topMatrix()));
+                        glUniform4f(program->getUniform("lightPos"), l[0], l[1], l[2], l[3]);
+                        glUniform1f(program->getUniform("lightIntensity"), lightIntensity);
+                        cub->draw(program);
+                        program->unbind();
+                    }
+                    else {
+                        skyscraperProgram->bind();
+                        glUniformMatrix4fv(skyscraperProgram->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
+                        glUniformMatrix4fv(skyscraperProgram->getUniform("MV"), 1, GL_FALSE, value_ptr(MV->topMatrix()));
+                        glUniform3fv(skyscraperProgram->getUniform("lightPos"), 1, value_ptr(vec3(l)));
+                        glUniform1f(skyscraperProgram->getUniform("lightIntensity"), lightIntensity);
+                        cub->draw(skyscraperProgram);
+                        skyscraperProgram->unbind();
+                    }
                 }
 
                 delete temp;
