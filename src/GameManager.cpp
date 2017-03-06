@@ -42,6 +42,7 @@
 #include <fstream>
 
 #include "GuiManager.hpp"
+#include "ParticleManager.hpp"
 
 #include "KDTree.hpp"
 #include "BVH.hpp"
@@ -87,6 +88,7 @@ level(1) {
     vfc = make_shared<VfcManager>();
     fmod = make_shared<FmodManager>(RESOURCE_DIR);
     gui = make_shared<GuiManager>(RESOURCE_DIR);
+    psystem = make_shared<ParticleManager>(RESOURCE_DIR);
 
     // Initialize the scene.
     initScene();
@@ -162,7 +164,7 @@ void GameManager::initScene() {
             RESOURCE_DIR + "shipPartFrag.glsl");
     shipPartProgram->setVerbose(false);
     shipPartProgram->init();
-    
+
     shipPartProgram->addAttribute("aPos");
     shipPartProgram->addAttribute("aNor");
     shipPartProgram->addAttribute("aTex");
@@ -172,7 +174,7 @@ void GameManager::initScene() {
     shipPartProgram->addUniform("specularTex");
     shipPartProgram->addUniform("lightPos");
     shipPartProgram->addUniform("objTransMatrix");
-    
+
     shipPartColorTexture = make_shared<Texture>();
     shipPartColorTexture->setFilename(RESOURCE_DIR + "shipPartColor.jpg");
     shipPartColorTexture->init();
@@ -205,6 +207,12 @@ void GameManager::initScene() {
     temp->fitToUnitBox();
     temp->init();
     shapes.insert(make_pair("magnetGun", temp));
+    
+    temp = make_shared<Shape>();
+    temp->loadMesh(RESOURCE_DIR + "cylinder.obj", RESOURCE_DIR);
+    temp->fitToUnitBox();
+    temp->init();
+    shapes.insert(make_pair("cylinder", temp));
 
     //lightPos = vec4(0.0f, 10.0f, 0.0f, 1.0f);
     lightIntensity = 0.6f;
@@ -218,9 +226,9 @@ void GameManager::initScene() {
     //bullet = make_shared<BulletManager>();
     //bullet->createPlane("ground", 0, 0, 0);
 
-    //shared_ptr<Material> material = make_shared<Material>(vec3(0.2f, 0.2f, 0.2f), vec3(0.0f, 0.5f, 0.5f), vec3(1.0f, 0.9f, 0.8f), 200.0f);
-//    magnetGun = make_shared<GameObject>(vec3(0.4, -0.2, -1), vec3(0.4, 0, -0.2), vec3(0.5, 0.5, 0.5), 0, shapes["magnetGun"], material);
-        magnetGun = make_shared<GameObject>(vec3(0.4, -0.2, -1), vec3(0.4, 0, -0.2), vec3(1, 1, 1), 0, shapes["magnetGun"], nullptr);
+    shared_ptr<Material> material = make_shared<Material>(vec3(0.2f, 0.2f, 0.2f), vec3(0.0f, 0.5f, 0.5f), vec3(1.0f, 0.9f, 0.8f), 200.0f);
+    magnetGun = make_shared<GameObject>(vec3(0.4, -0.2, -1), vec3(0.4, 0, -0.2), vec3(1, 1, 1), 0, shapes["magnetGun"], nullptr);
+    magnetBeam = make_shared<GameObject>(vec3(0.4, -0.2, -3), vec3(0.4, 0, -0.2), vec3(0.5, 0.5, 0.5), 0, shapes["cylinder"], material);
 }
 
 bool GameManager::toBool(string s) {
@@ -247,9 +255,9 @@ void GameManager::parseCamera(string objectString) {
     bool playerSpawn = toBool(elems[11]);
     bool collectable = toBool(elems[12]);
 
-//    cerr << "new camera" << endl;
-//    cerr << pos.x << " " << pos.y << endl;
-//    cerr << scale.x << " " << scale.y << endl;
+    //    cerr << "new camera" << endl;
+    //    cerr << pos.x << " " << pos.y << endl;
+    //    cerr << scale.x << " " << scale.y << endl;
 
     camera = make_shared<Camera>(pos, window);
     inputManager->setCamera(camera);
@@ -279,9 +287,9 @@ void GameManager::parseObject(string objectString, shared_ptr<Material> greyBox,
     bool deadly = toBool(elems[10]);
     bool playerSpawn = toBool(elems[11]);
     bool collectable = toBool(elems[12]);
-//    cerr << "new obj" << endl;
-//    cerr << pos.x << " " << pos.y << endl;
-//    cerr << scale.x << " " << scale.y << endl;
+    //    cerr << "new obj" << endl;
+    //    cerr << pos.x << " " << pos.y << endl;
+    //    cerr << scale.x << " " << scale.y << endl;
 
     /*TODO: MAGNETIC AND DEADLY*/
     if (magnetic) {
@@ -319,7 +327,7 @@ void GameManager::importLevel(string level) {
     bullet = make_shared<BulletManager>();
     file.open(RESOURCE_DIR + "levels/" + level);
 
-   shared_ptr<Material> greyBox = make_shared<Material>(vec3(0.9f, 0.9f, 0.9f),
+    shared_ptr<Material> greyBox = make_shared<Material>(vec3(0.9f, 0.9f, 0.9f),
             vec3(1.0f, 1.0f, 1.0f),
             vec3(0.0f, 0.0f, 0.0f),
             200.0f);
@@ -331,7 +339,7 @@ void GameManager::importLevel(string level) {
             vec3(1.0f, 1.0f, 0.0f),
             vec3(1.0f, 0.9f, 0.8f),
             200.0f);
-    
+
     if (file.is_open()) {
         if (getline(file, line)) {
             /*get camera position*/
@@ -339,7 +347,7 @@ void GameManager::importLevel(string level) {
         }
         if (getline(file, line)) {
             /*get spaceship positions*/
-            parseObject(line,greyBox, magnetSurface, spacePart);
+            parseObject(line, greyBox, magnetSurface, spacePart);
         }
         while (getline(file, line)) {
             /*objects here*/
@@ -350,7 +358,7 @@ void GameManager::importLevel(string level) {
     } else {
         cout << "Unable to open level '" << level << "'" << endl;
     }
-    
+
     //kdtree = make_shared<KDTree>(objects);
     bvh = make_shared<BVH>(objects);
     //bvh->printTree();
@@ -383,8 +391,7 @@ State GameManager::processInputs() {
         if (gameState == GAME) {
             level++;
             importLevel(to_string(level));
-        }
-        else if(gameState == MENU) {
+        } else if (gameState == MENU) {
             fmod->stopSound("menu");
         }
     }
@@ -398,10 +405,14 @@ void GameManager::updateGame(double dt) {
 
     spaceShipPart->update(dt);
 
+
+
     //step the bullet, update test obj
     bullet->step(dt);
 
     camera->setPosition(bullet->getBulletObjectState("cam"));
+
+    psystem->update(dt, camera->getPosition());
 
     if (camera->checkForCollision(spaceShipPart)) {
         //cout << "Collision" << endl;
@@ -466,9 +477,11 @@ void GameManager::renderGame(int fps) {
         MV->pushMatrix();
         camera->applyViewMatrix(MV);
 
+
+
         lightPos = vec4(camera->getPosition(), 1.0);
         vec4 l = MV->topMatrix() * lightPos;
-        
+
         // Draw ship part
         shipPartProgram->bind();
         shipPartColorTexture->bind(shipPartProgram->getUniform("colorTex"));
@@ -504,6 +517,7 @@ void GameManager::renderGame(int fps) {
                 delete temp;
             }
         }
+        
         skyscraperProgram->unbind();
         
 //        if (bullet->getDebugFlag()) {
@@ -526,17 +540,16 @@ void GameManager::renderGame(int fps) {
         glClear(GL_DEPTH_BUFFER_BIT);
         magnetGun->draw(program);
         MV->popMatrix();
-        
-        if (bullet->getDebugFlag()) {
-            for (unsigned int i = 0; i < deathObjects.size(); i++) {
-            }
-        }
+
+        magnetBeam->draw(program);
+        glEnable(GL_DEPTH_TEST);
+        MV->popMatrix();
         program->unbind();
 
         if (bullet->getDebugFlag()) {
+            psystem->draw( MV->topMatrix() , P->topMatrix(), 0);
             bullet->renderDebug(P->topMatrix(), MV->topMatrix());
         }
-
         MV->popMatrix();
         P->popMatrix();
 
@@ -544,10 +557,7 @@ void GameManager::renderGame(int fps) {
         if (gameState == PAUSE) {
             gui->drawPause(level);
         }
-        
     }
-    
-    GLSL::checkError(GET_FILE_LINE);
 }
 
 // If the window is resized, capture the new size and reset the viewport

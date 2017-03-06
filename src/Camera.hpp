@@ -44,6 +44,7 @@ public:
     
     glm::vec3 getPosition() const {return position;}
     glm::vec3 getDirection() const {return glm::normalize(glm::vec3(cos(pitch) * cos(yaw), sin(pitch), cos(pitch) * cos((3.14/2) - yaw)));}
+    float getRot() const {return pitch;}
     std::shared_ptr<AABoundingBox> getPlayerSphere() const {return boundingBox;}
     bool isLookingAtMagnet() const {return lookingAtMagnet;}
     
