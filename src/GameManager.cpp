@@ -40,6 +40,7 @@
 #include "VfcManager.hpp"
 #include "SpaceShipPart.hpp"
 #include "Skybox.hpp"
+#include "ShadowManager.hpp"
 #include <fstream>
 
 #include "GuiManager.hpp"
@@ -88,6 +89,10 @@ level(1) {
     fmod = make_shared<FmodManager>(RESOURCE_DIR);
     gui = make_shared<GuiManager>(RESOURCE_DIR);
     psystem = make_shared<ParticleManager>(RESOURCE_DIR);
+    
+    int width, height;
+    glfwGetWindowSize(window, &width, &height);
+    shadowManager = make_shared<ShadowManager>(RESOURCE_DIR);
 
     // Initialize the scene.
     initScene();
@@ -111,8 +116,10 @@ void GameManager::initScene() {
     //
     program = make_shared<Program>();
     program->setShaderNames(RESOURCE_DIR + "objectVert.glsl", RESOURCE_DIR + "objectFrag.glsl");
-    program->setVerbose(false);
+    program->setVerbose(true);
+    GLSL::checkError(GET_FILE_LINE);
     program->init();
+    GLSL::checkError(GET_FILE_LINE);
     program->addAttribute("aPos");
     program->addAttribute("aNor");
     program->addUniform("M");
@@ -124,13 +131,17 @@ void GameManager::initScene() {
     program->addUniform("kd");
     program->addUniform("ks");
     program->addUniform("s");
+    GLSL::checkError(GET_FILE_LINE);
+    program->addUniform("LS");
+    program->addUniform("shadowDepth");
+    GLSL::checkError(GET_FILE_LINE);
     
     //
     // Skyscrapers
     //
     skyscraperProgram = make_shared<Program>();
     skyscraperProgram->setShaderNames(RESOURCE_DIR + "skyscraperVert.glsl", RESOURCE_DIR + "skyscraperFrag.glsl");
-    skyscraperProgram->setVerbose(false);
+    skyscraperProgram->setVerbose(true);
     skyscraperProgram->init();
     skyscraperProgram->addAttribute("aPos");
     skyscraperProgram->addAttribute("aNor");
@@ -151,7 +162,7 @@ void GameManager::initScene() {
     shipPartProgram = make_shared<Program>();
     shipPartProgram->setShaderNames(RESOURCE_DIR + "shipPartVert.glsl",
             RESOURCE_DIR + "shipPartFrag.glsl");
-    shipPartProgram->setVerbose(false);
+    shipPartProgram->setVerbose(true);
     shipPartProgram->init();
 
     shipPartProgram->addAttribute("aPos");
@@ -163,6 +174,8 @@ void GameManager::initScene() {
     shipPartProgram->addUniform("diffuseTex");
     shipPartProgram->addUniform("specularTex");
     shipPartProgram->addUniform("lightPos");
+    shipPartProgram->addUniform("shadowDepth");
+    shipPartProgram->addUniform("LS");
 
     shipPartColorTexture = make_shared<Texture>();
     shipPartColorTexture->setFilename(RESOURCE_DIR + "shipPartColor.jpg");
@@ -220,7 +233,7 @@ void GameManager::initScene() {
     //
     skybox = make_shared<Skybox>(RESOURCE_DIR, shapes["sphere"]);
 
-    //lightPos = vec4(0.0f, 10.0f, 0.0f, 1.0f);
+    lightPos = vec3(20.0f, 10.0f, 1.0f);
     lightIntensity = 0.6f;
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -484,8 +497,23 @@ void GameManager::renderGame(int fps) {
         
         skybox->render(P, V);
 
-        lightPos = vec4(camera->getPosition(), 1.0);
-        vec4 l = V->topMatrix() * lightPos;
+        //lightPos = vec4(camera->getPosition(), 1.0);
+        vec3 l = vec3(V->topMatrix() * vec4(lightPos, 0.0));
+        
+        // Get shadows
+        shadowManager->bindDepthMap(l);
+        drawScene(P, V, l, true);
+        shadowManager->unbindDepthMap();
+        glViewport(0, 0, width, height);
+        // Clear framebuffer.
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        
+        // Render scene
+        drawScene(P, V, l, false);
+        
+        /*
+        // SHADOWS
+        
 
         // Draw ship part
         shipPartProgram->bind();
@@ -542,7 +570,7 @@ void GameManager::renderGame(int fps) {
         skyscraperProgram->unbind();
         
 //        if (bullet->getDebugFlag()) {
-//            /*DRAW DEATH OBJECTS*/
+//            //DRAW DEATH OBJECTS
 //            for (unsigned int i = 0; i < deathObjects.size(); i++) {
 //                deathObjects.at(i)->draw(program);
 //
@@ -573,12 +601,131 @@ void GameManager::renderGame(int fps) {
 
         V->popMatrix();
         P->popMatrix();
+        */
 
         if (gameState == PAUSE) {
             gui->drawPause(level);
         } else {
             gui->drawHUD(camera->isLookingAtMagnet(), Mouse::isLeftMouseButtonPressed(), Mouse::isRightMouseButtonPressed());
         }
+    }
+}
+
+void GameManager::drawScene(const shared_ptr<MatrixStack> &P,
+                            const shared_ptr<MatrixStack> &V, const vec3 &light,
+                            bool shadow) {
+    if (shadow) {
+        shadowManager->getShadowDepthProgram()->bind();
+        // Get ship part
+        spaceShipPart->draw(shadowManager->getShadowDepthProgram());
+        
+        vfc->extractVFPlanes(P->topMatrix(), V->topMatrix());
+        for (unsigned int i = 0; i < objects.size(); i++) {
+            if (objects.at(i)->isCuboid()) {
+                std::shared_ptr<Cuboid> cub = dynamic_pointer_cast<Cuboid>(objects.at(i));
+                std::vector<vec3> *temp = cub->getAabbMinsMaxs();
+                
+                if (!vfc->viewFrustCull(temp)) {
+                    cub->draw(shadowManager->getShadowDepthProgram());
+                }
+                
+                delete temp;
+            }
+        }
+        
+        // Render magnet gun
+        magnetGun->draw(shadowManager->getShadowDepthProgram());
+        
+        shadowManager->getShadowDepthProgram()->unbind();
+    }
+    else {
+        // Draw ship part
+        shipPartProgram->bind();
+        shadowManager->addShadowsToScene(shipPartProgram);
+        shipPartColorTexture->bind(shipPartProgram->getUniform("diffuseTex"));
+        shipPartSpecularTexture->bind(shipPartProgram->getUniform("specularTex"));
+        glUniformMatrix4fv(shipPartProgram->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
+        glUniformMatrix4fv(shipPartProgram->getUniform("V"), 1, GL_FALSE, value_ptr(V->topMatrix()));
+        glUniform3fv(shipPartProgram->getUniform("lightPos"), 1, value_ptr(light));
+        spaceShipPart->draw(shipPartProgram);
+        shipPartSpecularTexture->unbind();
+        shipPartColorTexture->unbind();
+        shipPartProgram->unbind();
+        
+        // Render skyscrapers
+        //        skyscraperProgram->bind();
+        //        glUniformMatrix4fv(skyscraperProgram->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
+        //        glUniformMatrix4fv(skyscraperProgram->getUniform("MV"), 1, GL_FALSE, value_ptr(MV->topMatrix()));
+        //        glUniform3fv(skyscraperProgram->getUniform("lightPos"), 1, value_ptr(vec3(l)));
+        //        glUniform1f(skyscraperProgram->getUniform("lightIntensity"), lightIntensity);
+        
+        vfc->extractVFPlanes(P->topMatrix(), V->topMatrix());
+        for (unsigned int i = 0; i < objects.size(); i++) {
+            if (objects.at(i)->isCuboid()) {
+                std::shared_ptr<Cuboid> cub = dynamic_pointer_cast<Cuboid>(objects.at(i));
+                std::vector<vec3> *temp = cub->getAabbMinsMaxs();
+                
+                if (!vfc->viewFrustCull(temp)) {
+                    //objectsDrawn++;
+                    if (cub->isMagnetic()) {
+                        program->bind();
+                        shadowManager->addShadowsToScene(program);
+                        glUniformMatrix4fv(program->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
+                        glUniformMatrix4fv(program->getUniform("V"), 1, GL_FALSE, value_ptr(V->topMatrix()));
+                        glUniform3fv(program->getUniform("lightPos"), 1, value_ptr(light));
+                        glUniform1f(program->getUniform("lightIntensity"), lightIntensity);
+                        cub->draw(program);
+                        program->unbind();
+                    }
+                    else {
+                        skyscraperProgram->bind();
+                        glUniformMatrix4fv(skyscraperProgram->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
+                        glUniformMatrix4fv(skyscraperProgram->getUniform("V"), 1, GL_FALSE, value_ptr(V->topMatrix()));
+                        glUniform3fv(skyscraperProgram->getUniform("lightPos"), 1, value_ptr(light));
+                        glUniform1f(skyscraperProgram->getUniform("lightIntensity"), lightIntensity);
+                        glUniform3fv(skyscraperProgram->getUniform("scalingFactor"), 1, value_ptr(cub->getScale()));
+                        cub->draw(skyscraperProgram);
+                        skyscraperProgram->unbind();
+                    }
+                }
+                
+                delete temp;
+            }
+        }
+        
+        skyscraperProgram->unbind();
+        
+        // Render magnet gun
+        program->bind();
+        shadowManager->addShadowsToScene(program);
+        GLSL::checkError(GET_FILE_LINE);
+        glUniformMatrix4fv(program->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
+        GLSL::checkError(GET_FILE_LINE);
+        glUniform3fv(program->getUniform("lightPos"), 1, value_ptr(light));
+        GLSL::checkError(GET_FILE_LINE);
+        glUniform1f(program->getUniform("lightIntensity"), lightIntensity);
+        GLSL::checkError(GET_FILE_LINE);
+        V->pushMatrix();
+        V->loadIdentity();
+        glUniformMatrix4fv(program->getUniform("V"), 1, GL_FALSE, value_ptr(V->topMatrix()));
+        GLSL::checkError(GET_FILE_LINE);
+        glClear(GL_DEPTH_BUFFER_BIT);
+        GLSL::checkError(GET_FILE_LINE);
+        magnetGun->draw(program);
+        V->popMatrix();
+        
+        magnetBeam->draw(program);
+        glEnable(GL_DEPTH_TEST);
+        program->unbind();
+        
+        psystem->draw(V->topMatrix() , P->topMatrix(), 0);
+        
+        if (bullet->getDebugFlag()) {
+            bullet->renderDebug(P->topMatrix(), V->topMatrix());
+        }
+        
+        V->popMatrix();
+        P->popMatrix();
     }
 }
 

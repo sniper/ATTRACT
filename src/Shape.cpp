@@ -167,6 +167,7 @@ void Shape::init() {
 
 void Shape::draw(const shared_ptr<Program> prog) const {
     // Bind position buffer
+    GLSL::checkError(GET_FILE_LINE);
     int h_pos = prog->getAttribute("aPos");
     glEnableVertexAttribArray(h_pos);
     glBindBuffer(GL_ARRAY_BUFFER, posBufID);

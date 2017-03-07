@@ -29,7 +29,9 @@ class VfcManager;
 class FmodManager;
 class SpaceShipPart;
 class ParticleManager;
+class ShadowManager;
 class Skybox;
+class MatrixStack;
 
 class GuiManager;
 
@@ -72,7 +74,9 @@ private:
                                 std::shared_ptr<Material> magnetSurface,
                                 std::shared_ptr<Material> spacePart);
     bool toBool(std::string s);
-
+    void drawScene(const std::shared_ptr<MatrixStack> &P,
+                   const std::shared_ptr<MatrixStack> &V, const glm::vec3 &light,
+                   bool shadow);
 
 
     GLFWwindow *window;
@@ -102,6 +106,7 @@ private:
     int level;
 
     std::shared_ptr<InputManager> inputManager;
+    std::shared_ptr<ShadowManager> shadowManager;
     std::shared_ptr<Camera> camera;
 
     std::shared_ptr<Program> program, shipPartProgram, skyscraperProgram;
@@ -113,9 +118,8 @@ private:
     
     std::shared_ptr<Skybox> skybox;
 
-    glm::vec4 lightPos;
+    glm::vec3 lightPos;
     float lightIntensity;
-
 };
 
 #endif /* GameManager_hpp */
