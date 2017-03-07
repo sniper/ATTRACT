@@ -37,6 +37,9 @@ enum State {
     GAME, MENU, PAUSE, DEATH, WIN
 };
 
+#define BLUE 1
+#define ORANGE 0
+
 struct KDTree;
 class BVH;
 
@@ -92,7 +95,8 @@ private:
     std::vector<std::shared_ptr<GameObject>> objects;
 
     std::shared_ptr<GameObject> magnetGun;
-    std::shared_ptr<GameObject> magnetBeam;
+    std::shared_ptr<GameObject> magnetBeamOrange;
+    std::shared_ptr<GameObject> magnetBeamBlue;
 
     std::vector<std::shared_ptr<GameObject>> deathObjects;
 
@@ -100,6 +104,8 @@ private:
     int numObjCollected;
     int gameWon;
     int level;
+    bool drawBeam;
+    int colorBeam;
 
     std::shared_ptr<InputManager> inputManager;
     std::shared_ptr<Camera> camera;

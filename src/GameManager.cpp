@@ -63,7 +63,9 @@ GameManager::GameManager(GLFWwindow *window, const string &resourceDir) :
 window(window),
 RESOURCE_DIR(resourceDir),
 gameState(MENU),
-level(1) {
+level(1),
+drawBeam(false),
+colorBeam(ORANGE) {
     objIntervalCounter = 0.0f;
     numObjCollected = 0;
     gameWon = false;
@@ -124,7 +126,7 @@ void GameManager::initScene() {
     program->addUniform("kd");
     program->addUniform("ks");
     program->addUniform("s");
-    
+
     //
     // Skyscrapers
     //
@@ -177,17 +179,17 @@ void GameManager::initScene() {
     shipPartSpecularTexture->init();
     shipPartSpecularTexture->setUnit(3);
     shipPartSpecularTexture->setWrapModes(GL_REPEAT, GL_REPEAT);
-    
+
     //
     // Loading obj files
     //
     shared_ptr<Shape> temp = make_shared<Shape>();
-    
+
     temp->loadMesh(RESOURCE_DIR + "cube.obj", RESOURCE_DIR);
     temp->fitToUnitBox();
     temp->init();
     shapes.insert(make_pair("plainCube", temp));
-    
+
     temp = make_shared<Shape>();
     temp->loadMesh(RESOURCE_DIR + "texturedSkyscraper.obj", RESOURCE_DIR);
     temp->fitToUnitBox();
@@ -205,7 +207,7 @@ void GameManager::initScene() {
     temp->fitToUnitBox();
     temp->init();
     shapes.insert(make_pair("magnetGun", temp));
-    
+
     temp = make_shared<Shape>();
     temp->loadMesh(RESOURCE_DIR + "cylinder.obj", RESOURCE_DIR);
     temp->fitToUnitBox();
@@ -236,8 +238,11 @@ void GameManager::initScene() {
     //bullet->createPlane("ground", 0, 0, 0);
 
     shared_ptr<Material> material = make_shared<Material>(vec3(0.2f, 0.2f, 0.2f), vec3(0.0f, 0.5f, 0.5f), vec3(1.0f, 0.9f, 0.8f), 200.0f);
-    magnetGun = make_shared<GameObject>(vec3(0.4, -0.2, -1), vec3(0.4, 0, -0.2), vec3(1, 1, 1), 0, shapes["magnetGun"], nullptr);
-    magnetBeam = make_shared<GameObject>(vec3(0.4, -0.2, -3), vec3(0.4, 0, -0.2), vec3(0.5, 0.5, 0.5), 0, shapes["cylinder"], material);
+    magnetGun = make_shared<GameObject>(vec3(0.4, -0.2, -1), vec3(0.6, 0, -0.2), vec3(1, 1, 1), 0, shapes["magnetGun"], nullptr);
+    shared_ptr<Material> material2 = make_shared<Material>(vec3(1.0f, 0.65f, 0.0f), vec3(1.0f, 0.65f, 0.0f), vec3(1.0f, 0.65f, 0.0f), 200.0f);
+    magnetBeamOrange = make_shared<GameObject>(vec3(0.4, -0.4, -3), vec3(0.1, 0, 0), vec3(0.2, 0.2, 3.5), 0, shapes["cylinder"], material2);
+    shared_ptr<Material> material3 = make_shared<Material>(vec3(0.5f, 1.0f, 1.0f), vec3(0.5f, 1.0f, 1.0f), vec3(0.5f, 0.5f, 1.0f), 200.0f);
+    magnetBeamBlue = make_shared<GameObject>(vec3(0.4, -0.4, -3), vec3(0.1, 0, 0), vec3(0.2, 0.2, 3.5), 0, shapes["cylinder"], material3);
 }
 
 bool GameManager::toBool(string s) {
@@ -487,6 +492,7 @@ void GameManager::renderGame(int fps) {
         
         skybox->render(P, V);
 
+
         lightPos = vec4(camera->getPosition(), 1.0);
         vec4 l = V->topMatrix() * lightPos;
 
@@ -503,11 +509,11 @@ void GameManager::renderGame(int fps) {
         shipPartProgram->unbind();
 
         // Render skyscrapers
-//        skyscraperProgram->bind();
-//        glUniformMatrix4fv(skyscraperProgram->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
-//        glUniformMatrix4fv(skyscraperProgram->getUniform("MV"), 1, GL_FALSE, value_ptr(MV->topMatrix()));
-//        glUniform3fv(skyscraperProgram->getUniform("lightPos"), 1, value_ptr(vec3(l)));
-//        glUniform1f(skyscraperProgram->getUniform("lightIntensity"), lightIntensity);
+        //        skyscraperProgram->bind();
+        //        glUniformMatrix4fv(skyscraperProgram->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
+        //        glUniformMatrix4fv(skyscraperProgram->getUniform("MV"), 1, GL_FALSE, value_ptr(MV->topMatrix()));
+        //        glUniform3fv(skyscraperProgram->getUniform("lightPos"), 1, value_ptr(vec3(l)));
+        //        glUniform1f(skyscraperProgram->getUniform("lightIntensity"), lightIntensity);
 
         vfc->extractVFPlanes(P->topMatrix(), V->topMatrix());
         for (unsigned int i = 0; i < objects.size(); i++) {
@@ -525,8 +531,7 @@ void GameManager::renderGame(int fps) {
                         glUniform1f(program->getUniform("lightIntensity"), lightIntensity);
                         cub->draw(program);
                         program->unbind();
-                    }
-                    else {
+                    } else {
                         skyscraperProgram->bind();
                         glUniformMatrix4fv(skyscraperProgram->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
                         glUniformMatrix4fv(skyscraperProgram->getUniform("V"), 1, GL_FALSE, value_ptr(V->topMatrix()));
@@ -541,17 +546,17 @@ void GameManager::renderGame(int fps) {
                 delete temp;
             }
         }
-        
+
         skyscraperProgram->unbind();
-        
-//        if (bullet->getDebugFlag()) {
-//            /*DRAW DEATH OBJECTS*/
-//            for (unsigned int i = 0; i < deathObjects.size(); i++) {
-//                deathObjects.at(i)->draw(program);
-//
-//            }
-//        }
-        
+
+        //        if (bullet->getDebugFlag()) {
+        //            /*DRAW DEATH OBJECTS*/
+        //            for (unsigned int i = 0; i < deathObjects.size(); i++) {
+        //                deathObjects.at(i)->draw(program);
+        //
+        //            }
+        //        }
+
         // Render magnet gun
         program->bind();
         glUniformMatrix4fv(program->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
@@ -564,15 +569,35 @@ void GameManager::renderGame(int fps) {
         magnetGun->draw(program);
         V->popMatrix();
 
-        magnetBeam->draw(program);
+        if (drawBeam) {
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            glUniform1f(program->getUniform("lightIntensity"), 0.9f);
+            if (colorBeam == BLUE) {
+                magnetBeamBlue->draw(program);
+                psystem->setColor(BLUE);
+            } else {
+                magnetBeamOrange->draw(program);
+                psystem->setColor(ORANGE);
+            }
+
+            glDisable(GL_BLEND);
+
+            V->pushMatrix();
+            V->loadIdentity();
+            psystem->draw(V->topMatrix(), P->topMatrix(), 0);
+            V->popMatrix();
+            
+            glDisable(GL_BLEND);
+        }
+
         glEnable(GL_DEPTH_TEST);
         program->unbind();
 
-        psystem->draw(V->topMatrix() , P->topMatrix(), 0);
+
+      
         
-        if (bullet->getDebugFlag()) {
-            bullet->renderDebug(P->topMatrix(), V->topMatrix());
-        }
+
 
         V->popMatrix();
         P->popMatrix();
@@ -598,6 +623,7 @@ void GameManager::resolveMagneticInteractions() {
     //vector<shared_ptr<GameObject>> nearObjs = kdtree->findObjectsIntersectedByRay(startLoc, endLoc);
     //shared_ptr<GameObject> obj = RayTrace::rayTrace(startLoc, endLoc, objects);
     shared_ptr<GameObject> obj = bvh->findClosestHitObject(startLoc, endLoc);
+    drawBeam = false;
     if (obj && obj->isMagnetic()) {
         camera->setLookingAtMagnet(true);
         if (Mouse::isLeftMouseButtonPressed()) {
@@ -607,6 +633,8 @@ void GameManager::resolveMagneticInteractions() {
             vec3 dir = normalize(endLoc - startLoc);
             btVector3 bulletDir = btVector3(dir.x, dir.y, dir.z);
             bullet->getBulletObject("cam")->getRigidBody()->setLinearVelocity(bulletDir * MAGNET_STRENGTH);
+            drawBeam = true;
+            colorBeam = ORANGE;
         } else if (Mouse::isRightMouseButtonPressed()) {
             if (!fmod->isPlaying("magnet")) {
                 fmod->playSound("magnet", false, 1);
@@ -614,10 +642,13 @@ void GameManager::resolveMagneticInteractions() {
             vec3 dir = normalize(startLoc - endLoc);
             btVector3 bulletDir = btVector3(dir.x, dir.y, dir.z);
             bullet->getBulletObject("cam")->getRigidBody()->setLinearVelocity(bulletDir * MAGNET_STRENGTH);
+            drawBeam = true;
+            colorBeam = BLUE;
         }
 
     } else {
         camera->setLookingAtMagnet(false);
+        drawBeam = false;
         if (Mouse::isLeftMouseButtonPressed() || Mouse::isRightMouseButtonPressed()) {
             if (!fmod->isPlaying("click"))
                 fmod->playSound("click", false, 1);

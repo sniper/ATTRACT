@@ -22,5 +22,5 @@ void main()
     vec3 cd = kd * max(0, dot(l, n));
     vec3 cs = ks * pow(max(0, dot(h, n)), s);
     
-    color = vec4(lightIntensity * (ka + cd + cs), 1.0);
+    color = vec4(lightIntensity * (ka + cd + cs), 0.5);
 }

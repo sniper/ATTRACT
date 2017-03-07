@@ -22,9 +22,12 @@
 using namespace glm;
 using namespace std;
 
-
-
-
+float randomFloat(float a, float b) {
+    float random = ((float) rand()) / (float) RAND_MAX;
+    float diff = b - a;
+    float r = random * diff;
+    return a + r;
+}
 
 
 
@@ -55,7 +58,8 @@ void ParticleManager::SortParticles() {
 }
 
 ParticleManager::ParticleManager(std::string resource) :
-RESOURCE_DIR(resource) {
+RESOURCE_DIR(resource),
+color(BLUE){
 
 
 
@@ -64,7 +68,8 @@ RESOURCE_DIR(resource) {
     particleShader->init();
 
     particleShader->addUniform("P");
-    particleShader->addUniform("MV");
+    particleShader->addUniform("V");
+    particleShader->addUniform("Color");
     particleShader->addUniform("myTextureSampler");
 
     particleShader->addAttribute("vertPos");
@@ -74,7 +79,7 @@ RESOURCE_DIR(resource) {
     particleTex = make_shared<Texture>();
     particleTex->setUnit(0);
     particleTex->setFilename(RESOURCE_DIR + "alpha.bmp");
-    particleTex->init();
+    particleTex->initBMP();
 
 
 
@@ -85,7 +90,7 @@ RESOURCE_DIR(resource) {
     }
 
 
-    g_particule_position_size_data = new GLfloat[MAXPARTICLES * 3];
+    g_particule_position_size_data = new GLfloat[MAXPARTICLES * 4];
     g_particule_color_data = new GLfloat[MAXPARTICLES * 4];
 
     static const GLfloat g_vertex_buffer_data[] = {
@@ -113,7 +118,7 @@ RESOURCE_DIR(resource) {
     glBindBuffer(GL_ARRAY_BUFFER, particles_color_buffer);
     // Initialize with empty (NULL) buffer : it will be updated later, each frame.
     glBufferData(GL_ARRAY_BUFFER, MAXPARTICLES * 4 * sizeof (GLfloat), NULL, GL_STREAM_DRAW);
-    glEnable( GL_PROGRAM_POINT_SIZE );
+    glEnable(GL_PROGRAM_POINT_SIZE);
 
 
 
@@ -128,35 +133,46 @@ void ParticleManager::update(double delta, vec3 cameraPosition) {
     if (newparticles > (int) (0.016f * 10000.0))
         newparticles = (int) (0.016f * 10000.0);
 
-    for (int i = 0; i < newparticles; i++) {
-        int particleIndex = FindUnusedParticle();
-        ParticlesContainer[particleIndex].life = 5.0f; // This particle will live 5 seconds.
-        ParticlesContainer[particleIndex].pos = vec3(1,1,16);
-
-        float spread = 1.5f;
-        glm::vec3 maindir = glm::vec3(0.0f, 10.0f, 0.0f);
-        // Very bad way to generate a random direction; 
-        // See for instance http://stackoverflow.com/questions/5408276/python-uniform-spherical-distribution instead,
-        // combined with some user-controlled parameters (main direction, spread, etc)
-        glm::vec3 randomdir = glm::vec3(
-                (rand() % 2000 - 1000.0f) / 1000.0f,
-                (rand() % 2000 - 1000.0f) / 1000.0f,
-                (rand() % 2000 - 1000.0f) / 1000.0f
-                );
-
-        ParticlesContainer[particleIndex].speed = maindir + randomdir*spread;
+    static bool flag = false;
 
 
-        // Very bad way to generate a random color
-        ParticlesContainer[particleIndex].r = 0.4;
-        ParticlesContainer[particleIndex].g = 0.7;
-        ParticlesContainer[particleIndex].b = 0.1;
-        ParticlesContainer[particleIndex].a = 0.3;
+    if (flag == false) {
+        for (int i = 0; i < MAXPARTICLES; i++) {
+            int particleIndex = i;
+            ParticlesContainer[particleIndex].life = 5.0f; // This particle will live 5 seconds.
+            float randz = randomFloat(-2, -4);
+            ParticlesContainer[particleIndex].pos = vec3(0.4, -0.4, randz);
+            ParticlesContainer[particleIndex].rot = randomFloat(0,360);
+            
+            cout << ParticlesContainer[particleIndex].rot << endl;
 
-        ParticlesContainer[particleIndex].size = (rand() % 1000) / 2000.0f + 0.1f;
+            float spread = 1.5f;
+            glm::vec3 maindir = glm::vec3(1.0f, 0.0f, 0.0f);
+            // Very bad way to generate a random direction; 
+            // See for instance http://stackoverflow.com/questions/5408276/python-uniform-spherical-distribution instead,
+            // combined with some user-controlled parameters (main direction, spread, etc)
+            glm::vec3 randomdir = glm::vec3(
+                    (rand() % 2000 - 1000.0f) / 1000.0f,
+                    (rand() % 2000 - 1000.0f) / 1000.0f,
+                    (rand() % 2000 - 1000.0f) / 1000.0f
+                    );
 
+            ParticlesContainer[particleIndex].speed = maindir;
+
+
+            // Very bad way to generate a random color
+            ParticlesContainer[particleIndex].r = 0.4;
+            ParticlesContainer[particleIndex].g = 0.7;
+            ParticlesContainer[particleIndex].b = 0.1;
+            ParticlesContainer[particleIndex].a = 0.3;
+
+            ParticlesContainer[particleIndex].size = (rand() % 1000) / 2000.0f + 0.1f;
+
+        }
+        flag =true;
+        
     }
-
+    
 
 
     // Simulate all particles
@@ -168,21 +184,31 @@ void ParticleManager::update(double delta, vec3 cameraPosition) {
         if (p.life > 0.0f) {
 
             // Decrease life
-            p.life -= delta;
+            //p.life -= delta;
             if (p.life > 0.0f) {
 
                 // Simulate simple physics : gravity only, no collisions
                 p.speed += glm::vec3(0.0f, -9.81f, 0.0f) * (float) delta * 0.5f;
-                p.pos += p.speed * (float) delta;
+                //p.pos += p.speed * (float) delta;
+
+                p.pos.x = p.pos.x + 0.025f * sin(p.rot * 3.14 / 180);
+                p.pos.y = p.pos.y + 0.025f * cos(p.rot * 3.14 / 180);
+                p.rot +=8.0f;
+                if(p.rot >= 360)
+                    p.rot = 0;
+                //cout << rot << endl;
+                //p.pos.y = sin(rot*3.14/180);
+
+
                 p.cameradistance = glm::length(p.pos - cameraPosition);
-                //ParticlesContainer[i].pos += glm::vec3(0.0f,10.0f, 0.0f) * (float)delta;
+                //ParticlesContainer[i].pos += glm::    vec3(0.0f,10.0f, 0.0f) * (float)delta;
 
 
                 // Fill the GPU buffer
-                g_particule_position_size_data[3 * ParticlesCount + 0] = p.pos.x;
-                g_particule_position_size_data[3 * ParticlesCount + 1] = p.pos.y;
-                g_particule_position_size_data[3 * ParticlesCount + 2] = p.pos.z;
-
+                g_particule_position_size_data[4 * ParticlesCount + 0] = p.pos.x;
+                g_particule_position_size_data[4 * ParticlesCount + 1] = p.pos.y;
+                g_particule_position_size_data[4 * ParticlesCount + 2] = p.pos.z;
+                g_particule_position_size_data[4 * ParticlesCount + 3] = -0.3f;
 
 
                 g_particule_color_data[4 * ParticlesCount + 0] = p.r;
@@ -216,15 +242,29 @@ void ParticleManager::draw(mat4 VP, mat4 P, float camRot) {
     //glPointSize(14.0f);
 
     glBindBuffer(GL_ARRAY_BUFFER, particles_position_buffer);
-    glBufferData(GL_ARRAY_BUFFER, MAXPARTICLES * 3 * sizeof (GLfloat), NULL, GL_STREAM_DRAW); // Buffer orphaning, a common way to improve streaming perf. See above link for details.
-    glBufferSubData(GL_ARRAY_BUFFER, 0, ParticlesCount * sizeof (GLfloat) * 3, g_particule_position_size_data);
+    glBufferData(GL_ARRAY_BUFFER, MAXPARTICLES * 4 * sizeof (GLfloat), NULL, GL_STREAM_DRAW); // Buffer orphaning, a common way to improve streaming perf. See above link for details.
+    glBufferSubData(GL_ARRAY_BUFFER, 0, ParticlesCount * sizeof (GLfloat) * 4, g_particule_position_size_data);
 
     glBindBuffer(GL_ARRAY_BUFFER, particles_color_buffer);
     glBufferData(GL_ARRAY_BUFFER, MAXPARTICLES * 4 * sizeof (GLfloat), NULL, GL_STREAM_DRAW); // Buffer orphaning, a common way to improve streaming perf. See above link for details.
     glBufferSubData(GL_ARRAY_BUFFER, 0, ParticlesCount * sizeof (GLfloat) * 4, g_particule_color_data);
 
 
+
+    //VP = glm::translate(VP,  vec3(0.01, 0, 0));
+    /*
+    VP = glm::translate(VP,   vec3(0.1, -0.35, -3));
+    static float rads = -1.0f;
+    VP = glm::rotate(VP,rads, vec3(1,0,1) );
+    rads= rads+0.05f;
     
+
+    VP = glm::translate(VP,   vec3(0.1, 0, 0.5));
+     */
+
+
+
+
 
 
     particleShader->bind();
@@ -232,9 +272,12 @@ void ParticleManager::draw(mat4 VP, mat4 P, float camRot) {
 
     //glBindVertexArray(vao);
 
-
-
-    glUniformMatrix4fv(particleShader->getUniform("MV"), 1, GL_FALSE, value_ptr(VP));
+    if(color == BLUE)
+        glUniform3fv(particleShader->getUniform("Color"), 1,  value_ptr(vec3(0.5f, 1.0f, 1.0f )));
+    else
+        glUniform3fv(particleShader->getUniform("Color"), 1,  value_ptr(vec3(1.0f, 0.65f, 0.0f)));
+    
+    glUniformMatrix4fv(particleShader->getUniform("V"), 1, GL_FALSE, value_ptr(VP));
 
     glUniformMatrix4fv(particleShader->getUniform("P"), 1, GL_FALSE, value_ptr(P));
 
@@ -244,7 +287,7 @@ void ParticleManager::draw(mat4 VP, mat4 P, float camRot) {
     glBindBuffer(GL_ARRAY_BUFFER, particles_position_buffer);
     glVertexAttribPointer(
             0, // attribute. No particular reason for 1, but must match the layout in the shader.
-            3, // size : x + y + z + size => 4
+            4, // size : x + y + z + size => 4
             GL_FLOAT, // type
             GL_FALSE, // normalized?
             0, // stride
@@ -288,12 +331,12 @@ void ParticleManager::draw(mat4 VP, mat4 P, float camRot) {
 
 
 
-
-    particleShader->unbind();
     particleTex->unbind();
+    particleShader->unbind();
+
     GLSL::checkError(GET_FILE_LINE);
 
-    //glDisable(GL_BLEND);
+    glDisable(GL_BLEND);
 
 }
 
