@@ -135,11 +135,14 @@ void GameManager::initScene() {
     skyscraperProgram->addAttribute("aPos");
     skyscraperProgram->addAttribute("aNor");
     skyscraperProgram->addAttribute("aTex");
+    skyscraperProgram->addAttribute("aTangent");
+    skyscraperProgram->addAttribute("aBitangent");
     skyscraperProgram->addUniform("M");
     skyscraperProgram->addUniform("V");
     skyscraperProgram->addUniform("P");
     skyscraperProgram->addUniform("diffuseTex");
     skyscraperProgram->addUniform("specularTex");
+    skyscraperProgram->addUniform("normalTex");
     skyscraperProgram->addUniform("lightPos");
     skyscraperProgram->addUniform("lightIntensity");
     skyscraperProgram->addUniform("objTransMatrix");

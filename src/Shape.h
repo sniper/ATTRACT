@@ -27,19 +27,25 @@ private:
 	std::vector<float> posBuf;
 	std::vector<float> norBuf;
 	std::vector<float> texBuf;
+	std::vector<float> tangentBuf;
+	std::vector<float> bitangentBuf;
     std::vector<int> matIDBuf;
     std::vector<glm::vec3> ambientBuf;
     std::vector<glm::vec3> diffuseBuf;
     std::vector<glm::vec3> specularBuf;
     std::vector<std::string> diffuseTexNameBuf;
-    
+    std::vector<std::string> normalTexNameBuf;
+
     std::vector<unsigned> eleBufID;
 	unsigned posBufID;
 	unsigned norBufID;
 	unsigned texBufID;
+    unsigned tangentBufID;
+    unsigned bitangentBufID;
     unsigned vao;
     
     std::vector<std::shared_ptr<Texture>> diffuseTextures;
+    std::vector<std::shared_ptr<Texture>> normalTextures;
 };
 
 #endif

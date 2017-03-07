@@ -84,6 +84,8 @@ typedef struct {
 typedef struct {
   std::vector<float> positions;
   std::vector<float> normals;
+  std::vector<float> tangents;
+  std::vector<float> bitangents;
   std::vector<float> texcoords;
   std::vector<unsigned int> indices;
   std::vector<unsigned char>
@@ -246,7 +248,7 @@ static inline int parseInt(const char *&token) {
 //   float   = ( decimal , END ) | ( decimal , ("E" | "e") , integer , END ) ;
 //
 //  Valid strings are for example:
-//   -0	 +3.1417e+2  -0.0E-3  1.0324  -1.41   11e2
+//   -0     +3.1417e+2  -0.0E-3  1.0324  -1.41   11e2
 //
 // If the parsing is a success, result is set to the parsed value and true
 // is returned.
@@ -1137,6 +1139,91 @@ bool LoadObj(std::vector<shape_t> &shapes,       // [output]
   faceGroup.clear(); // for safety
 
   err += errss.str();
+
+  if (shapes[0].mesh.texcoords.size() == 0) {
+      return true;
+  }
+
+  // calculate tangents and bitangents
+  for (int s = 0; s < shapes.size(); s++) {
+    shapes[s].mesh.tangents.resize(shapes[s].mesh.positions.size());
+    shapes[s].mesh.bitangents.resize(shapes[s].mesh.positions.size());
+
+    for (int i = 0; i < shapes[s].mesh.indices.size() / 3; i++) {
+        glm::vec3 v1 = glm::vec3(
+            shapes[s].mesh.positions[shapes[s].mesh.indices[i * 3] * 3],
+            shapes[s].mesh.positions[shapes[s].mesh.indices[i * 3] * 3 + 1],
+            shapes[s].mesh.positions[shapes[s].mesh.indices[i * 3] * 3 + 2]);
+        glm::vec3 v2 = glm::vec3(
+            shapes[s].mesh.positions[shapes[s].mesh.indices[i * 3 + 1] * 3],
+            shapes[s].mesh.positions[shapes[s].mesh.indices[i * 3 + 1] * 3 + 1],
+            shapes[s].mesh.positions[shapes[s].mesh.indices[i * 3 + 1] * 3 + 2]);
+        glm::vec3 v3 = glm::vec3(
+            shapes[s].mesh.positions[shapes[s].mesh.indices[i * 3 + 2] * 3],
+            shapes[s].mesh.positions[shapes[s].mesh.indices[i * 3 + 2] * 3 + 1],
+            shapes[s].mesh.positions[shapes[s].mesh.indices[i * 3 + 2] * 3 + 2]);
+
+        glm::vec2 uv1 = glm::vec2(
+            shapes[s].mesh.texcoords[shapes[s].mesh.indices[i * 3] * 2],
+            shapes[s].mesh.texcoords[shapes[s].mesh.indices[i * 3] * 2 + 1]);
+
+        glm::vec2 uv2 = glm::vec2(
+            shapes[s].mesh.texcoords[shapes[s].mesh.indices[i * 3 + 1] * 2],
+            shapes[s].mesh.texcoords[shapes[s].mesh.indices[i * 3 + 1] * 2 + 1]);
+
+        glm::vec2 uv3 = glm::vec2(
+            shapes[s].mesh.texcoords[shapes[s].mesh.indices[i * 3 + 2] * 2],
+            shapes[s].mesh.texcoords[shapes[s].mesh.indices[i * 3 + 2] * 2 + 1]);
+
+        glm::vec3 d1 = v2 - v1;
+        glm::vec3 d2 = v3 - v1;
+
+        glm::vec2 dUV1 = uv2 - uv1;
+        glm::vec2 dUV2 = uv3 - uv1;
+
+        float f = 1.0f / (dUV1.x * dUV2.y - dUV2.x * dUV1.y);
+
+        glm::vec3 tangent = (d1 * dUV2.y - d2 * dUV1.y) * f;
+        glm::vec3 bitangent = (d2 * dUV1.x - d1 * dUV2.x) * f;
+
+        shapes[s].mesh.tangents[shapes[s].mesh.indices[i * 3] * 3] += tangent.x;
+        shapes[s].mesh.tangents[shapes[s].mesh.indices[i * 3] * 3 + 1] += tangent.y;
+        shapes[s].mesh.tangents[shapes[s].mesh.indices[i * 3] * 3 + 2] += tangent.z;
+        shapes[s].mesh.tangents[shapes[s].mesh.indices[i * 3 + 1] * 3] += tangent.x;
+        shapes[s].mesh.tangents[shapes[s].mesh.indices[i * 3 + 1] * 3 + 1] += tangent.y;
+        shapes[s].mesh.tangents[shapes[s].mesh.indices[i * 3 + 1] * 3 + 2] += tangent.z;
+        shapes[s].mesh.tangents[shapes[s].mesh.indices[i * 3 + 2] * 3] += tangent.x;
+        shapes[s].mesh.tangents[shapes[s].mesh.indices[i * 3 + 2] * 3 + 1] += tangent.y;
+        shapes[s].mesh.tangents[shapes[s].mesh.indices[i * 3 + 2] * 3 + 2] += tangent.z;
+
+        shapes[s].mesh.bitangents[shapes[s].mesh.indices[i * 3] * 3] += bitangent.x;
+        shapes[s].mesh.bitangents[shapes[s].mesh.indices[i * 3] * 3 + 1] += bitangent.y;
+        shapes[s].mesh.bitangents[shapes[s].mesh.indices[i * 3] * 3 + 2] += bitangent.z;
+        shapes[s].mesh.bitangents[shapes[s].mesh.indices[i * 3 + 1] * 3] += bitangent.x;
+        shapes[s].mesh.bitangents[shapes[s].mesh.indices[i * 3 + 1] * 3 + 1] += bitangent.y;
+        shapes[s].mesh.bitangents[shapes[s].mesh.indices[i * 3 + 1] * 3 + 2] += bitangent.z;
+        shapes[s].mesh.bitangents[shapes[s].mesh.indices[i * 3 + 2] * 3] += bitangent.x;
+        shapes[s].mesh.bitangents[shapes[s].mesh.indices[i * 3 + 2] * 3 + 1] += bitangent.y;
+        shapes[s].mesh.bitangents[shapes[s].mesh.indices[i * 3 + 2] * 3 + 2] += bitangent.z;
+    }
+    for(int v = 0; v < shapes[s].mesh.positions.size() / 3; v++) {
+        glm::vec3 t = glm::normalize(glm::vec3(
+            shapes[s].mesh.tangents[v * 3],
+            shapes[s].mesh.tangents[v * 3 + 1],
+            shapes[s].mesh.tangents[v * 3 + 2]));
+        shapes[s].mesh.tangents[v * 3] = t.x;
+        shapes[s].mesh.tangents[v * 3 + 1] = t.y;
+        shapes[s].mesh.tangents[v * 3 + 2] = t.z;
+
+        glm::vec3 b = glm::normalize(glm::vec3(
+            shapes[s].mesh.bitangents[v * 3],
+            shapes[s].mesh.bitangents[v * 3 + 1],
+            shapes[s].mesh.bitangents[v * 3 + 2]));
+        shapes[s].mesh.bitangents[v * 3] = b.x;
+        shapes[s].mesh.bitangents[v * 3 + 1] = b.y;
+        shapes[s].mesh.bitangents[v * 3 + 2] = b.z;
+     }
+  }
   return true;
 }
 
