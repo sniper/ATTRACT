@@ -18,6 +18,9 @@
 
 #include <iostream>
 
+#define BLUE 1
+#define ORANGE 0
+
 class Program;
 class Texture;
 class MatrixStack;
@@ -44,6 +47,7 @@ public:
     ParticleManager(std::string resource);
     void update(double delta, glm::vec3 camPos);
     void draw(glm::mat4 VP, glm::mat4 P, float camRot);
+    void setColor(int in){color = in;}
 
 
 private:
@@ -56,6 +60,7 @@ private:
     GLuint particles_position_buffer;
     GLuint particles_color_buffer;
 
+    int color;
 
 
     Particle ParticlesContainer[MAXPARTICLES];

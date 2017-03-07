@@ -6,5 +6,5 @@ out vec4 Outcolor;
 void main()
 {
 	float alpha = texture(myTextureSampler, gl_PointCoord).r;
-	Outcolor = vec4(partCol.rgb, alpha);
+	Outcolor = vec4(partCol.xyz, alpha);
 }

@@ -5,6 +5,8 @@ layout(location = 1) in vec4 Pcolor;
 uniform mat4 P;
 uniform mat4 V;
 
+uniform vec3 Color;
+
 out vec4 partCol;
 
 void main() { 
@@ -16,6 +18,6 @@ void main() {
 	V0[2] = vec4(0.0, 0.0, 1.0, 0.0);
 	gl_Position = P * V* vec4(vertPos.xyz, 1.0);
         //gl_Position.z = gl_Position.z;
-	partCol = Pcolor;
+	partCol = vec4(Color, 0.5f);
         gl_PointSize = distance( gl_Position, vertPos) * 2.5 ;
 }

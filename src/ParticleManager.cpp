@@ -58,7 +58,8 @@ void ParticleManager::SortParticles() {
 }
 
 ParticleManager::ParticleManager(std::string resource) :
-RESOURCE_DIR(resource) {
+RESOURCE_DIR(resource),
+color(BLUE){
 
 
 
@@ -68,6 +69,7 @@ RESOURCE_DIR(resource) {
 
     particleShader->addUniform("P");
     particleShader->addUniform("V");
+    particleShader->addUniform("Color");
     particleShader->addUniform("myTextureSampler");
 
     particleShader->addAttribute("vertPos");
@@ -194,9 +196,9 @@ void ParticleManager::update(double delta, vec3 cameraPosition) {
                 p.speed += glm::vec3(0.0f, -9.81f, 0.0f) * (float) delta * 0.5f;
                 //p.pos += p.speed * (float) delta;
 
-                p.pos.x = p.pos.x + 0.007f * sin(p.rot * 3.14 / 180);
-                p.pos.y = p.pos.y + 0.007f * cos(p.rot * 3.14 / 180);
-                p.rot +=3.0f;
+                p.pos.x = p.pos.x + 0.025f * sin(p.rot * 3.14 / 180);
+                p.pos.y = p.pos.y + 0.025f * cos(p.rot * 3.14 / 180);
+                p.rot +=8.0f;
                 if(p.rot >= 360)
                     p.rot = 0;
                 //cout << rot << endl;
@@ -275,8 +277,11 @@ void ParticleManager::draw(mat4 VP, mat4 P, float camRot) {
 
     //glBindVertexArray(vao);
 
-
-
+    if(color == BLUE)
+        glUniform3fv(particleShader->getUniform("Color"), 1,  value_ptr(vec3(0.5f, 1.0f, 1.0f )));
+    else
+        glUniform3fv(particleShader->getUniform("Color"), 1,  value_ptr(vec3(1.0f, 0.65f, 0.0f)));
+    
     glUniformMatrix4fv(particleShader->getUniform("V"), 1, GL_FALSE, value_ptr(VP));
 
     glUniformMatrix4fv(particleShader->getUniform("P"), 1, GL_FALSE, value_ptr(P));

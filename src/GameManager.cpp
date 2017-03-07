@@ -552,26 +552,30 @@ void GameManager::renderGame(int fps) {
         magnetGun->draw(program);
         V->popMatrix();
 
-        if (!drawBeam) {
+        if (drawBeam) {
             glEnable(GL_BLEND);
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
             glUniform1f(program->getUniform("lightIntensity"), 0.9f);
             if (colorBeam == BLUE) {
                 magnetBeamBlue->draw(program);
+                psystem->setColor(BLUE);
             } else {
                 magnetBeamOrange->draw(program);
+                psystem->setColor(ORANGE);
             }
 
             glDisable(GL_BLEND);
+
+            V->pushMatrix();
+            V->loadIdentity();
+            psystem->draw(V->topMatrix(), P->topMatrix(), 0);
+            V->popMatrix();
         }
 
         glEnable(GL_DEPTH_TEST);
         program->unbind();
 
-        V->pushMatrix();
-        V->loadIdentity();
-        psystem->draw(V->topMatrix(), P->topMatrix(), 0);
-        V->popMatrix();
+
 
         V->popMatrix();
         P->popMatrix();
