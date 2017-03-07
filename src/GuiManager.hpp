@@ -57,18 +57,18 @@ public:
 private:
     std::string RESOURCE_DIR;
     std::shared_ptr<Program> guiShader;
-    
+
     std::map<std::string,std::shared_ptr<Texture>> guiTextures;
-    
     std::map<std::string, glm::vec3> scales;
     std::map<std::string, glm::vec3> translates;
-    
+    void addTexture(std::string name, glm::vec3 scale, glm::vec3 trans);
+
     std::string selectedName;
-    
+
     GLuint vertexbuffer;
     GLuint texbuffer;
     GLuint vao;
-    
+
     void draw(std::string name);
 
     int width, height;
