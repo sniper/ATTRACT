@@ -22,7 +22,7 @@ Skybox::Skybox(const string &resourceDir, const shared_ptr<Shape> &skyShape) {
     prog = make_shared<Program>();
     prog->setShaderNames(resourceDir + "skyboxVert.glsl", resourceDir + "skyboxFrag.glsl");
     GLSL::checkError(GET_FILE_LINE);
-    prog->setVerbose(true);
+    prog->setVerbose(false);
     prog->init();
     prog->addAttribute("aPos");
     prog->addAttribute("aNor");
