@@ -14,7 +14,7 @@
 #ifndef PARTICLEMANAGER_HPP
 #define PARTICLEMANAGER_HPP
 
-#define MAXPARTICLES 50
+#define MAXPARTICLES 1
 
 #include <iostream>
 
@@ -27,7 +27,7 @@ class MatrixStack;
 // CPU representation of a particle
 
 typedef struct Particle {
-    glm::vec3 pos, speed;
+    glm::vec3 pos, speed, center;
     float r, g, b, a; // Color
     float size, angle, weight;
     float life; // Remaining life of the particle. if <0 : dead and unused.

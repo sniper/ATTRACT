@@ -567,10 +567,11 @@ void GameManager::renderGame(int fps) {
 
         glEnable(GL_DEPTH_TEST);
         program->unbind();
-        
-        
-        psystem->draw(V->topMatrix(), P->topMatrix(), 0);
 
+        V->pushMatrix();
+        V->loadIdentity();
+        psystem->draw(V->topMatrix(), P->topMatrix(), 0);
+        V->popMatrix();
 
         V->popMatrix();
         P->popMatrix();
