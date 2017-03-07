@@ -175,11 +175,6 @@ void ParticleManager::update(double delta, vec3 cameraPosition) {
     
 
 
-    static float rot = 0.0f;
-    rot += 3.0f;
-    if (rot >= 360.0f)
-        rot = 0.0f;
-    
     // Simulate all particles
     ParticlesCount = 0;
     for (int i = 0; i < MAXPARTICLES; i++) {
