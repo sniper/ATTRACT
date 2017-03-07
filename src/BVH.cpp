@@ -54,7 +54,6 @@ void BVH::buildTree(const vector<shared_ptr<GameObject>> &objects)
     BVHNode root;
     
     // Copy the objects so that we can manipulate order.
-    // The object references are const so that we can't change them.
     objs = vector<shared_ptr<GameObject>>(objects);
     nodeList = vector<BVHNode>();
     
@@ -208,12 +207,13 @@ void BVH::buildBranch(int leftIndex, int rightIndex, BVHNode *node, int depth)
         nodeList.insert(nodeList.begin()+node->index+1, right);
         
         // Build for left and right nodes.
-        if (node->index + 1 < nodeList.size()) {
+        try {
             buildBranch(leftIndex, splitIndex, &nodeList.at(node->index), depth+1);
             buildBranch(splitIndex, rightIndex, &nodeList.at(node->index + 1), depth+1);
         }
-        else {
-            printTree();
+        catch (int e) {
+            cerr << "Caught out of bounds error; rebuilding tree" << endl;
+            buildTree(objs);
         }
     }
 }
