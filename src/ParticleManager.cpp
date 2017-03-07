@@ -139,9 +139,10 @@ void ParticleManager::update(double delta, vec3 cameraPosition) {
             int particleIndex = i;
             ParticlesContainer[particleIndex].life = 5.0f; // This particle will live 5 seconds.
             float randz = randomFloat(-2, -4);
-            ParticlesContainer[particleIndex].pos = vec3(0.1, -0.4, randz);
+            ParticlesContainer[particleIndex].pos = vec3(0.4, -0.4, randz);
             ParticlesContainer[particleIndex].rot = randomFloat(0,360);
-            cout << randz << endl;
+            
+            cout << ParticlesContainer[particleIndex].rot << endl;
 
             float spread = 1.5f;
             glm::vec3 maindir = glm::vec3(1.0f, 0.0f, 0.0f);
@@ -173,9 +174,10 @@ void ParticleManager::update(double delta, vec3 cameraPosition) {
 
 
     static float rot = 0.0f;
-    rot += 2.0f;
+    rot += 3.0f;
     if (rot >= 360.0f)
         rot = 0.0f;
+    
     // Simulate all particles
     ParticlesCount = 0;
     for (int i = 0; i < MAXPARTICLES; i++) {
@@ -192,9 +194,12 @@ void ParticleManager::update(double delta, vec3 cameraPosition) {
                 p.speed += glm::vec3(0.0f, -9.81f, 0.0f) * (float) delta * 0.5f;
                 //p.pos += p.speed * (float) delta;
 
-                p.pos.x = p.pos.x + 0.01f * sin(rot * 3.14 / 180);
-                p.pos.y = p.pos.y + 0.01f * cos(rot * 3.14 / 180);
-                cout << rot << endl;
+                p.pos.x = p.pos.x + 0.007f * sin(p.rot * 3.14 / 180);
+                p.pos.y = p.pos.y + 0.007f * cos(p.rot * 3.14 / 180);
+                p.rot +=3.0f;
+                if(p.rot >= 360)
+                    p.rot = 0;
+                //cout << rot << endl;
                 //p.pos.y = sin(rot*3.14/180);
 
 
