@@ -367,7 +367,7 @@ void GameManager::importLevel(string level) {
 
     //kdtree = make_shared<KDTree>(objects);
     bvh = make_shared<BVH>(objects);
-    //bvh->printTree();
+    bvh->printTree();
 }
 
 State GameManager::processInputs() {

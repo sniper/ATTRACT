@@ -209,13 +209,21 @@ void BVH::buildBranch(int leftIndex, int rightIndex, BVHNode *node, int depth)
         nodeList.push_back(right);
         
         // Build for left and right nodes.
-        try {
+        if (node->index < nodeList.size()) {
             buildBranch(leftIndex, splitIndex, &nodeList.at(node->index), depth+1);
+        }
+        else {
+            cout << "Trying to access out of left vector range!" << endl;
+            cout << "Index is " + to_string(node->index) << endl;
+            cout << "Size is " + to_string(nodeList.size()) << endl;
+        }
+        if (node->index + 1 < nodeList.size()) {
             buildBranch(splitIndex, rightIndex, &nodeList.at(node->index + 1), depth+1);
         }
-        catch (int e) {
-            cerr << "Caught out of bounds error; rebuilding tree" << endl;
-            buildTree(objs);
+        else {
+            cout << "Trying to access out of right vector range!" << endl;
+            cout << "Index is " + to_string(node->index + 1) << endl;
+            cout << "Size is " + to_string(nodeList.size()) << endl;
         }
     }
 }
