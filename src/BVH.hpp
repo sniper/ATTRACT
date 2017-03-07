@@ -33,10 +33,10 @@ private:
     struct StackItem;
     int numNodes;
     
-    void buildBranch(int leftIndex, int rightIndex, BVHNode *node, int depth);
+    void buildBranch(int leftIndex, int rightIndex, std::shared_ptr<BVHNode> node, int depth);
     std::shared_ptr<AABoundingBox> getAABBForSection(int start, int end);
     
-    void printNode(BVHNode node, std::string indent, bool last);
+    void printNode(std::shared_ptr<BVHNode> node, std::string indent, bool last);
     
     static bool compareByXAxis(const std::shared_ptr<GameObject> &a,
                                const std::shared_ptr<GameObject> &b);
@@ -45,11 +45,11 @@ private:
     static bool compareByZAxis(const std::shared_ptr<GameObject> &a,
                                const std::shared_ptr<GameObject> &b);
     
-    std::vector<std::shared_ptr<GameObject>> searchTreeWithRay(BVHNode node,
+    std::vector<std::shared_ptr<GameObject>> searchTreeWithRay(std::shared_ptr<BVHNode> node,
                                                                glm::vec3 &start,
                                                                glm::vec3 &end);
     std::vector<std::shared_ptr<GameObject>> objs;
-    std::vector<BVHNode> nodeList;
+    std::vector<std::shared_ptr<BVHNode>> nodeList;
 };
 
 #endif /* BVH_hpp */
