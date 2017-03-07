@@ -64,7 +64,7 @@ RESOURCE_DIR(resourceDir),
 gameState(MENU),
 level(1),
 drawBeam(false),
-colorBeam(ORANGE){
+colorBeam(ORANGE) {
     objIntervalCounter = 0.0f;
     numObjCollected = 0;
     gameWon = false;
@@ -475,6 +475,7 @@ void GameManager::renderGame(int fps) {
         V->pushMatrix();
         camera->applyViewMatrix(V);
 
+
         lightPos = vec4(camera->getPosition(), 1.0);
         vec4 l = V->topMatrix() * lightPos;
 
@@ -560,17 +561,16 @@ void GameManager::renderGame(int fps) {
             } else {
                 magnetBeamOrange->draw(program);
             }
-            
+
             glDisable(GL_BLEND);
         }
 
         glEnable(GL_DEPTH_TEST);
         program->unbind();
+        
+        
+        psystem->draw(V->topMatrix(), P->topMatrix(), 0);
 
-        if (bullet->getDebugFlag()) {
-            psystem->draw(V->topMatrix(), P->topMatrix(), 0);
-            bullet->renderDebug(P->topMatrix(), V->topMatrix());
-        }
 
         V->popMatrix();
         P->popMatrix();
