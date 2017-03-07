@@ -14,7 +14,7 @@
 #ifndef PARTICLEMANAGER_HPP
 #define PARTICLEMANAGER_HPP
 
-#define MAXPARTICLES 1
+#define MAXPARTICLES 3
 
 #include <iostream>
 
@@ -29,7 +29,7 @@ class MatrixStack;
 typedef struct Particle {
     glm::vec3 pos, speed, center;
     float r, g, b, a; // Color
-    float size, angle, weight;
+    float size, angle, weight,rot;
     float life; // Remaining life of the particle. if <0 : dead and unused.
     float cameradistance; // *Squared* distance to the camera. if dead : -1.0f
 

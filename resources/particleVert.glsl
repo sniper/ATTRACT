@@ -17,5 +17,5 @@ void main() {
 	gl_Position = P * V* vec4(vertPos.xyz, 1.0);
         //gl_Position.z = gl_Position.z;
 	partCol = Pcolor;
-        gl_PointSize = distance( gl_Position, vertPos) * 4 ;
+        gl_PointSize = distance( gl_Position, vertPos) * 2.5 ;
 }

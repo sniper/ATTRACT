@@ -130,44 +130,50 @@ void ParticleManager::update(double delta, vec3 cameraPosition) {
     int newparticles = (int) (delta * 10000.0);
     if (newparticles > (int) (0.016f * 10000.0))
         newparticles = (int) (0.016f * 10000.0);
-    
+
     static bool flag = false;
-    
-    
-    
-    for (int i = 0; i < newparticles; i++) {
-        int particleIndex = FindUnusedParticle();
-        ParticlesContainer[particleIndex].life = 5.0f; // This particle will live 5 seconds.
-        float randz = randomFloat(-1,-4);
-        ParticlesContainer[particleIndex].pos = vec3(0.4, -0.4, -3);
-        cout << randz << endl;
-
-        float spread = 1.5f;
-        glm::vec3 maindir = glm::vec3(1.0f, 0.0f, 0.0f);
-        // Very bad way to generate a random direction; 
-        // See for instance http://stackoverflow.com/questions/5408276/python-uniform-spherical-distribution instead,
-        // combined with some user-controlled parameters (main direction, spread, etc)
-        glm::vec3 randomdir = glm::vec3(
-                (rand() % 2000 - 1000.0f) / 1000.0f,
-                (rand() % 2000 - 1000.0f) / 1000.0f,
-                (rand() % 2000 - 1000.0f) / 1000.0f
-                );
-
-        ParticlesContainer[particleIndex].speed = maindir;
 
 
-        // Very bad way to generate a random color
-        ParticlesContainer[particleIndex].r = 0.4;
-        ParticlesContainer[particleIndex].g = 0.7;
-        ParticlesContainer[particleIndex].b = 0.1;
-        ParticlesContainer[particleIndex].a = 0.3;
+    if (flag == false) {
+        for (int i = 0; i < MAXPARTICLES; i++) {
+            int particleIndex = i;
+            ParticlesContainer[particleIndex].life = 5.0f; // This particle will live 5 seconds.
+            float randz = randomFloat(-2, -4);
+            ParticlesContainer[particleIndex].pos = vec3(0.1, -0.4, randz);
+            ParticlesContainer[particleIndex].rot = randomFloat(0,360);
+            cout << randz << endl;
 
-        ParticlesContainer[particleIndex].size = (rand() % 1000) / 2000.0f + 0.1f;
+            float spread = 1.5f;
+            glm::vec3 maindir = glm::vec3(1.0f, 0.0f, 0.0f);
+            // Very bad way to generate a random direction; 
+            // See for instance http://stackoverflow.com/questions/5408276/python-uniform-spherical-distribution instead,
+            // combined with some user-controlled parameters (main direction, spread, etc)
+            glm::vec3 randomdir = glm::vec3(
+                    (rand() % 2000 - 1000.0f) / 1000.0f,
+                    (rand() % 2000 - 1000.0f) / 1000.0f,
+                    (rand() % 2000 - 1000.0f) / 1000.0f
+                    );
+
+            ParticlesContainer[particleIndex].speed = maindir;
+
+
+            // Very bad way to generate a random color
+            ParticlesContainer[particleIndex].r = 0.4;
+            ParticlesContainer[particleIndex].g = 0.7;
+            ParticlesContainer[particleIndex].b = 0.1;
+            ParticlesContainer[particleIndex].a = 0.3;
+
+            ParticlesContainer[particleIndex].size = (rand() % 1000) / 2000.0f + 0.1f;
+
+        }
+        flag =true;
         
     }
+    
+
 
     static float rot = 0.0f;
-    rot += 3.0f;
+    rot += 2.0f;
     if (rot >= 360.0f)
         rot = 0.0f;
     // Simulate all particles
@@ -186,8 +192,8 @@ void ParticleManager::update(double delta, vec3 cameraPosition) {
                 p.speed += glm::vec3(0.0f, -9.81f, 0.0f) * (float) delta * 0.5f;
                 //p.pos += p.speed * (float) delta;
 
-                p.pos.x = p.pos.x + 0.3f * sin(rot * 3.14 / 180);
-                p.pos.y = p.pos.y + 0.3f * cos(rot * 3.14 / 180);
+                p.pos.x = p.pos.x + 0.01f * sin(rot * 3.14 / 180);
+                p.pos.y = p.pos.y + 0.01f * cos(rot * 3.14 / 180);
                 cout << rot << endl;
                 //p.pos.y = sin(rot*3.14/180);
 
