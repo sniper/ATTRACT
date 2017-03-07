@@ -39,6 +39,7 @@
 #include "FmodManager.hpp"
 #include "VfcManager.hpp"
 #include "SpaceShipPart.hpp"
+#include "Skybox.hpp"
 #include <fstream>
 
 #include "GuiManager.hpp"
@@ -207,6 +208,17 @@ void GameManager::initScene() {
     temp->fitToUnitBox();
     temp->init();
     shapes.insert(make_pair("cylinder", temp));
+    
+    temp = make_shared<Shape>();
+    temp->loadMesh(RESOURCE_DIR + "sphere.obj", RESOURCE_DIR);
+    temp->fitToUnitBox();
+    temp->init();
+    shapes.insert(make_pair("sphere", temp));
+    
+    //
+    // Make Skybox
+    //
+    skybox = make_shared<Skybox>(RESOURCE_DIR, shapes["sphere"]);
 
     //lightPos = vec4(0.0f, 10.0f, 0.0f, 1.0f);
     lightIntensity = 0.6f;
@@ -469,6 +481,8 @@ void GameManager::renderGame(int fps) {
         camera->applyProjectionMatrix(P);
         V->pushMatrix();
         camera->applyViewMatrix(V);
+        
+        skybox->render(P, V);
 
         lightPos = vec4(camera->getPosition(), 1.0);
         vec4 l = V->topMatrix() * lightPos;
@@ -551,8 +565,9 @@ void GameManager::renderGame(int fps) {
         glEnable(GL_DEPTH_TEST);
         program->unbind();
 
+        psystem->draw(V->topMatrix() , P->topMatrix(), 0);
+        
         if (bullet->getDebugFlag()) {
-            psystem->draw(V->topMatrix() , P->topMatrix(), 0);
             bullet->renderDebug(P->topMatrix(), V->topMatrix());
         }
 

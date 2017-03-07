@@ -29,6 +29,7 @@ class VfcManager;
 class FmodManager;
 class SpaceShipPart;
 class ParticleManager;
+class Skybox;
 
 class GuiManager;
 
@@ -109,6 +110,8 @@ private:
     std::map<std::string, std::shared_ptr<Shape>> shapes;
 
     std::shared_ptr<SpaceShipPart> spaceShipPart;
+    
+    std::shared_ptr<Skybox> skybox;
 
     glm::vec4 lightPos;
     float lightIntensity;
