@@ -203,8 +203,10 @@ void BVH::buildBranch(int leftIndex, int rightIndex, BVHNode *node, int depth)
         left.nodeBB = getAABBForSection(leftIndex, splitIndex);
         right.nodeBB = getAABBForSection(splitIndex, rightIndex);
         // Push left and right into nodeList
-        nodeList.insert(nodeList.begin()+node->index, left);
-        nodeList.insert(nodeList.begin()+node->index+1, right);
+//        nodeList.insert(nodeList.begin()+node->index, left);
+//        nodeList.insert(nodeList.begin()+node->index+1, right);
+        nodeList.push_back(left);
+        nodeList.push_back(right);
         
         // Build for left and right nodes.
         try {
