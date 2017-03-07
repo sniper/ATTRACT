@@ -50,6 +50,7 @@ public:
     glm::vec3 getPosition() const {return position;}
     glm::vec3 getDirection() const {return direction;}
     glm::vec3 getScale() const {return scale;}
+    glm::vec3 setScale(glm::vec3 in){ scale = in;}
 protected:
     glm::vec3 position;
     glm::vec3 oldPosition;
