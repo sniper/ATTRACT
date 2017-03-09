@@ -30,6 +30,7 @@ class FmodManager;
 class SpaceShipPart;
 class ParticleManager;
 class Skybox;
+class MatrixStack;
 
 class GuiManager;
 
@@ -75,7 +76,7 @@ private:
                                 std::shared_ptr<Material> magnetSurface,
                                 std::shared_ptr<Material> spacePart);
     bool toBool(std::string s);
-
+    void drawScene(std::shared_ptr<Program> shader, std::shared_ptr<MatrixStack> P, std::shared_ptr<MatrixStack> V);
 
 
     GLFWwindow *window;

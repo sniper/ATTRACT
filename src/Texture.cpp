@@ -206,7 +206,6 @@ void Texture::initBMP() {
     glBindTexture(GL_TEXTURE_2D, 0);
     // Free image, since the data is now on the GPU
     free(image0);
-    cout << "WHOO" << endl;
 }
 
 #define FOURCC_DXT1 0x31545844 // Equivalent to "DXT1" in ASCII
@@ -299,7 +298,6 @@ void Texture::loadDDS(const char * imagepath) {
     }
 
     free(buffer);
-    cout << "herezzzz" << endl;
     tid = textureID;
 
 
