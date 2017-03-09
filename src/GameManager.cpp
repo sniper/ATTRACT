@@ -220,19 +220,19 @@ void GameManager::initScene() {
     shipPartProgram->addUniform("diffuseTex");
     shipPartProgram->addUniform("specularTex");
     shipPartProgram->addUniform("lightPos");
-    //    shipPartProgram->addUniform("viewPos");
-    //    shipPartProgram->addUniform("shadowDepth");
-    //    shipPartProgram->addUniform("LS");
+    shipPartProgram->addUniform("viewPos");
+    shipPartProgram->addUniform("shadowDepth");
+    shipPartProgram->addUniform("LS");
 
     shipPartColorTexture = make_shared<Texture>();
     shipPartColorTexture->setFilename(RESOURCE_DIR + "shipPartColor.jpg");
     shipPartColorTexture->init();
-    shipPartColorTexture->setUnit(2);
+    shipPartColorTexture->setUnit(0);
     shipPartColorTexture->setWrapModes(GL_REPEAT, GL_REPEAT);
     shipPartSpecularTexture = make_shared<Texture>();
     shipPartSpecularTexture->setFilename(RESOURCE_DIR + "shipPartSpecular.jpg");
     shipPartSpecularTexture->init();
-    shipPartSpecularTexture->setUnit(3);
+    shipPartSpecularTexture->setUnit(1);
     shipPartSpecularTexture->setWrapModes(GL_REPEAT, GL_REPEAT);
 
     //
@@ -567,6 +567,34 @@ void GameManager::drawScene(shared_ptr<Program> shader, shared_ptr<MatrixStack> 
     }
 }
 
+void GameManager::drawShipPart(shared_ptr<Program> shader, shared_ptr<MatrixStack> P,
+                               shared_ptr<MatrixStack> V)
+{
+    // Draw ship part
+    shader->bind();
+    glActiveTexture(GL_TEXTURE0 + 3);
+    glBindTexture(GL_TEXTURE_2D, depthMap);
+    glUniform1i(shader->getUniform("shadowDepth"), 3);
+    GLSL::checkError(GET_FILE_LINE);
+    glUniformMatrix4fv(shader->getUniform("LS"), 1, GL_FALSE, value_ptr(LSpace));
+    GLSL::checkError(GET_FILE_LINE);
+    shipPartColorTexture->bind(shader->getUniform("diffuseTex"));
+    GLSL::checkError(GET_FILE_LINE);
+    shipPartSpecularTexture->bind(shader->getUniform("specularTex"));
+    glUniformMatrix4fv(shader->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
+    GLSL::checkError(GET_FILE_LINE);
+    glUniformMatrix4fv(shader->getUniform("V"), 1, GL_FALSE, value_ptr(V->topMatrix()));
+    GLSL::checkError(GET_FILE_LINE);
+    glUniform3fv(shader->getUniform("lightPos"), 1, value_ptr(vec3(lightPos)));
+    GLSL::checkError(GET_FILE_LINE);
+    glUniform3fv(shader->getUniform("viewPos"), 1, value_ptr(camera->getPosition()));
+    GLSL::checkError(GET_FILE_LINE);
+    spaceShipPart->draw(shader);
+    shipPartSpecularTexture->unbind();
+    shipPartColorTexture->unbind();
+    shader->unbind();
+}
+
 mat4 SetOrthoMatrix() {
     mat4 OP = glm::ortho(-30.0, 30.0, -30.0, 30.0, 0.1, 50.0);
     return OP;
@@ -639,6 +667,7 @@ void GameManager::renderGame(int fps) {
             glUniformMatrix4fv(DepthProg->getUniform("LS"), 1, GL_FALSE, value_ptr(LSpace));
             
             drawScene(DepthProg, P, V);
+            drawShipPart(DepthProg, P, V);
             DepthProg->unbind();
             //glCullFace(GL_BACK);
             
@@ -652,20 +681,22 @@ void GameManager::renderGame(int fps) {
         
         if (SHADOW) {
             drawScene(skyscraperProgram, P, V);
+            drawShipPart(shipPartProgram, P, V);
         }
         else {
-            // Draw ship part
-            shipPartProgram->bind();
-            shipPartColorTexture->bind(shipPartProgram->getUniform("diffuseTex"));
-            shipPartSpecularTexture->bind(shipPartProgram->getUniform("specularTex"));
-            glUniformMatrix4fv(shipPartProgram->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
-            glUniformMatrix4fv(shipPartProgram->getUniform("V"), 1, GL_FALSE, value_ptr(V->topMatrix()));
-            glUniform4fv(shipPartProgram->getUniform("lightPos"), 1, value_ptr(lightPos));
-            spaceShipPart->draw(shipPartProgram);
-            shipPartSpecularTexture->unbind();
-            shipPartColorTexture->unbind();
-            shipPartProgram->unbind();
+//            // Draw ship part
+//            shipPartProgram->bind();
+//            shipPartColorTexture->bind(shipPartProgram->getUniform("diffuseTex"));
+//            shipPartSpecularTexture->bind(shipPartProgram->getUniform("specularTex"));
+//            glUniformMatrix4fv(shipPartProgram->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
+//            glUniformMatrix4fv(shipPartProgram->getUniform("V"), 1, GL_FALSE, value_ptr(V->topMatrix()));
+//            glUniform4fv(shipPartProgram->getUniform("lightPos"), 1, value_ptr(lightPos));
+//            spaceShipPart->draw(shipPartProgram);
+//            shipPartSpecularTexture->unbind();
+//            shipPartColorTexture->unbind();
+//            shipPartProgram->unbind();
             
+            drawShipPart(shipPartProgram, P, V);
             drawScene(skyscraperProgram, P, V);
             
             //        vfc->extractVFPlanes(P->topMatrix(), V->topMatrix());
