@@ -26,16 +26,16 @@ using namespace glm;
 struct BVH::BVHNode
 {
     shared_ptr<AABoundingBox> nodeBB;   // the bounding box for the node.
-                                        // If a leaf, set to nullptr.
+    // If a leaf, set to nullptr.
     bool leaf;
     unsigned int numObjs;
     unsigned int index; // if leaf, index is the first obj in objs vector.
-                        // if !leaf, index is left child node.
+    // if !leaf, index is left child node.
 };
 
 struct BVH::StackItem
 {
-    BVHNode *node;
+    shared_ptr<BVHNode> node;
     float dist;
 };
 
@@ -51,23 +51,23 @@ BVH::~BVH()
 
 void BVH::buildTree(const vector<shared_ptr<GameObject>> &objects)
 {
-    BVHNode root;
+    shared_ptr<BVHNode> root = make_shared<BVHNode>();
     
     // Copy the objects so that we can manipulate order.
     objs = vector<shared_ptr<GameObject>>(objects);
-    nodeList = vector<BVHNode>();
+    nodeList = vector<shared_ptr<BVHNode>>();
     
-    root.nodeBB = getAABBForSection(0, objs.size());
+    root->nodeBB = getAABBForSection(0, objs.size());
     
-    if (root.nodeBB) {
-        nodeList.insert(nodeList.begin(), root);
-        buildBranch(0, objs.size(), &nodeList.at(0), 0);
+    if (root->nodeBB) {
+        nodeList.push_back(root);
+        buildBranch(0, objs.size(), nodeList.at(0), 0);
     }
 }
 
 shared_ptr<GameObject> BVH::findClosestHitObject(vec3 &start, vec3 &end)
 {
-    BVHNode curNode = nodeList.at(0);
+    shared_ptr<BVHNode> curNode = nodeList.at(0);
     shared_ptr<GameObject> closestHit = nullptr;
     float closestDist = numeric_limits<float>::max();
     stack<StackItem> nodeStack;
@@ -75,19 +75,19 @@ shared_ptr<GameObject> BVH::findClosestHitObject(vec3 &start, vec3 &end)
     
     // If the node list is empty or if the ray isn't intersecting the world AABB,
     // then there are no objects intersected by the ray.
-    if (!nodeList.size() || !curNode.nodeBB->isIntersectingWithRay(start, end,
-                                                                   nullptr)) {
+    if (!nodeList.size() || !curNode->nodeBB->isIntersectingWithRay(start, end,
+                                                                    nullptr)) {
         return nullptr;
     }
     
     while (1) {
-        if (!curNode.leaf) {
+        if (!curNode->leaf) {
             vec3 leftIntersect, rightIntersect;
             
-            bool leftHit = nodeList.at(curNode.index).nodeBB->isIntersectingWithRay(start, end,
-                                                                                    &leftIntersect);
-            bool rightHit = nodeList.at(curNode.index+1).nodeBB->isIntersectingWithRay(start, end,
-                                                                                       &rightIntersect);
+            bool leftHit = nodeList.at(curNode->index)->nodeBB->isIntersectingWithRay(start, end,
+                                                                                      &leftIntersect);
+            bool rightHit = nodeList.at(curNode->index+1)->nodeBB->isIntersectingWithRay(start, end,
+                                                                                         &rightIntersect);
             
             if (leftHit && rightHit) {
                 float leftDist = Calculations::findDistance(start, leftIntersect);
@@ -96,35 +96,35 @@ shared_ptr<GameObject> BVH::findClosestHitObject(vec3 &start, vec3 &end)
                 // If the left node is closer, explore that node first. Store the
                 // farther node (right node) on the stack to check later.
                 if (leftDist < rightDist) {
-                    si.node = &nodeList.at(curNode.index+1);
+                    si.node = nodeList.at(curNode->index+1);
                     si.dist = rightDist;
                     nodeStack.push(si);
-                    curNode = nodeList.at(curNode.index);
+                    curNode = nodeList.at(curNode->index);
                     continue;
                 }
                 // If the right node is closer, explore that node first. Store the
                 // farther node (left node) on the stack to check later.
                 else {
-                    si.node = &nodeList.at(curNode.index);
+                    si.node = nodeList.at(curNode->index);
                     si.dist = leftDist;
                     nodeStack.push(si);
-                    curNode = nodeList.at(curNode.index+1);
+                    curNode = nodeList.at(curNode->index+1);
                     continue;
                 }
             }
             else if (leftHit) {
-                curNode = nodeList.at(curNode.index);
+                curNode = nodeList.at(curNode->index);
                 continue;
             }
             else if (rightHit) {
-                curNode = nodeList.at(curNode.index+1);
+                curNode = nodeList.at(curNode->index+1);
                 continue;
             }
         }
         else {
             // Testing every object contained in the leaf node for an intersection.
             // Keep track of the intersection if it is the closest so far.
-            for (int i = curNode.index; i < curNode.index + curNode.numObjs; i++) {
+            for (int i = curNode->index; i < curNode->index + curNode->numObjs; i++) {
                 vec3 tempIntersect;
                 float tempDist;
                 if (objs.at(i)->isIntersectingWithLineSegment(start, end,
@@ -139,27 +139,28 @@ shared_ptr<GameObject> BVH::findClosestHitObject(vec3 &start, vec3 &end)
         }
         
         /* TODO: Try to make this work: it's supposed to prune the stack if
-         the ray intersects that AABB at a farther distance than the current 
+         the ray intersects that AABB at a farther distance than the current
          closest distance. For some reason it's messing everything up. */
-//        while (!nodeStack.empty() && nodeStack.top().dist > closestDist) {
-//            nodeStack.pop();
-//        }
+        //        while (!nodeStack.empty() && nodeStack.top().dist > closestDist) {
+        //            nodeStack.pop();
+        //        }
         
         if (nodeStack.empty()) {
             return closestHit;
         }
         else {
-            curNode = *(nodeStack.top().node);
+            curNode = nodeStack.top().node;
             nodeStack.pop();
         }
     }
 }
 
-void BVH::buildBranch(int leftIndex, int rightIndex, BVHNode *node, int depth)
+void BVH::buildBranch(int leftIndex, int rightIndex, shared_ptr<BVHNode> node, int depth)
 {
     int axis, splitIndex;
     vec3 mins, maxes;
-    BVHNode left, right;
+    shared_ptr<BVHNode> left = make_shared<BVHNode>(),
+    right = make_shared<BVHNode>();
     
     if (rightIndex-leftIndex <= THRESHOLD) {
         node->leaf = true;
@@ -200,22 +201,30 @@ void BVH::buildBranch(int leftIndex, int rightIndex, BVHNode *node, int depth)
         node->numObjs = 0;
         
         // Get AABBs for the children nodes.
-        left.nodeBB = getAABBForSection(leftIndex, splitIndex);
-        right.nodeBB = getAABBForSection(splitIndex, rightIndex);
+        left->nodeBB = getAABBForSection(leftIndex, splitIndex);
+        right->nodeBB = getAABBForSection(splitIndex, rightIndex);
         // Push left and right into nodeList
-//        nodeList.insert(nodeList.begin()+node->index, left);
-//        nodeList.insert(nodeList.begin()+node->index+1, right);
+        //        nodeList.insert(nodeList.begin()+node->index, left);
+        //        nodeList.insert(nodeList.begin()+node->index+1, right);
         nodeList.push_back(left);
         nodeList.push_back(right);
         
         // Build for left and right nodes.
-        try {
-            buildBranch(leftIndex, splitIndex, &nodeList.at(node->index), depth+1);
-            buildBranch(splitIndex, rightIndex, &nodeList.at(node->index + 1), depth+1);
+        if (node->index < nodeList.size()) {
+            buildBranch(leftIndex, splitIndex, nodeList.at(node->index), depth+1);
         }
-        catch (int e) {
-            cerr << "Caught out of bounds error; rebuilding tree" << endl;
-            buildTree(objs);
+        else {
+            cout << "Trying to access out of left vector range!" << endl;
+            cout << "Index is " + to_string(node->index) << endl;
+            cout << "Size is " + to_string(nodeList.size()) << endl;
+        }
+        if (node->index + 1 < nodeList.size()) {
+            buildBranch(splitIndex, rightIndex, nodeList.at(node->index + 1), depth+1);
+        }
+        else {
+            cout << "Trying to access out of right vector range!" << endl;
+            cout << "Index is " + to_string(node->index + 1) << endl;
+            cout << "Size is " + to_string(nodeList.size()) << endl;
         }
     }
 }
@@ -273,7 +282,7 @@ void BVH::printTree()
     }
 }
 
-void BVH::printNode(BVHNode node, string indent, bool last)
+void BVH::printNode(shared_ptr<BVHNode> node, string indent, bool last)
 {
     string xCoord, yCoord, zCoord;
     
@@ -290,28 +299,28 @@ void BVH::printNode(BVHNode node, string indent, bool last)
     
     cout << "Node" << endl;
     
-    if (node.leaf) {
-        for (int i = 0; i < node.numObjs; i++) {
+    if (node->leaf) {
+        for (int i = 0; i < node->numObjs; i++) {
             cout << indent;
             
-            if (i == node.numObjs - 1) {
+            if (i == node->numObjs - 1) {
                 cout << "\\-";
             }
             else {
                 cout << "|-";
             }
             
-            xCoord = to_string(objs.at(node.index + i)->getPosition().x);
+            xCoord = to_string(objs.at(node->index + i)->getPosition().x);
             xCoord.erase(xCoord.find_last_not_of('0') + 1, string::npos);
             if (xCoord[xCoord.size()-1] == '.') {
                 xCoord.append("0");
             }
-            yCoord = to_string(objs.at(node.index + i)->getPosition().y);
+            yCoord = to_string(objs.at(node->index + i)->getPosition().y);
             yCoord.erase(yCoord.find_last_not_of('0') + 1, string::npos);
             if (yCoord[yCoord.size()-1] == '.') {
                 yCoord.append("0");
             }
-            zCoord = to_string(objs.at(node.index + i)->getPosition().z);
+            zCoord = to_string(objs.at(node->index + i)->getPosition().z);
             zCoord.erase(zCoord.find_last_not_of('0') + 1, string::npos);
             if (zCoord[zCoord.size()-1] == '.') {
                 zCoord.append("0");
@@ -321,8 +330,8 @@ void BVH::printNode(BVHNode node, string indent, bool last)
         }
     }
     else {
-        printNode(nodeList.at(node.index), indent, false);
-        printNode(nodeList.at(node.index+1), indent, true);
+        printNode(nodeList.at(node->index), indent, false);
+        printNode(nodeList.at(node->index+1), indent, true);
     }
 }
 

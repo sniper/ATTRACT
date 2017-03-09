@@ -18,12 +18,14 @@ Shape::Shape() :
 eleBufID(0),
 posBufID(0),
 norBufID(0),
-texBufID(0) {
-
+texBufID(0),
+tangentBufID(0),
+bitangentBufID(0) {
+    
 }
 
 Shape::~Shape() {
-
+    
 }
 
 void Shape::loadMesh(const string &meshName, const string &resourceDir) {
@@ -45,6 +47,8 @@ void Shape::loadMesh(const string &meshName, const string &resourceDir) {
         posBuf = shapes[0].mesh.positions;
         norBuf = shapes[0].mesh.normals;
         texBuf = shapes[0].mesh.texcoords;
+        tangentBuf = shapes[0].mesh.tangents;
+        bitangentBuf = shapes[0].mesh.bitangents;
         tempEleBuf = shapes[0].mesh.indices;
         matIDBuf = shapes[0].mesh.material_ids;
         
@@ -59,12 +63,13 @@ void Shape::loadMesh(const string &meshName, const string &resourceDir) {
                                        objMaterials[i].specular[1],
                                        objMaterials[i].specular[2]));
             diffuseTexNameBuf.push_back(objMaterials.at(i).diffuse_texname);
+            normalTexNameBuf.push_back(objMaterials.at(i).bump_texname);
         }
         
         if (matIDBuf[0] != -1) {
             int startBuf = 0, endBuf = 0;
             int oldMatID = matIDBuf[0];
-    
+            
             while (endBuf != matIDBuf.size() + 1) {
                 while (endBuf != matIDBuf.size() + 1 &&
                        matIDBuf[endBuf] == oldMatID) {
@@ -115,7 +120,7 @@ void Shape::fitToUnitBox() {
 }
 
 void Shape::init() {
-
+    
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
     
@@ -123,21 +128,35 @@ void Shape::init() {
     glGenBuffers(1, &posBufID);
     glBindBuffer(GL_ARRAY_BUFFER, posBufID);
     glBufferData(GL_ARRAY_BUFFER, posBuf.size() * sizeof (float), &posBuf[0], GL_STATIC_DRAW);
-
+    
     // Send the normal array to the GPU
     if (!norBuf.empty()) {
         glGenBuffers(1, &norBufID);
         glBindBuffer(GL_ARRAY_BUFFER, norBufID);
         glBufferData(GL_ARRAY_BUFFER, norBuf.size() * sizeof (float), &norBuf[0], GL_STATIC_DRAW);
     }
-
+    
     // Send the texture array to the GPU
     if (!texBuf.empty()) {
         glGenBuffers(1, &texBufID);
         glBindBuffer(GL_ARRAY_BUFFER, texBufID);
         glBufferData(GL_ARRAY_BUFFER, texBuf.size() * sizeof (float), &texBuf[0], GL_STATIC_DRAW);
     }
-
+    
+    // Send the tangent array to the GPU
+    if (!tangentBuf.empty()) {
+        glGenBuffers(1, &tangentBufID);
+        glBindBuffer(GL_ARRAY_BUFFER, tangentBufID);
+        glBufferData(GL_ARRAY_BUFFER, tangentBuf.size() * sizeof (float), &tangentBuf[0], GL_STATIC_DRAW);
+    }
+    
+    // Send the bitangent array to the GPU
+    if (!bitangentBuf.empty()) {
+        glGenBuffers(1, &bitangentBufID);
+        glBindBuffer(GL_ARRAY_BUFFER, bitangentBufID);
+        glBufferData(GL_ARRAY_BUFFER, bitangentBuf.size() * sizeof (float), &bitangentBuf[0], GL_STATIC_DRAW);
+    }
+    
     // Send the element arrays to the GPU
     // Also sets up textures if it has them
     unsigned tempBufID;
@@ -152,22 +171,30 @@ void Shape::init() {
             tempTex = make_shared<Texture>();
             tempTex->setFilename(RESOURCE_DIR + diffuseTexNameBuf[i]);
             tempTex->init();
-            tempTex->setUnit(i);
+            tempTex->setUnit(0);
             tempTex->setWrapModes(GL_REPEAT, GL_REPEAT);
             diffuseTextures.push_back(tempTex);
         }
+        
+        if (i < normalTexNameBuf.size() && normalTexNameBuf[i] != "") {
+            tempTex = make_shared<Texture>();
+            tempTex->setFilename(RESOURCE_DIR + normalTexNameBuf[i]);
+            tempTex->init();
+            tempTex->setUnit(1);
+            tempTex->setWrapModes(GL_REPEAT, GL_REPEAT);
+            normalTextures.push_back(tempTex);
+        }
     }
-
+    
     // Unbind the arrays
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
+    
     GLSL::checkError(GET_FILE_LINE);
 }
 
 void Shape::draw(const shared_ptr<Program> prog) const {
     // Bind position buffer
-    GLSL::checkError(GET_FILE_LINE);
     int h_pos = prog->getAttribute("aPos");
     glEnableVertexAttribArray(h_pos);
     glBindBuffer(GL_ARRAY_BUFFER, posBufID);
@@ -182,13 +209,31 @@ void Shape::draw(const shared_ptr<Program> prog) const {
         glVertexAttribPointer(h_nor, 3, GL_FLOAT, GL_FALSE, 0, (const void *) 0);
     }
     GLSL::checkError(GET_FILE_LINE);
-
+    
     // Bind texcoords buffer
     int h_tex = prog->getAttribute("aTex");
     if (h_tex != -1 && texBufID != 0) {
         glEnableVertexAttribArray(h_tex);
         glBindBuffer(GL_ARRAY_BUFFER, texBufID);
         glVertexAttribPointer(h_tex, 2, GL_FLOAT, GL_FALSE, 0, (const void *) 0);
+    }
+    GLSL::checkError(GET_FILE_LINE);
+    
+    // Bind tangents buffer
+    int h_tangent = prog->getAttribute("aTangent");
+    if (h_tangent != -1 && tangentBufID != 0) {
+        glEnableVertexAttribArray(h_tangent);
+        glBindBuffer(GL_ARRAY_BUFFER, tangentBufID);
+        glVertexAttribPointer(h_tangent, 3, GL_FLOAT, GL_FALSE, 0, (const void *) 0);
+    }
+    GLSL::checkError(GET_FILE_LINE);
+    
+    // Bind bitangents buffer
+    int h_bitangent = prog->getAttribute("aBitangent");
+    if (h_bitangent != -1 && bitangentBufID != 0) {
+        glEnableVertexAttribArray(h_bitangent);
+        glBindBuffer(GL_ARRAY_BUFFER, bitangentBufID);
+        glVertexAttribPointer(h_bitangent, 3, GL_FLOAT, GL_FALSE, 0, (const void *) 0);
     }
     GLSL::checkError(GET_FILE_LINE);
     
@@ -208,14 +253,24 @@ void Shape::draw(const shared_ptr<Program> prog) const {
         if (i < diffuseTextures.size() && diffuseTexNameBuf[i] != "") {
             diffuseTextures[i]->bind(prog->getUniform("diffuseTex"));
         }
+        if (i < normalTextures.size() && normalTexNameBuf[i] != "") {
+            normalTextures[i]->bind(prog->getUniform("normalTex"));
+        }
         
         // Bind element buffer
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eleBufID[i]);
-
+        
         // Draw
         glDrawElements(GL_TRIANGLES, (int) eleBufs[i].size(), GL_UNSIGNED_INT, (const void *) 0);
+        
+        if (i < diffuseTextures.size() && diffuseTexNameBuf[i] != "") {
+            diffuseTextures[i]->unbind();
+        }
+        if (i < normalTextures.size() && normalTexNameBuf[i] != "") {
+            normalTextures[i]->unbind();
+        }
     }
-
+    
     // Disable and unbind
     if (h_tex != -1) {
         glDisableVertexAttribArray(h_tex);
@@ -223,9 +278,15 @@ void Shape::draw(const shared_ptr<Program> prog) const {
     if (h_nor != -1) {
         glDisableVertexAttribArray(h_nor);
     }
+    if (h_tangent != -1) {
+        glDisableVertexAttribArray(h_tangent);
+    }
+    if (h_bitangent != -1) {
+        glDisableVertexAttribArray(h_bitangent);
+    }
     glDisableVertexAttribArray(h_pos);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
+    
     GLSL::checkError(GET_FILE_LINE);
 }

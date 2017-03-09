@@ -3,7 +3,7 @@
 uniform sampler2D shadowDepth;
 uniform sampler2D diffuseTex;
 uniform sampler2D specularTex;
-uniform vec3 lightPos;
+uniform vec4 lightPos;
 
 in vec2 vTex;
 in vec4 fragPosInCam;
@@ -37,22 +37,11 @@ void main()
     vec3 ks = texture(specularTex, vTex).rgb;
     
     vec3 n = normalize(fragNorInCam.xyz);
-    vec3 l = normalize(lightPos - fragPosInCam.xyz);
+    vec3 l = normalize(lightPos.xyz - fragPosInCam.xyz);
     vec3 h = normalize(normalize(-fragPosInCam.xyz) + l);
     
+    vec3 ca = kd * 0.2;
     vec3 cd = kd * max(0, dot(l, n));
     vec3 cs = ks * pow(max(0, dot(h, n)), 50.0f);
-    
-    float Shade;
-    float amb = 0.3;
-    
-    Shade = TestShadow(fragPosInLight);
-    
-    vec4 actualColor = vec4(cd + cs, 1.0);
-    
-    color = vec4(Shade);
-    
-    //color = amb*actualColor + (1.0-Shade)*actualColor;
-    
-    //color = vec4(cd + cs, 1.0);
+    color = vec4(ca + cd + cs, 1.0);
 }
