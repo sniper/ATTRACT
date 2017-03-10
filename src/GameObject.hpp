@@ -49,12 +49,17 @@ public:
     virtual bool isMagnetic() const {return false;}
     glm::vec3 getPosition() const {return position;}
     glm::vec3 getDirection() const {return direction;}
+    void setDirection(glm::vec3 in) {direction=in;}
     glm::vec3 getScale() const {return scale;}
-    glm::vec3 setScale(glm::vec3 in){ scale = in;}
+    void setScale(glm::vec3 in){ scale = in;}
+    
+    float getYRot(){return yRot;}
+    void setYRot(float in){yRot = in;}
 protected:
     glm::vec3 position;
     glm::vec3 oldPosition;
     glm::vec3 direction;
+    float yRot;
     glm::vec3 scale;
     float velocity;
     std::shared_ptr<Shape> shape;

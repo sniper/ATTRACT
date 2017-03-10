@@ -18,6 +18,7 @@
 class Camera;
 class BulletManager;
 class GuiManager;
+class GameObject;
 
 class InputManager
 {
@@ -26,7 +27,7 @@ public:
     virtual ~InputManager();
     
     void setCamera(const std::shared_ptr<Camera> &newCamera) {camera = newCamera;}
-    State processGameInputs(std::shared_ptr<BulletManager> &bullet, std::shared_ptr<FmodManager> &fmod);
+    State processGameInputs(std::shared_ptr<BulletManager> &bullet, std::shared_ptr<FmodManager> &fmod, std::shared_ptr<GameObject> obj);
     State processMenuInputs(std::shared_ptr<GuiManager> &gui, std::shared_ptr<FmodManager> &fmod);
     State processPauseInputs(std::shared_ptr<GuiManager> &gui, std::shared_ptr<FmodManager> &fmod);
     State processDeathInputs(std::shared_ptr<GuiManager> &gui,std::shared_ptr<FmodManager> &fmod);

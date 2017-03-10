@@ -140,8 +140,8 @@ void ParticleManager::update(double delta, vec3 cameraPosition) {
         for (int i = 0; i < MAXPARTICLES; i++) {
             int particleIndex = i;
             ParticlesContainer[particleIndex].life = 5.0f; // This particle will live 5 seconds.
-            float randz = randomFloat(-2, -4);
-            ParticlesContainer[particleIndex].pos = vec3(0.4, -0.4, randz);
+            float randz = randomFloat(-1, -4);
+            ParticlesContainer[particleIndex].pos = vec3(0.3, -0.3, randz);
             ParticlesContainer[particleIndex].rot = randomFloat(0,360);
             
             cout << ParticlesContainer[particleIndex].rot << endl;
@@ -173,7 +173,7 @@ void ParticleManager::update(double delta, vec3 cameraPosition) {
         
     }
     
-
+    
 
     // Simulate all particles
     ParticlesCount = 0;
@@ -194,8 +194,7 @@ void ParticleManager::update(double delta, vec3 cameraPosition) {
                 p.pos.x = p.pos.x + 0.025f * sin(p.rot * 3.14 / 180);
                 p.pos.y = p.pos.y + 0.025f * cos(p.rot * 3.14 / 180);
                 p.rot +=8.0f;
-                if(p.rot >= 360)
-                    p.rot = 0;
+
                 //cout << rot << endl;
                 //p.pos.y = sin(rot*3.14/180);
 

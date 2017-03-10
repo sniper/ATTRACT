@@ -103,7 +103,7 @@ void Camera::interpretPressedKeys(const vector<char> &pressedKeys,
 
     /*debug stuff*/
     if (find(pressedKeys.begin(), pressedKeys.end(), 'p') != pressedKeys.end()) {
-        bullet->setDebugFlag(!bullet->getDebugFlag());
+        //bullet->setDebugFlag(!bullet->getDebugFlag());
 
     }
 

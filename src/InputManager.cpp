@@ -11,6 +11,7 @@
 
 #include "InputManager.hpp"
 #include "Camera.hpp"
+#include "GameObject.hpp"
 #include "Mouse.hpp"
 #include "Keyboard.hpp"
 #include "FmodManager.hpp"
@@ -27,7 +28,7 @@ InputManager::~InputManager() {
 }
 
 State InputManager::processGameInputs(shared_ptr<BulletManager> &bullet,
-        shared_ptr<FmodManager> &fmod) {
+        shared_ptr<FmodManager> &fmod, shared_ptr<GameObject> obj) {
     // Move mouse.
     camera->mouseMoved(Mouse::getMouseX(), Mouse::getMouseY());
 
@@ -65,6 +66,50 @@ State InputManager::processGameInputs(shared_ptr<BulletManager> &bullet,
         return PAUSE;
     }
 
+
+    //my stuff
+    if (Keyboard::isPressed(GLFW_KEY_U)) {
+        obj->setDirection(obj->getDirection() + vec3(0.01, 0, 0));
+    }
+    if (Keyboard::isPressed(GLFW_KEY_I)) {
+        obj->setDirection(obj->getDirection() + vec3(-0.01, 0, 0));
+    }
+    if (Keyboard::isPressed(GLFW_KEY_J)) {
+        //obj->setDirection(obj->getDirection()+vec3(0,0.01,0));
+        obj->setYRot(obj->getYRot() + 0.01);
+    }
+    if (Keyboard::isPressed(GLFW_KEY_K)) {
+        //obj->setDirection(obj->getDirection() + vec3(0, -0.01, 0));
+        obj->setYRot(obj->getYRot() - 0.01);
+    }
+    if (Keyboard::isPressed(GLFW_KEY_N)) {
+        obj->setDirection(obj->getDirection() + vec3(0, 0, 0.001));
+    }
+    if (Keyboard::isPressed(GLFW_KEY_M)) {
+        obj->setDirection(obj->getDirection() + vec3(0, 0, -0.001));
+    }
+    
+    
+    if (Keyboard::isPressed(GLFW_KEY_T)) {
+        obj->setPosition(obj->getPosition() + vec3(0.01, 0, 0));
+    }
+    if (Keyboard::isPressed(GLFW_KEY_Y)) {
+        obj->setPosition(obj->getPosition() + vec3(-0.01, 0, 0));
+    }
+    if (Keyboard::isPressed(GLFW_KEY_G)) {
+        obj->setPosition(obj->getPosition()+vec3(0,0.01,0));
+    }
+    if (Keyboard::isPressed(GLFW_KEY_H)) {
+        obj->setPosition(obj->getPosition() + vec3(0, -0.01, 0));
+    }
+    if (Keyboard::isPressed(GLFW_KEY_V)) {
+        obj->setPosition(obj->getPosition() + vec3(0, 0, 0.01));
+    }
+    if (Keyboard::isPressed(GLFW_KEY_B)) {
+        obj->setPosition(obj->getPosition() + vec3(0, 0, -0.01));
+    }
+    printf("dir: %f %f %f yrot: %f\n", obj->getDirection().x, obj->getDirection().y, obj->getDirection().z, obj->getYRot());
+    printf("pos: %f %f %f\n", obj->getPosition().x, obj->getPosition().y, obj->getPosition().z);
     camera->interpretPressedKeys(pressedKeys, bullet, fmod);
     return GAME;
 }

@@ -238,11 +238,13 @@ void GameManager::initScene() {
     //bullet->createPlane("ground", 0, 0, 0);
 
     shared_ptr<Material> material = make_shared<Material>(vec3(0.2f, 0.2f, 0.2f), vec3(0.0f, 0.5f, 0.5f), vec3(1.0f, 0.9f, 0.8f), 200.0f);
-    magnetGun = make_shared<GameObject>(vec3(0.4, -0.2, -1), vec3(0.6, 0, -0.2), vec3(1, 1, 1), 0, shapes["magnetGun"], nullptr);
+    magnetGun = make_shared<GameObject>(vec3(0.42, -0.27, -1), vec3(0.62, 0, -0.109), vec3(1, 1, 1), 0, shapes["magnetGun"], nullptr);
     shared_ptr<Material> material2 = make_shared<Material>(vec3(1.0f, 0.65f, 0.0f), vec3(1.0f, 0.65f, 0.0f), vec3(1.0f, 0.65f, 0.0f), 200.0f);
-    magnetBeamOrange = make_shared<GameObject>(vec3(0.4, -0.4, -3), vec3(0.1, 0, 0), vec3(0.2, 0.2, 3.5), 0, shapes["cylinder"], material2);
+    magnetBeamOrange = make_shared<GameObject>(vec3(0.18, -0.15, -3), vec3(0.1, 0, -0.01), vec3(0.2, 0.2, 3.5), 0, shapes["cylinder"], material2);
+    magnetBeamOrange->setYRot(-0.08f);
     shared_ptr<Material> material3 = make_shared<Material>(vec3(0.5f, 1.0f, 1.0f), vec3(0.5f, 1.0f, 1.0f), vec3(0.5f, 0.5f, 1.0f), 200.0f);
-    magnetBeamBlue = make_shared<GameObject>(vec3(0.4, -0.4, -3), vec3(0.1, 0, 0), vec3(0.2, 0.2, 3.5), 0, shapes["cylinder"], material3);
+    magnetBeamBlue = make_shared<GameObject>(vec3(0.18, -0.15, -3), vec3(0.1, 0, -0.01), vec3(0.2, 0.2, 3.5), 0, shapes["cylinder"], material3);
+    magnetBeamBlue->setYRot(-0.08f);
 }
 
 bool GameManager::toBool(string s) {
@@ -382,7 +384,7 @@ State GameManager::processInputs() {
     if (gameState == GAME) {
         if (!fmod->isPlaying("game"))
             fmod->playSound("game", true);
-        gameState = inputManager->processGameInputs(bullet, fmod);
+        gameState = inputManager->processGameInputs(bullet, fmod, magnetGun);
     } else if (gameState == PAUSE) {
         gameState = inputManager->processPauseInputs(gui, fmod);
     } else if (gameState == MENU) {
@@ -556,7 +558,9 @@ void GameManager::renderGame(int fps) {
         //
         //            }
         //        }
-
+        if(gameState != PAUSE) {
+            gui->drawHUD(camera->isLookingAtMagnet(), Mouse::isLeftMouseButtonPressed(), Mouse::isRightMouseButtonPressed());
+        }
         // Render magnet gun
         program->bind();
         glUniformMatrix4fv(program->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
@@ -571,6 +575,7 @@ void GameManager::renderGame(int fps) {
 
         if (drawBeam) {
             glEnable(GL_BLEND);
+            
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
             glUniform1f(program->getUniform("lightIntensity"), 0.9f);
             if (colorBeam == BLUE) {
@@ -604,9 +609,7 @@ void GameManager::renderGame(int fps) {
 
         if (gameState == PAUSE) {
             gui->drawPause(level);
-        } else {
-            gui->drawHUD(camera->isLookingAtMagnet(), Mouse::isLeftMouseButtonPressed(), Mouse::isRightMouseButtonPressed());
-        }
+        } 
     }
 }
 
