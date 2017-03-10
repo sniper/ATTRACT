@@ -384,7 +384,7 @@ State GameManager::processInputs() {
     if (gameState == GAME) {
         if (!fmod->isPlaying("game"))
             fmod->playSound("game", true);
-        gameState = inputManager->processGameInputs(bullet, fmod, magnetGun);
+        gameState = inputManager->processGameInputs(bullet, fmod);
     } else if (gameState == PAUSE) {
         gameState = inputManager->processPauseInputs(gui, fmod);
     } else if (gameState == MENU) {
