@@ -44,7 +44,8 @@ public:
     
     virtual bool isCuboid() const {return false;}
     
-    void setPosition(glm::vec3 pos);
+    void setPosition(glm::vec3 pos) {position = pos;}
+    void setDirection(glm::vec3 dir) {direction = dir;}
     
     virtual bool isMagnetic() const {return false;}
     glm::vec3 getPosition() const {return position;}

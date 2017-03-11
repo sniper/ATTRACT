@@ -33,9 +33,6 @@ void main()
         vTex = vec2(aTex.x * scalingFactor.x, aTex.y * scalingFactor.y)/5;
     }
     
-    //    fragPosInCam = V * M * aPos;
-    //    fragNorInCam = V * M * vec4(aNor, 0);
-    
     vec3 T = normalize(vec3(V * M * vec4(aTangent, 0.0)));
     vec3 B = normalize(vec3(V * M * vec4(aBitangent, 0.0)));
     vec3 N = normalize(vec3(V * M * vec4(aNor, 0.0)));
@@ -44,7 +41,9 @@ void main()
     /* frag position in world */
     fragPos = vec3(M * aPos);
     /* frag normal in world */
-    fragNor = transpose(inverse(mat3(M))) * aNor;
+    fragNor = vec3(M * vec4(aNor, 0.0));
     /* frag pos in light space */
     fragPosLS = LS * vec4(fragPos, 1.0);
+    /* frag position in view */
+    fragPos = vec3(V * M * aPos);
 }

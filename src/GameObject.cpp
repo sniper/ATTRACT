@@ -78,11 +78,6 @@ void GameObject::update(float dt)
     position += direction * velocity * dt;
 }
 
-void GameObject::setPosition(vec3 pos)
-{
-    position = pos;
-}
-
 void GameObject::draw(const shared_ptr<Program> &prog)
 {
     if (material != nullptr) {

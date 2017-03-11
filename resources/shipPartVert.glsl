@@ -21,7 +21,7 @@ void main()
     /* frag position in world */
     fragPos = vec3(M * aPos);
     /* frag normal in world */
-    fragNor = transpose(inverse(mat3(M))) * aNor;
+    fragNor = vec3(M * vec4(aNor, 0.0));
     /* frag pos in light space */
     fragPosLS = LS * vec4(fragPos, 1.0);
 }

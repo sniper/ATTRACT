@@ -16,7 +16,7 @@ out vec4 FragColor;
 /* returns 1 if shadowed */
 /* called with the point projected into the light's coordinate space */
 float TestShadow(vec4 LSfPos) {
-    float bias = 0.004;
+    float bias = 0.02;
     
     // perspective divide isn't needed since we're using ortho projection, but
     // just in case it changes to persepective.
@@ -31,18 +31,6 @@ float TestShadow(vec4 LSfPos) {
     if (shift.x > 1.0 || shift.y > 1.0 || shift.x < 0.0 || shift.y < 0.0) {
         return -1.0;
     }
-    
-    //    float shadow = 0.0;
-    //    vec2 texelSize = 1.0 / textureSize(shadowMap, 0);
-    //    for(int x = -1; x <= 1; ++x)
-    //    {
-    //        for(int y = -1; y <= 1; ++y)
-    //        {
-    //            float pcfDepth = texture(shadowMap, projCoords.xy + vec2(x, y) * texelSize).r;
-    //            shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;
-    //        }
-    //    }
-    //    shadow /= 9.0;
     
     //3: compare to the current depth (.z) of the projected depth
     //4: return 1 if the point is shadowed
@@ -78,15 +66,7 @@ void main()
         FragColor = vec4(0.0, 1.0, 0.0, 1.0);
     }
     else {
-        //        if (shadow > 0.5) {
-        //            FragColor = vec4(0.0, 0.0, 1.0, 1.0);
-        //        }
-        //        else {
-        //            FragColor = vec4(1.0, 1.0, 0.0, 1.0);
-        //        }
-        //FragColor = vec4(1.0, 1.0, shadow, 1.0);
-        
-        vec3 lighting = (ambient + (1.0 - shadow) * (diffuse + specular)) * color;
+        vec3 lighting = ambient + ((1.0 - shadow) * (diffuse + specular)) * color;
         
         FragColor = vec4(lighting, 1.0f);
     }
