@@ -144,7 +144,7 @@ void ParticleManager::update(double delta, vec3 cameraPosition) {
             ParticlesContainer[particleIndex].pos = vec3(0.3, -0.3, randz);
             ParticlesContainer[particleIndex].rot = randomFloat(0,360);
             
-            cout << ParticlesContainer[particleIndex].rot << endl;
+            //cout << ParticlesContainer[particleIndex].rot << endl;
 
             float spread = 1.5f;
             glm::vec3 maindir = glm::vec3(1.0f, 0.0f, 0.0f);

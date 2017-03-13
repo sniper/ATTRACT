@@ -30,6 +30,8 @@ class FmodManager;
 class SpaceShipPart;
 class ParticleManager;
 class Skybox;
+class MatrixStack;
+class ShadowManager;
 
 class GuiManager;
 
@@ -72,10 +74,18 @@ private:
     void importLevel(std::string level);
     void parseCamera(std::string level);
     void parseObject(std::string level, std::shared_ptr<Material> greyBox,
-                                std::shared_ptr<Material> magnetSurface,
-                                std::shared_ptr<Material> spacePart);
+                     std::shared_ptr<Material> magnetSurface,
+                     std::shared_ptr<Material> spacePart);
     bool toBool(std::string s);
-
+    void drawScene(std::shared_ptr<MatrixStack> P,
+                   std::shared_ptr<MatrixStack> V,
+                   bool depthBufferPass);
+    void drawShipPart(std::shared_ptr<MatrixStack> P,
+                      std::shared_ptr<MatrixStack> V,
+                      bool depthBufferPass);
+    void drawMagnetGun(std::shared_ptr<MatrixStack> P,
+                       std::shared_ptr<MatrixStack> V,
+                       bool depthBufferPass);
 
 
     GLFWwindow *window;
@@ -85,6 +95,8 @@ private:
     std::shared_ptr<BulletManager> bullet;
     std::shared_ptr<VfcManager> vfc;
     std::shared_ptr<FmodManager> fmod;
+    std::shared_ptr<ShadowManager> shadowManager;
+    std::shared_ptr<InputManager> inputManager;
 
     std::shared_ptr<GuiManager> gui;
     std::shared_ptr<ParticleManager> psystem;
@@ -107,10 +119,10 @@ private:
     bool drawBeam;
     int colorBeam;
 
-    std::shared_ptr<InputManager> inputManager;
     std::shared_ptr<Camera> camera;
 
-    std::shared_ptr<Program> program, shipPartProgram, skyscraperProgram;
+    std::shared_ptr<Program> program, shipPartProgram, skyscraperProgram,
+        depthProg, depthDebugProg;
     std::shared_ptr<Texture> shipPartColorTexture, shipPartSpecularTexture,
         skyscraperColorTexture, skyscraperSpecularTexture;
     std::map<std::string, std::shared_ptr<Shape>> shapes;
@@ -121,6 +133,7 @@ private:
 
     glm::vec4 lightPos;
     float lightIntensity;
+    glm::mat4 LSpace;
 
 };
 

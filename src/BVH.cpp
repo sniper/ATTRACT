@@ -162,8 +162,6 @@ void BVH::buildBranch(int leftIndex, int rightIndex, shared_ptr<BVHNode> node, i
     shared_ptr<BVHNode> left = make_shared<BVHNode>(),
                         right = make_shared<BVHNode>();
     
-    cout << "Building new branch at depth " + to_string(depth) << endl;
-    
     if (rightIndex-leftIndex <= THRESHOLD) {
         node->leaf = true;
         node->index = leftIndex;

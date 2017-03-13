@@ -262,6 +262,13 @@ void Shape::draw(const shared_ptr<Program> prog) const {
 
         // Draw
         glDrawElements(GL_TRIANGLES, (int) eleBufs[i].size(), GL_UNSIGNED_INT, (const void *) 0);
+        
+        if (i < diffuseTextures.size() && diffuseTexNameBuf[i] != "") {
+            diffuseTextures[i]->unbind();
+        }
+        if (i < normalTextures.size() && normalTexNameBuf[i] != "") {
+            normalTextures[i]->unbind();
+        }
     }
 
     // Disable and unbind

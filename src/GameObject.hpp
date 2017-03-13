@@ -44,12 +44,12 @@ public:
     
     virtual bool isCuboid() const {return false;}
     
-    void setPosition(glm::vec3 pos);
+    void setPosition(glm::vec3 pos) {position = pos;}
+    void setDirection(glm::vec3 dir) {direction = dir;}
     
     virtual bool isMagnetic() const {return false;}
     glm::vec3 getPosition() const {return position;}
     glm::vec3 getDirection() const {return direction;}
-    void setDirection(glm::vec3 in) {direction=in;}
     glm::vec3 getScale() const {return scale;}
     void setScale(glm::vec3 in){ scale = in;}
     

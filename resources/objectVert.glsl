@@ -6,14 +6,19 @@ layout(location = 1) in vec3 aNor; // in object space
 uniform mat4 P;
 uniform mat4 V;
 uniform mat4 M;
+uniform mat4 LS;
 
-out vec4 fragPosInCam; // aPos in camera space
-out vec4 fragNorInCam; // aNor in camera space
+out vec3 fragPos;
+out vec3 fragNor;
+out vec4 fragPosLS;
 
 void main()
 {
     gl_Position = P * V * M * aPos;
-    fragPosInCam = V * M * aPos;
-    vec4 n = vec4(aNor, 0);
-    fragNorInCam = V * M * n;
+    /* frag position in world */
+    fragPos = vec3(M * aPos);
+    /* frag normal in world */
+    fragNor = vec3(M * vec4(aNor, 0.0));
+    /* frag pos in light space */
+    fragPosLS = LS * vec4(fragPos, 1.0);
 }
