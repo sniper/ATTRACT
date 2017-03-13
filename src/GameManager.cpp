@@ -75,8 +75,6 @@ colorBeam(ORANGE) {
     glfwSetKeyCallback(window, Keyboard::key_callback);
     // Sets cursor movement to unlimited.
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-    // Set cursor position callback.
-    glfwSetCursorPosCallback(window, Mouse::cursor_position_callback);
     // Set the mouse button callback.
     glfwSetMouseButtonCallback(window, Mouse::mouse_button_callback);
     // Set the window resize call back.
@@ -439,6 +437,14 @@ State GameManager::processInputs() {
             fmod->stopSound("menu");
         }
     }
+    
+    if (gameState == GAME) {
+        // Set cursor position callback.
+        glfwSetCursorPosCallback(window, Mouse::cursor_position_callback);
+    }
+    else {
+        glfwSetCursorPosCallback(window, NULL);
+    }
 
     return gameState;
 }
@@ -667,8 +673,6 @@ void GameManager::renderGame(int fps) {
         camera->applyProjectionMatrix(P);
         V->pushMatrix();
         camera->applyViewMatrix(V);
-        
-        skybox->render(P, V);
 
         /* BEGIN DEPTH MAP */
         shadowManager->bindFramebuffer();
@@ -691,9 +695,13 @@ void GameManager::renderGame(int fps) {
         // Clear framebuffer.
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
+        skybox->render(P, V);
         drawScene(P, V, false);
         drawShipPart(P, V, false);
         drawMagnetGun(P, V, false);
+        if (gameState != PAUSE) {
+            gui->drawHUD(camera->isLookingAtMagnet(), Mouse::isLeftMouseButtonPressed(), Mouse::isRightMouseButtonPressed());
+        }
         
         if (SHADOW_DEBUG) {
             glClear( GL_DEPTH_BUFFER_BIT);
