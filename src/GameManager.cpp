@@ -63,7 +63,7 @@ GameManager::GameManager(GLFWwindow *window, const string &resourceDir) :
 window(window),
 RESOURCE_DIR(resourceDir),
 gameState(MENU),
-level(1),
+level(0),
 drawBeam(false),
 colorBeam(ORANGE) {
     objIntervalCounter = 0.0f;
@@ -393,7 +393,7 @@ State GameManager::processInputs() {
             fmod->stopSound("game");
         if (!fmod->isPlaying("menu"))
             fmod->playSound("menu", true);
-        if (gameState == GAME) {
+        if (gameState == GAME || gameState == CUTSCENE) {
             fmod->stopSound("menu");
             importLevel(to_string(level));
         }
@@ -410,6 +410,8 @@ State GameManager::processInputs() {
         } else if (gameState == MENU) {
             fmod->stopSound("menu");
         }
+    } else if(gameState == CUTSCENE) {
+        gameState = inputManager->processCutsceneInputs(bullet, fmod);
     }
 
     return gameState;

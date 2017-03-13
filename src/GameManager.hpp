@@ -34,7 +34,7 @@ class Skybox;
 class GuiManager;
 
 enum State {
-    GAME, MENU, PAUSE, DEATH, WIN
+    GAME, MENU, PAUSE, DEATH, WIN, CUTSCENE
 };
 
 #define BLUE 1

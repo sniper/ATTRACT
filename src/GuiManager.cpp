@@ -116,7 +116,7 @@ State GuiManager::interpretMenuPressedKeys(vector<char> pressedKeys) {
         selectedName = "play";
     } else if (find(pressedKeys.begin(), pressedKeys.end(), '\n') != pressedKeys.end()) {
         if (selectedName == "play")
-            return GAME;
+            return CUTSCENE;
         else if (selectedName == "quit")
             exit(0);
     }
@@ -160,7 +160,7 @@ State GuiManager::interpretWinPressedKeys(std::vector<char> pressedKeys) {
     } else if (find(pressedKeys.begin(), pressedKeys.end(), '\n') != pressedKeys.end()) {
         if (selectedName == "quit")
             exit(0);
-        else if (selectedName == "nextlevel")
+        else if (selectedName == "nextlevel" || selectedName == "play")
             return GAME;
     }
     return WIN;

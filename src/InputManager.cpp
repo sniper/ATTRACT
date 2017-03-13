@@ -72,6 +72,13 @@ State InputManager::processGameInputs(shared_ptr<BulletManager> &bullet,
     return GAME;
 }
 
+State InputManager::processCutsceneInputs(shared_ptr<BulletManager> &bullet,
+        shared_ptr<FmodManager> &fmod) {
+    camera->mouseMoved(Mouse::getMouseX(), Mouse::getMouseY());
+    
+    return CUTSCENE;
+}
+
 State InputManager::processMenuInputs(shared_ptr<GuiManager> &gui,
         shared_ptr<FmodManager> &fmod) {
 
