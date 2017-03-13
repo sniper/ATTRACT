@@ -23,9 +23,9 @@ GameObject::GameObject() :
 position(vec3(0.0f, 0.0f, 0.0f)),
 oldPosition(vec3(0.0f, 0.0f, 0.0f)),
 direction(vec3(0.0f, 0.0f, 0.0f)),
+yRot(0.0f),
 scale(vec3(1.0f, 1.0f, 1.0f)),
 velocity(0.0f),
-yRot(0.0f),
 shape(make_shared<Shape>()),
 material(make_shared<Material>()) {
 
@@ -38,6 +38,7 @@ GameObject::GameObject(const vec3 &position, const vec3 &direction,
 position(position),
 oldPosition(position),
 direction(direction),
+yRot(0.0f),
 scale(scale),
 velocity(velocity),
 shape(shape),
