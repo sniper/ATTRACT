@@ -459,7 +459,7 @@ void GameManager::updateGame(double dt) {
             }
         }
 
-    }        /* cutscene stuff*/
+    }/* cutscene stuff*/
     else {
         for (unsigned int i = 0; i < objects.size(); i++) {
             vec3 old = objects[i]->getPosition();
@@ -624,14 +624,14 @@ void GameManager::renderGame(int fps) {
             program->unbind();
         }/*draw cutscene only stuff here*/
         else {
-            skyscraperProgram->bind();
-            glUniformMatrix4fv(skyscraperProgram->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
-            glUniformMatrix4fv(skyscraperProgram->getUniform("V"), 1, GL_FALSE, value_ptr(V->topMatrix()));
-            glUniform3fv(skyscraperProgram->getUniform("lightPos"), 1, value_ptr(vec3(l)));
-            glUniform1f(skyscraperProgram->getUniform("lightIntensity"), lightIntensity);
-            glUniform3fv(skyscraperProgram->getUniform("scalingFactor"), 1, value_ptr(vec3(1, 1, 1)));
-            spaceship->draw(skyscraperProgram);
-            skyscraperProgram->unbind();
+
+            program->bind();
+            glUniformMatrix4fv(program->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
+            glUniformMatrix4fv(program->getUniform("V"), 1, GL_FALSE, value_ptr(V->topMatrix()));
+            glUniform4f(program->getUniform("lightPos"), l[0], l[1], l[2], l[3]);
+            glUniform1f(program->getUniform("lightIntensity"), lightIntensity);
+            spaceship->draw(program);
+            program->unbind();
 
 
 
