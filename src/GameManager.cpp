@@ -213,13 +213,19 @@ void GameManager::initScene() {
     temp->fitToUnitBox();
     temp->init();
     shapes.insert(make_pair("cylinder", temp));
-    
+
     temp = make_shared<Shape>();
     temp->loadMesh(RESOURCE_DIR + "sphere.obj", RESOURCE_DIR);
     temp->fitToUnitBox();
     temp->init();
     shapes.insert(make_pair("sphere", temp));
-    
+
+    temp = make_shared<Shape>();
+    temp->loadMesh(RESOURCE_DIR + "RetroRacerOrange.obj", RESOURCE_DIR);
+    temp->fitToUnitBox();
+    temp->init();
+    shapes.insert(make_pair("spaceship", temp));
+
     //
     // Make Skybox
     //
@@ -245,6 +251,8 @@ void GameManager::initScene() {
     shared_ptr<Material> material3 = make_shared<Material>(vec3(0.5f, 1.0f, 1.0f), vec3(0.5f, 1.0f, 1.0f), vec3(0.5f, 0.5f, 1.0f), 200.0f);
     magnetBeamBlue = make_shared<GameObject>(vec3(0.18, -0.15, -3), vec3(0.1, 0, -0.01), vec3(0.2, 0.2, 3.5), 0, shapes["cylinder"], material3);
     magnetBeamBlue->setYRot(-0.08f);
+
+    spaceship = make_shared<GameObject>(vec3(6, 2.6, 3.1), vec3(1, 0, 0), vec3(1, 1, 1), 0, shapes["spaceship"], material3);
 }
 
 bool GameManager::toBool(string s) {
@@ -410,7 +418,7 @@ State GameManager::processInputs() {
         } else if (gameState == MENU) {
             fmod->stopSound("menu");
         }
-    } else if(gameState == CUTSCENE) {
+    } else if (gameState == CUTSCENE) {
         gameState = inputManager->processCutsceneInputs(bullet, fmod);
     }
 
@@ -419,33 +427,44 @@ State GameManager::processInputs() {
 
 void GameManager::updateGame(double dt) {
     //bullet->rayTrace(camera->getPosition(), camera->getPosition() + (camera->getDirection() * MAGNET_RANGE));
-    resolveMagneticInteractions();
 
-    spaceShipPart->update(dt);
+    if (gameState != CUTSCENE) {
+        resolveMagneticInteractions();
 
-    //step the bullet, update test obj
-    bullet->step(dt);
+        spaceShipPart->update(dt);
 
-    camera->setPosition(bullet->getBulletObjectState("cam"));
+        //step the bullet, update test obj
+        bullet->step(dt);
 
-    psystem->update(dt, camera->getPosition());
+        camera->setPosition(bullet->getBulletObjectState("cam"));
 
-    if (camera->checkForCollision(spaceShipPart)) {
-        //cout << "Collision" << endl;
-        kdtree = nullptr;
-        bvh = nullptr;
-        objects.clear();
-        deathObjects.clear();
-        fmod->playSound("win", false);
-        gameState = WIN;
-    }
-    /*check for collision with death objects*/
-    for (unsigned int i = 0; i < deathObjects.size(); i++) {
-        if (camera->checkForCollision(deathObjects.at(i))) {
+        psystem->update(dt, camera->getPosition());
+
+        if (camera->checkForCollision(spaceShipPart)) {
+            //cout << "Collision" << endl;
+            kdtree = nullptr;
+            bvh = nullptr;
             objects.clear();
             deathObjects.clear();
-            fmod->playSound("death", false);
-            gameState = DEATH;
+            fmod->playSound("win", false);
+            gameState = WIN;
+        }
+        /*check for collision with death objects*/
+        for (unsigned int i = 0; i < deathObjects.size(); i++) {
+            if (camera->checkForCollision(deathObjects.at(i))) {
+                objects.clear();
+                deathObjects.clear();
+                fmod->playSound("death", false);
+                gameState = DEATH;
+            }
+        }
+
+    }        /* cutscene stuff*/
+    else {
+        for (unsigned int i = 0; i < objects.size(); i++) {
+            vec3 old = objects[i]->getPosition();
+            old.x += 0.01f;
+            objects[i]->setPosition(old);
         }
     }
 }
@@ -493,7 +512,7 @@ void GameManager::renderGame(int fps) {
         camera->applyProjectionMatrix(P);
         V->pushMatrix();
         camera->applyViewMatrix(V);
-        
+
         skybox->render(P, V);
 
 
@@ -560,50 +579,68 @@ void GameManager::renderGame(int fps) {
         //
         //            }
         //        }
-        if(gameState != PAUSE) {
-            gui->drawHUD(camera->isLookingAtMagnet(), Mouse::isLeftMouseButtonPressed(), Mouse::isRightMouseButtonPressed());
-        }
+
         // Render magnet gun
-        program->bind();
-        glUniformMatrix4fv(program->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
-        glUniform4f(program->getUniform("lightPos"), l[0], l[1], l[2], l[3]);
-        glUniform1f(program->getUniform("lightIntensity"), lightIntensity);
-        V->pushMatrix();
-        V->loadIdentity();
-        glUniformMatrix4fv(program->getUniform("V"), 1, GL_FALSE, value_ptr(V->topMatrix()));
-        glClear(GL_DEPTH_BUFFER_BIT);
-        magnetGun->draw(program);
-        V->popMatrix();
 
-        if (drawBeam) {
-            glEnable(GL_BLEND);
-            
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-            glUniform1f(program->getUniform("lightIntensity"), 0.9f);
-            if (colorBeam == BLUE) {
-                magnetBeamBlue->draw(program);
-                psystem->setColor(BLUE);
-            } else {
-                magnetBeamOrange->draw(program);
-                psystem->setColor(ORANGE);
+        if (gameState != CUTSCENE) {
+            if (gameState != PAUSE) {
+                gui->drawHUD(camera->isLookingAtMagnet(), Mouse::isLeftMouseButtonPressed(), Mouse::isRightMouseButtonPressed());
             }
-
-            glDisable(GL_BLEND);
-
+            program->bind();
+            glUniformMatrix4fv(program->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
+            glUniform4f(program->getUniform("lightPos"), l[0], l[1], l[2], l[3]);
+            glUniform1f(program->getUniform("lightIntensity"), lightIntensity);
             V->pushMatrix();
             V->loadIdentity();
-            psystem->draw(V->topMatrix(), P->topMatrix(), 0);
+            glUniformMatrix4fv(program->getUniform("V"), 1, GL_FALSE, value_ptr(V->topMatrix()));
+            glClear(GL_DEPTH_BUFFER_BIT);
+            magnetGun->draw(program);
             V->popMatrix();
-            
-            glDisable(GL_BLEND);
+
+            if (drawBeam) {
+                glEnable(GL_BLEND);
+
+                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+                glUniform1f(program->getUniform("lightIntensity"), 0.9f);
+                if (colorBeam == BLUE) {
+                    magnetBeamBlue->draw(program);
+                    psystem->setColor(BLUE);
+                } else {
+                    magnetBeamOrange->draw(program);
+                    psystem->setColor(ORANGE);
+                }
+
+                glDisable(GL_BLEND);
+
+                V->pushMatrix();
+                V->loadIdentity();
+                psystem->draw(V->topMatrix(), P->topMatrix(), 0);
+                V->popMatrix();
+
+                glDisable(GL_BLEND);
+            }
+
+            glEnable(GL_DEPTH_TEST);
+            program->unbind();
+        }/*draw cutscene only stuff here*/
+        else {
+            skyscraperProgram->bind();
+            glUniformMatrix4fv(skyscraperProgram->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
+            glUniformMatrix4fv(skyscraperProgram->getUniform("V"), 1, GL_FALSE, value_ptr(V->topMatrix()));
+            glUniform3fv(skyscraperProgram->getUniform("lightPos"), 1, value_ptr(vec3(l)));
+            glUniform1f(skyscraperProgram->getUniform("lightIntensity"), lightIntensity);
+            glUniform3fv(skyscraperProgram->getUniform("scalingFactor"), 1, value_ptr(vec3(1, 1, 1)));
+            spaceship->draw(skyscraperProgram);
+            skyscraperProgram->unbind();
+
+
+
         }
 
-        glEnable(GL_DEPTH_TEST);
-        program->unbind();
 
 
-      
-        
+
+
 
 
         V->popMatrix();
@@ -611,7 +648,7 @@ void GameManager::renderGame(int fps) {
 
         if (gameState == PAUSE) {
             gui->drawPause(level);
-        } 
+        }
     }
 }
 

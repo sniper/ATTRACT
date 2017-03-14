@@ -72,8 +72,8 @@ private:
     void importLevel(std::string level);
     void parseCamera(std::string level);
     void parseObject(std::string level, std::shared_ptr<Material> greyBox,
-                                std::shared_ptr<Material> magnetSurface,
-                                std::shared_ptr<Material> spacePart);
+            std::shared_ptr<Material> magnetSurface,
+            std::shared_ptr<Material> spacePart);
     bool toBool(std::string s);
 
 
@@ -97,6 +97,7 @@ private:
     std::shared_ptr<GameObject> magnetGun;
     std::shared_ptr<GameObject> magnetBeamOrange;
     std::shared_ptr<GameObject> magnetBeamBlue;
+    std::shared_ptr<GameObject> spaceship;
 
     std::vector<std::shared_ptr<GameObject>> deathObjects;
 
@@ -112,11 +113,11 @@ private:
 
     std::shared_ptr<Program> program, shipPartProgram, skyscraperProgram;
     std::shared_ptr<Texture> shipPartColorTexture, shipPartSpecularTexture,
-        skyscraperColorTexture, skyscraperSpecularTexture;
+    skyscraperColorTexture, skyscraperSpecularTexture;
     std::map<std::string, std::shared_ptr<Shape>> shapes;
 
     std::shared_ptr<SpaceShipPart> spaceShipPart;
-    
+
     std::shared_ptr<Skybox> skybox;
 
     glm::vec4 lightPos;
