@@ -221,7 +221,7 @@ void GameManager::initScene() {
     shapes.insert(make_pair("sphere", temp));
 
     temp = make_shared<Shape>();
-    temp->loadMesh(RESOURCE_DIR + "RetroRacerOrange.obj", RESOURCE_DIR);
+    temp->loadMesh(RESOURCE_DIR + "temp/untitled.obj", RESOURCE_DIR + "temp/");
     temp->fitToUnitBox();
     temp->init();
     shapes.insert(make_pair("spaceship", temp));
@@ -252,7 +252,7 @@ void GameManager::initScene() {
     magnetBeamBlue = make_shared<GameObject>(vec3(0.18, -0.15, -3), vec3(0.1, 0, -0.01), vec3(0.2, 0.2, 3.5), 0, shapes["cylinder"], material3);
     magnetBeamBlue->setYRot(-0.08f);
 
-    spaceship = make_shared<GameObject>(vec3(6, 2.6, 3.1), vec3(1, 0, 0), vec3(1, 1, 1), 0, shapes["spaceship"], material3);
+    spaceship = make_shared<GameObject>(vec3(6.6, 2.6, 3.1), vec3(1, 0, 0), vec3(1, 1, 1), 0, shapes["spaceship"], material3);
 }
 
 bool GameManager::toBool(string s) {
