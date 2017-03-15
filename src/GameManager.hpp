@@ -107,6 +107,8 @@ private:
     int level;
     bool drawBeam;
     int colorBeam;
+    
+    bool drawEmergency;
 
     std::shared_ptr<InputManager> inputManager;
     std::shared_ptr<Camera> camera;

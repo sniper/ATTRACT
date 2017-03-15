@@ -48,8 +48,8 @@ lookingAtMagnet(false)
 Camera::Camera(const vec3 &position, GLFWwindow *window) :
 position(position),
 window(window),
-yaw(0.0f),
-pitch(0.0f),
+yaw(-7.80937f),
+pitch(-0.37332f),
 aspect(1.0f),
 fovy(45.0f),
 znear(0.1f),

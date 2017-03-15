@@ -65,7 +65,8 @@ RESOURCE_DIR(resourceDir),
 gameState(MENU),
 level(0),
 drawBeam(false),
-colorBeam(ORANGE) {
+colorBeam(ORANGE),
+drawEmergency(false){
     objIntervalCounter = 0.0f;
     numObjCollected = 0;
     gameWon = false;
@@ -252,7 +253,7 @@ void GameManager::initScene() {
     magnetBeamBlue = make_shared<GameObject>(vec3(0.18, -0.15, -3), vec3(0.1, 0, -0.01), vec3(0.2, 0.2, 3.5), 0, shapes["cylinder"], material3);
     magnetBeamBlue->setYRot(-0.08f);
 
-    spaceship = make_shared<GameObject>(vec3(6.6, 2.6, 3.1), vec3(1, 0, 0), vec3(1, 1, 1), 0, shapes["spaceship"], material3);
+    spaceship = make_shared<GameObject>(vec3(6.06999, 2.4, 3.7), vec3(1, 0, 0), vec3(5, 5, 5), 0, shapes["spaceship"], material3);
 }
 
 bool GameManager::toBool(string s) {
@@ -401,8 +402,14 @@ State GameManager::processInputs() {
             fmod->stopSound("game");
         if (!fmod->isPlaying("menu"))
             fmod->playSound("menu", true);
-        if (gameState == GAME || gameState == CUTSCENE) {
+        if (gameState == GAME ) {
             fmod->stopSound("menu");
+
+            importLevel(to_string(level));
+        }
+        if (gameState == CUTSCENE) {
+            fmod->stopSound("menu");
+            fmod->playSound("flying", true,0.3);
             importLevel(to_string(level));
         }
     } else if (gameState == DEATH) {
@@ -419,7 +426,7 @@ State GameManager::processInputs() {
             fmod->stopSound("menu");
         }
     } else if (gameState == CUTSCENE) {
-        gameState = inputManager->processCutsceneInputs(bullet, fmod);
+        gameState = inputManager->processCutsceneInputs(bullet, fmod, spaceship);
     }
 
     return gameState;
@@ -461,10 +468,28 @@ void GameManager::updateGame(double dt) {
 
     }/* cutscene stuff*/
     else {
+        static int t = 0;
+        t++;
+        if(t == 400) {
+            if(!fmod->isPlaying("gps"))
+                fmod->playSound("gps",false);
+        }
+        if(t == 500) {
+            drawEmergency = true;
+        }
+            
         for (unsigned int i = 0; i < objects.size(); i++) {
             vec3 old = objects[i]->getPosition();
             old.x += 0.01f;
-            objects[i]->setPosition(old);
+            //objects[i]->setPosition(old);
+            
+            old = camera->getPosition();
+            old.x+=0.01f;
+            //camera->setPosition(old);
+            
+            old = spaceship->getPosition();
+            old.x+=0.01f;
+            //spaceship->setPosition(old);
         }
     }
 }
@@ -633,7 +658,13 @@ void GameManager::renderGame(int fps) {
             spaceship->draw(program);
             program->unbind();
 
+            if(1==1) {
+                cout << "drawing emergency" << endl;
 
+                gui->drawCutscene(V->topMatrix());
+
+            }
+                
 
         }
 
