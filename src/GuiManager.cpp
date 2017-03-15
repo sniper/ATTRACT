@@ -45,6 +45,7 @@ RESOURCE_DIR(resource) {
     guiShader->addUniform("M");
     guiShader->addUniform("P");
     guiShader->addUniform("V");
+    guiShader->addUniform("F");
 
     GLSL::checkError(GET_FILE_LINE);
 
@@ -63,7 +64,7 @@ RESOURCE_DIR(resource) {
     addTexture("nextlevel_noselect", vec3(0.7, 0.7, 1), vec3(0, -0.25, 0));
     addTexture("tryagain_noselect", vec3(0.7, 0.7, 1), vec3(0, -0.18, 0));
     addTexture("tryagain_select", vec3(0.7, 0.7, 1), vec3(0, -0.18, 0));
-    addTexture("emergency", vec3(8,2,5), vec3(1,1,1));
+    addTexture("emergency", vec3(5.2, 1.5, 2), vec3(0.5, 0.5, 0.5));
     vec3 retScale = vec3(0.25, 0.25, 1);
     vec3 retTrans = vec3(0, 0, 0);
     addTexture("reticle_center_off", retScale, retTrans);
@@ -286,9 +287,13 @@ void GuiManager::drawWin(int level) {
     glDepthMask(GL_TRUE);
 }
 
-
 void GuiManager::drawCutscene(glm::mat4 V) {
+    glDepthMask(GL_FALSE);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     draw("emergency", V);
+    glDisable(GL_BLEND);
+    glDepthMask(GL_TRUE);
 }
 
 void GuiManager::drawAll() {
@@ -296,8 +301,6 @@ void GuiManager::drawAll() {
         draw(it->first);
     }
 }
-
-
 
 void GuiManager::draw(string name) {
     auto M = make_shared<MatrixStack>();
@@ -331,7 +334,7 @@ void GuiManager::draw(string name) {
 
     glUniformMatrix4fv(guiShader->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix()));
     glUniformMatrix4fv(guiShader->getUniform("V"), 1, GL_FALSE, value_ptr(V->topMatrix()));
-
+    glUniform1f(guiShader->getUniform("F"), 1);
     glUniformMatrix4fv(guiShader->getUniform("P"), 1, GL_FALSE, value_ptr(P));
 
     int pos = guiShader->getAttribute("pos");
@@ -373,12 +376,12 @@ void GuiManager::draw(string name) {
 
 void GuiManager::draw(string name, glm::mat4 V) {
     auto M = make_shared<MatrixStack>();
- 
+
     auto Z = make_shared<MatrixStack>();
-    
+
     Z->pushMatrix();
     Z->loadIdentity();
-    
+
     M->pushMatrix();
     M->loadIdentity();
 
@@ -404,7 +407,7 @@ void GuiManager::draw(string name, glm::mat4 V) {
 
     glUniformMatrix4fv(guiShader->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix()));
     glUniformMatrix4fv(guiShader->getUniform("V"), 1, GL_FALSE, value_ptr(V));
-
+    glUniform1f(guiShader->getUniform("F"), 0);
     glUniformMatrix4fv(guiShader->getUniform("P"), 1, GL_FALSE, value_ptr(P));
 
     int pos = guiShader->getAttribute("pos");
@@ -442,6 +445,6 @@ void GuiManager::draw(string name, glm::mat4 V) {
     glEnable(GL_DEPTH_TEST);
     M->popMatrix();
     Z->popMatrix();
-    
+
 }
 

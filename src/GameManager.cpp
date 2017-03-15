@@ -10,6 +10,7 @@
 #include <math.h>
 #include <time.h>
 
+
 #define GLEW_STATIC
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -66,7 +67,7 @@ gameState(MENU),
 level(0),
 drawBeam(false),
 colorBeam(ORANGE),
-drawEmergency(false){
+drawEmergency(false) {
     objIntervalCounter = 0.0f;
     numObjCollected = 0;
     gameWon = false;
@@ -402,14 +403,14 @@ State GameManager::processInputs() {
             fmod->stopSound("game");
         if (!fmod->isPlaying("menu"))
             fmod->playSound("menu", true);
-        if (gameState == GAME ) {
+        if (gameState == GAME) {
             fmod->stopSound("menu");
 
             importLevel(to_string(level));
         }
         if (gameState == CUTSCENE) {
             fmod->stopSound("menu");
-            fmod->playSound("flying", true,0.3);
+            fmod->playSound("flying", true, 0.3);
             importLevel(to_string(level));
         }
     } else if (gameState == DEATH) {
@@ -469,26 +470,66 @@ void GameManager::updateGame(double dt) {
     }/* cutscene stuff*/
     else {
         static int t = 0;
+        static vec3 orig = camera->getPosition();
         t++;
-        if(t == 400) {
-            if(!fmod->isPlaying("gps"))
-                fmod->playSound("gps",false);
+        if (t == 400) {
+            if (!fmod->isPlaying("gps"))
+                fmod->playSound("gps", false);
         }
-        if(t == 500) {
+        if (t == 900) {
             drawEmergency = true;
+            if (!fmod->isPlaying("error"))
+                fmod->playSound("error", false);
         }
-            
+        if (t > 900 && t % 100 <= 50)
+            drawEmergency = true;
+        if (t > 900 && t % 100 > 50)
+            drawEmergency = false;
+
+        if (t > 1200) {
+            float r1 = -0.001 + static_cast<float> (rand()) / (static_cast<float> (RAND_MAX / ((0.001)-(-0.001))));
+            float r2 = -0.001 + static_cast<float> (rand()) / (static_cast<float> (RAND_MAX / ((0.001)-(-0.001))));
+            float r3 = -0.001 + static_cast<float> (rand()) / (static_cast<float> (RAND_MAX / ((0.001)-(-0.001))));
+
+            vec3 old = camera->getPosition();
+            old.x += r1;
+            old.y += r2;
+            old.z += r3;
+
+            if (abs(old.x - orig.x) >= 0.08 || abs(old.y - orig.y) >= 0.08 || abs(old.z - orig.z) >= 0.08)
+                camera->setPosition(orig);
+            else
+                camera->setPosition(old);
+
+        }
+        if (t > 1300) {
+            float r1 = -0.02 + static_cast<float> (rand()) / (static_cast<float> (RAND_MAX / ((0.02)-(-0.02))));
+            float r2 = -0.02 + static_cast<float> (rand()) / (static_cast<float> (RAND_MAX / ((0.02)-(-0.02))));
+            float r3 = -0.02 + static_cast<float> (rand()) / (static_cast<float> (RAND_MAX / ((0.02)-(-0.02))));
+
+            vec3 old = camera->getPosition();
+            old.x += r1;
+            old.y += r2;
+            old.z += r3;
+
+            if (abs(old.x - orig.x) >= 0.08 || abs(old.y - orig.y) >= 0.08 || abs(old.z - orig.z) >= 0.08)
+                camera->setPosition(orig);
+            else
+                camera->setPosition(old);
+        }
+
+        cout << t << endl;
         for (unsigned int i = 0; i < objects.size(); i++) {
             vec3 old = objects[i]->getPosition();
             old.x += 0.01f;
             //objects[i]->setPosition(old);
-            
+
             old = camera->getPosition();
-            old.x+=0.01f;
+            old.x += 0.01f;
             //camera->setPosition(old);
-            
+
             old = spaceship->getPosition();
-            old.x+=0.01f;
+            old.x += 0.01f;
             //spaceship->setPosition(old);
         }
     }
@@ -658,13 +699,13 @@ void GameManager::renderGame(int fps) {
             spaceship->draw(program);
             program->unbind();
 
-            if(1==1) {
+            if (drawEmergency) {
                 cout << "drawing emergency" << endl;
 
                 gui->drawCutscene(V->topMatrix());
 
             }
-                
+
 
         }
 
