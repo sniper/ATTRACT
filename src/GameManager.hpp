@@ -39,7 +39,7 @@ class ShadowManager;
 class GuiManager;
 
 enum State {
-    GAME, MENU, PAUSE, DEATH, WIN, CUTSCENE
+    GAME, MENU, PAUSE, DEATH, WIN, CUTSCENE, DEATHANIMATION
 };
 
 #define BLUE 1
@@ -129,6 +129,8 @@ private:
     bool drawEmergency;
     bool drawShipParts;
     bool drawBlack;
+    bool drawDeath;
+    float deathAlpha;
 
 
     std::shared_ptr<Camera> camera;

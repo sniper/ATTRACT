@@ -74,7 +74,7 @@ void FmodManager::createStream(string name, string path, bool loop) {
 /*bool checks whether its a looping sound*/
 void FmodManager::playSound(string name, bool loop) {
     result = fmodSystem->playSound(sounds[name], 0, false, &channels[name]);
-    ERRCHECK(result);
+    //ERRCHECK(result);
     if(loop)
         curSound = name;
 }
@@ -83,9 +83,9 @@ void FmodManager::playSound(string name, bool loop, float volume) {
     
     
     result = fmodSystem->playSound(sounds[name], 0, false, &channels[name]);
-    ERRCHECK(result);
+    //ERRCHECK(result);
     result = channels[name]->setVolume(volume);
-    ERRCHECK(result);
+    //ERRCHECK(result);
     if(loop)
         curSound = name;
 }

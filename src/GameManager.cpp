@@ -67,7 +67,9 @@ drawBeam(false),
 colorBeam(ORANGE),
 drawEmergency(false),
 drawShipParts(false),
-drawBlack(false) {
+drawBlack(false),
+drawDeath(false),
+deathAlpha(0.0f) {
     objIntervalCounter = 0.0f;
     numObjCollected = 0;
     gameWon = false;
@@ -456,6 +458,8 @@ void GameManager::importLevel(string level) {
     bvh = nullptr;
     objects.clear();
     deathObjects.clear();
+    drawDeath = false;
+    deathAlpha = 0.0f;
     bullet = make_shared<BulletManager>();
     file.open(RESOURCE_DIR + "levels/" + level);
 
@@ -501,7 +505,7 @@ void GameManager::importLevel(string level) {
 State GameManager::processInputs() {
     if (gameState == GAME) {
         if (!fmod->isPlaying("game"))
-            fmod->playSound("game", true,0.4f);
+            fmod->playSound("game", true, 0.4f);
         gameState = inputManager->processGameInputs(bullet, fmod);
     } else if (gameState == PAUSE) {
         gameState = inputManager->processPauseInputs(gui, fmod);
@@ -572,10 +576,9 @@ void GameManager::updateGame(double dt) {
 
     if (gameState == MENU) {
         gui->update();
-    }
-    else {
+    } else {
         gui->resetMenu();
-    
+
         if (gameState != CUTSCENE) {
             /*scripted stuff for level 1*/
 
@@ -613,10 +616,10 @@ void GameManager::updateGame(double dt) {
             /*check for collision with death objects*/
             for (unsigned int i = 0; i < deathObjects.size(); i++) {
                 if (camera->checkForCollision(deathObjects.at(i))) {
-                    objects.clear();
-                    deathObjects.clear();
                     fmod->playSound("death", false);
-                    gameState = DEATH;
+                    if (fmod->isPlaying("start"))
+                        fmod->stopSound("start");
+                    gameState = DEATHANIMATION;
                 }
             }
 
@@ -939,6 +942,18 @@ void GameManager::renderGame(int fps) {
             skybox->render(P, V);
             drawScene(P, V, false);
             drawShipPart(P, V, false);
+            if (gameState == DEATHANIMATION) {
+
+                deathAlpha += 0.04f;
+                gui->drawBlack(deathAlpha);
+                if (deathAlpha >= 1.0f) {
+                    objects.clear();
+                    deathObjects.clear();
+
+                    gameState = DEATH;
+                }
+
+            }
             if (level == 1) {
 
 
@@ -1032,11 +1047,32 @@ void GameManager::renderGame(int fps) {
 
 
                 if (level == NUMLEVELS) {
-                    static float wat = 0.0f;
-                    wat += 0.0005f;
-                    gui->drawBlack(wat);
-                    if(wat >= 1.0f)
-                        gameState = MENU;
+
+                    static bool fadeIn = true;
+                    static float alpha = 1.0f;
+                    if (fadeIn) {
+                        alpha -= 0.005f;
+                        if (alpha > 0.0f) {
+                            gui->drawBlack(alpha);
+                        } else {
+                            fadeIn = false;
+                        }
+                    } else {
+                        static float wat = 0.0f;
+                        wat += 0.0005f;
+                        gui->drawBlack(wat);
+                        
+                        if (wat >= 1.0f) {
+                            gameState = MENU;
+                            level = 0;
+                        }
+                            
+                    }
+
+
+
+
+
                 } else {
                     static float lol = 0.0f;
                     lol += 0.02f;
@@ -1048,6 +1084,17 @@ void GameManager::renderGame(int fps) {
 
                 }
 
+            }
+
+            static bool fadeIn = true;
+            static float alpha = 1.0f;
+            if (fadeIn) {
+                alpha -= 0.005f;
+                if (alpha > 0.0f) {
+                    gui->drawBlack(alpha);
+                } else {
+                    fadeIn = false;
+                }
             }
 
 

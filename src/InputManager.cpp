@@ -97,7 +97,7 @@ State InputManager::processCutsceneInputs(shared_ptr<BulletManager> &bullet,
     if (Keyboard::isPressed(GLFW_KEY_SPACE)) {
         return GAME;
     }
-    cout << old.x << " " << old.y << " " << old.z << endl;
+    //cout << old.x << " " << old.y << " " << old.z << endl;
     //obj->setPosition(old);
     return CUTSCENE;
 }
