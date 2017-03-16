@@ -54,7 +54,8 @@ RESOURCE_DIR(resource) {
 
     addTexture("play_select", vec3(1, 0.7, 1), vec3(0, -0.1, 0));
     addTexture("play_noselect", vec3(1, 0.7, 1), vec3(0, -0.1, 0));
-    addTexture("attract", vec3(1, 0.55, 1), vec3(0, 0.5, 0));
+    addTexture("AT", vec3(1.5, 1.5, 1), vec3(-2.1, 0.5, 0));
+    addTexture("TRACT", vec3(1.5, 1.5, 1), vec3(2.0, 0.5, 0));
     addTexture("quit", vec3(1, 0.35, 1), vec3(0, -0.8, 0));
     addTexture("quit_select", vec3(1, 0.7, 1), vec3(0, -0.6, 0));
     addTexture("quit_noselect", vec3(1, 0.7, 1), vec3(0, -0.6, 0));
@@ -178,7 +179,8 @@ void GuiManager::drawMenu() {
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    draw("attract");
+    draw("AT");
+    draw("TRACT");
 
     if (selectedName == "play") {
         draw("play_select");
@@ -190,6 +192,20 @@ void GuiManager::drawMenu() {
 
     glDisable(GL_BLEND);
     glDepthMask(GL_TRUE);
+}
+
+void GuiManager::resetMenu() {
+    translates.at("AT") = vec3(-2.1, 0.5, 0);
+    translates.at("TRACT") = vec3(2.0, 0.5, 0);
+}
+
+void GuiManager::update() {
+    if (translates.at("AT").x <= -0.38) {
+        translates.at("AT").x += 0.02;
+    }
+    if (translates.at("TRACT").x >= 0.32) {
+        translates.at("TRACT").x -= 0.02;
+    }
 }
 
 void GuiManager::drawHUD(bool lookingAtMagnet, bool leftClick, bool rightClick) {

@@ -107,7 +107,7 @@ void GameManager::initScene() {
     glfwSetTime(0.0);
 
     // Set background color.
-    glClearColor(0.5f, 1.0f, 1.0f, 1.0f);
+    glClearColor(0.6f, 0.6f, 0.8f, 1.0f);
     // Enable z-buffer test.
     glEnable(GL_DEPTH_TEST);
 
@@ -570,153 +570,158 @@ State GameManager::processInputs() {
 void GameManager::updateGame(double dt) {
     //bullet->rayTrace(camera->getPosition(), camera->getPosition() + (camera->getDirection() * MAGNET_RANGE));
 
-    if (gameState != CUTSCENE) {
-        /*scripted stuff for level 1*/
+    if (gameState == MENU) {
+        gui->update();
+    }
+    else {
+        gui->resetMenu();
+    
+        if (gameState != CUTSCENE) {
+            /*scripted stuff for level 1*/
 
-
-
-
-        if (!fmod->isPlaying("start"))
-            resolveMagneticInteractions();
-
-        spaceShipPart->update(dt);
-
-        //step the bullet, update test obj
-        bullet->step(dt);
-
-        camera->setPosition(bullet->getBulletObjectState("cam"));
-
-        psystem->update(dt, camera->getPosition());
-
-        if (camera->checkForCollision(spaceShipPart)) {
-            spaceShipPart->startWin();
-            if (!fmod->isPlaying("collecting")) {
-                fmod->playSound("collecting", true, 4.5);
+            if (!fmod->isPlaying("start") && gameState != MENU) {
+                resolveMagneticInteractions();
             }
-        }
-        if (spaceShipPart->doneWinning()) {
-            kdtree = nullptr;
-            bvh = nullptr;
-            objects.clear();
-            deathObjects.clear();
-            if (fmod->isPlaying("collecting")) {
-                fmod->stopSound("collecting");
-            }
-            fmod->playSound("win", false);
-            gameState = WIN;
-        }
 
-        /*check for collision with death objects*/
-        for (unsigned int i = 0; i < deathObjects.size(); i++) {
-            if (camera->checkForCollision(deathObjects.at(i))) {
+            spaceShipPart->update(dt);
+
+            //step the bullet, update test obj
+            bullet->step(dt);
+
+            camera->setPosition(bullet->getBulletObjectState("cam"));
+
+            psystem->update(dt, camera->getPosition());
+
+            if (camera->checkForCollision(spaceShipPart)) {
+                spaceShipPart->startWin();
+                if (!fmod->isPlaying("collecting")) {
+                    fmod->playSound("collecting", true, 4.5);
+                }
+            }
+            if (spaceShipPart->doneWinning()) {
+                kdtree = nullptr;
+                bvh = nullptr;
                 objects.clear();
                 deathObjects.clear();
-                fmod->playSound("death", false);
-                gameState = DEATH;
+                if (fmod->isPlaying("collecting")) {
+                    fmod->stopSound("collecting");
+                }
+                fmod->playSound("win", false);
+                gameState = WIN;
             }
-        }
 
-    }/* cutscene stuff*/
-    else if (level == 0) {
-        static int t = 0;
-        static vec3 orig = camera->getPosition();
-        t++;
+            /*check for collision with death objects*/
+            for (unsigned int i = 0; i < deathObjects.size(); i++) {
+                if (camera->checkForCollision(deathObjects.at(i))) {
+                    objects.clear();
+                    deathObjects.clear();
+                    fmod->playSound("death", false);
+                    gameState = DEATH;
+                }
+            }
 
-        vec3 old = asteroid->getPosition();
-        old.z += 0.3f;
-        if (old.z >= 9.0f) {
-            old.z = -25.0f;
-            old.y = randFloat(5.0f, 8.0f);
-            old.x = randFloat(-6.0f, 6.0f);
-        }
-        asteroid->setPosition(old);
+        }/* cutscene stuff*/
+        else if (level == 0) {
+            static int t = 0;
+            static vec3 orig = camera->getPosition();
+            t++;
 
-        if (t == 400) {
-            if (!fmod->isPlaying("gps"))
-                fmod->playSound("gps", false);
+            vec3 old = asteroid->getPosition();
+            old.z += 0.3f;
+            if (old.z >= 9.0f) {
+                old.z = -25.0f;
+                old.y = randFloat(5.0f, 8.0f);
+                old.x = randFloat(-6.0f, 6.0f);
+            }
+            asteroid->setPosition(old);
 
-        }
-        if (t == 900) {
-            drawEmergency = true;
-            if (!fmod->isPlaying("error"))
-                fmod->playSound("error", false);
-        }
-        if (t > 900 && t % 100 <= 50)
-            drawEmergency = true;
-        if (t > 900 && t % 100 > 50)
-            drawEmergency = false;
+            if (t == 400) {
+                if (!fmod->isPlaying("gps"))
+                    fmod->playSound("gps", false);
 
-        if (t > 1300) {
-            drawShipParts = true;
-            float r1 = -0.001 + static_cast<float> (rand()) / (static_cast<float> (RAND_MAX / ((0.001)-(-0.001))));
-            float r2 = -0.001 + static_cast<float> (rand()) / (static_cast<float> (RAND_MAX / ((0.001)-(-0.001))));
-            float r3 = -0.001 + static_cast<float> (rand()) / (static_cast<float> (RAND_MAX / ((0.001)-(-0.001))));
+            }
+            if (t == 900) {
+                drawEmergency = true;
+                if (!fmod->isPlaying("error"))
+                    fmod->playSound("error", false);
+            }
+            if (t > 900 && t % 100 <= 50)
+                drawEmergency = true;
+            if (t > 900 && t % 100 > 50)
+                drawEmergency = false;
 
-            vec3 old = camera->getPosition();
-            old.x += r1;
-            old.y += r2;
-            old.z += r3;
+            if (t > 1300) {
+                drawShipParts = true;
+                float r1 = -0.001 + static_cast<float> (rand()) / (static_cast<float> (RAND_MAX / ((0.001)-(-0.001))));
+                float r2 = -0.001 + static_cast<float> (rand()) / (static_cast<float> (RAND_MAX / ((0.001)-(-0.001))));
+                float r3 = -0.001 + static_cast<float> (rand()) / (static_cast<float> (RAND_MAX / ((0.001)-(-0.001))));
 
-            if (abs(old.x - orig.x) >= 0.08 || abs(old.y - orig.y) >= 0.08 || abs(old.z - orig.z) >= 0.08)
-                camera->setPosition(orig);
-            else
-                camera->setPosition(old);
-        }
-        if (t > 1750) {
-            float r1 = -0.02 + static_cast<float> (rand()) / (static_cast<float> (RAND_MAX / ((0.02)-(-0.02))));
-            float r2 = -0.02 + static_cast<float> (rand()) / (static_cast<float> (RAND_MAX / ((0.02)-(-0.02))));
-            float r3 = -0.02 + static_cast<float> (rand()) / (static_cast<float> (RAND_MAX / ((0.02)-(-0.02))));
+                vec3 old = camera->getPosition();
+                old.x += r1;
+                old.y += r2;
+                old.z += r3;
 
-            vec3 old = camera->getPosition();
-            old.x += r1;
-            old.y += r2;
-            old.z += r3;
+                if (abs(old.x - orig.x) >= 0.08 || abs(old.y - orig.y) >= 0.08 || abs(old.z - orig.z) >= 0.08)
+                    camera->setPosition(orig);
+                else
+                    camera->setPosition(old);
+            }
+            if (t > 1750) {
+                float r1 = -0.02 + static_cast<float> (rand()) / (static_cast<float> (RAND_MAX / ((0.02)-(-0.02))));
+                float r2 = -0.02 + static_cast<float> (rand()) / (static_cast<float> (RAND_MAX / ((0.02)-(-0.02))));
+                float r3 = -0.02 + static_cast<float> (rand()) / (static_cast<float> (RAND_MAX / ((0.02)-(-0.02))));
 
-            if (abs(old.x - orig.x) >= 0.08 || abs(old.y - orig.y) >= 0.08 || abs(old.z - orig.z) >= 0.08)
-                camera->setPosition(orig);
-            else
-                camera->setPosition(old);
+                vec3 old = camera->getPosition();
+                old.x += r1;
+                old.y += r2;
+                old.z += r3;
 
+                if (abs(old.x - orig.x) >= 0.08 || abs(old.y - orig.y) >= 0.08 || abs(old.z - orig.z) >= 0.08)
+                    camera->setPosition(orig);
+                else
+                    camera->setPosition(old);
+
+                drawBlack = true;
+            }
+
+            if (drawShipParts) {
+                vec3 old1 = spaceShipPart1->getPosition();
+                vec3 old2 = spaceShipPart2->getPosition();
+                vec3 old3 = spaceShipPart3->getPosition();
+                float z = 0.09f;
+                old1.z -= z;
+                old2.z -= z;
+                old3.z -= z;
+
+                float y = 0.04f;
+                old1.y -= y;
+                old2.y -= y;
+                old3.y -= y;
+                spaceShipPart1->setPosition(old1);
+                spaceShipPart2->setPosition(old2);
+                spaceShipPart3->setPosition(old3);
+            }
+
+            if (t == 2000) {
+
+                fmod->stopSound("flying");
+                vec3 old = spaceship->getPosition();
+                old.y += 2.0f;
+                spaceship->setPosition(old);
+                level++;
+                importLevel(to_string(level));
+                bullet->createMagneticBox(to_string(-1), spaceship->getPosition(), CUBE_HALF_EXTENTS, vec3(2, 2, 2), 0);
+                gameState = GAME;
+            }
+
+
+        }//ending cutscene
+        else {
+            vec3 old = spaceship->getPosition();
+            old.z -= 0.01f;
+            spaceship->setPosition(old);
             drawBlack = true;
         }
-
-        if (drawShipParts) {
-            vec3 old1 = spaceShipPart1->getPosition();
-            vec3 old2 = spaceShipPart2->getPosition();
-            vec3 old3 = spaceShipPart3->getPosition();
-            float z = 0.09f;
-            old1.z -= z;
-            old2.z -= z;
-            old3.z -= z;
-
-            float y = 0.04f;
-            old1.y -= y;
-            old2.y -= y;
-            old3.y -= y;
-            spaceShipPart1->setPosition(old1);
-            spaceShipPart2->setPosition(old2);
-            spaceShipPart3->setPosition(old3);
-        }
-
-        if (t == 2000) {
-
-            fmod->stopSound("flying");
-            vec3 old = spaceship->getPosition();
-            old.y += 2.0f;
-            spaceship->setPosition(old);
-            level++;
-            importLevel(to_string(level));
-            bullet->createMagneticBox(to_string(-1), spaceship->getPosition(), CUBE_HALF_EXTENTS, vec3(2, 2, 2), 0);
-            gameState = GAME;
-        }
-
-
-    }//ending cutscene
-    else {
-        vec3 old = spaceship->getPosition();
-        old.z -= 0.01f;
-        spaceship->setPosition(old);
-        drawBlack = true;
     }
 }
 
@@ -892,7 +897,6 @@ void GameManager::renderGame(int fps) {
 
     /*if in gamestate menu render menu*/
     if (gameState == MENU) {
-        //cout << "SHOULD BE HERE" << endl;
         gui->drawMenu();
     }/* else its in pause menu/game*/
     else if (gameState == DEATH) {
@@ -1028,7 +1032,6 @@ void GameManager::renderGame(int fps) {
 
 
                 if (level == NUMLEVELS) {
-                    cout << "fuk" << endl;
                     static float wat = 0.0f;
                     wat += 0.0005f;
                     gui->drawBlack(wat);

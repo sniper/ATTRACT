@@ -45,6 +45,8 @@ public:
     virtual ~GuiManager();
     void drawAll();
     void drawMenu();
+    void resetMenu();
+    void update();
     void drawBlack(float alpha);
     void drawCutscene(glm::mat4 V);
     void drawPause(int level);
