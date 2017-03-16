@@ -236,6 +236,9 @@ void GuiManager::drawPause(int level) {
         case 2:
             draw("shipparts1");
             break;
+        case 3:
+            draw("shipparts1");
+            break;
     }
 
     glDisable(GL_BLEND);

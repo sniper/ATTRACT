@@ -501,7 +501,7 @@ void GameManager::importLevel(string level) {
 State GameManager::processInputs() {
     if (gameState == GAME) {
         if (!fmod->isPlaying("game"))
-            fmod->playSound("game", true);
+            fmod->playSound("game", true,0.4f);
         gameState = inputManager->processGameInputs(bullet, fmod);
     } else if (gameState == PAUSE) {
         gameState = inputManager->processPauseInputs(gui, fmod);
@@ -531,11 +531,20 @@ State GameManager::processInputs() {
         if (gameState == GAME) {
 
             level++;
+            if (level == NUMLEVELS) {
+                gameState = CUTSCENE;
+
+                spaceship->setPosition(vec3(0, 0, 5));
+
+            }
+
             importLevel(to_string(level));
         } else if (gameState == MENU) {
             fmod->stopSound("menu");
         }
     } else if (gameState == CUTSCENE) {
+
+
         gameState = inputManager->processCutsceneInputs(bullet, fmod, spaceship);
         if (gameState == GAME) {
             level++;
@@ -548,7 +557,7 @@ State GameManager::processInputs() {
         }
     }
 
-    if (gameState == GAME || gameState == CUTSCENE) {
+    if ((gameState == GAME || gameState == CUTSCENE)) {
         // Set cursor position callback.
         glfwSetCursorPosCallback(window, Mouse::cursor_position_callback);
     } else {
@@ -608,11 +617,11 @@ void GameManager::updateGame(double dt) {
         }
 
     }/* cutscene stuff*/
-    else {
+    else if (level == 0) {
         static int t = 0;
         static vec3 orig = camera->getPosition();
         t++;
-        
+
         vec3 old = asteroid->getPosition();
         old.z += 0.3f;
         if (old.z >= 9.0f) {
@@ -702,6 +711,12 @@ void GameManager::updateGame(double dt) {
         }
 
 
+    }//ending cutscene
+    else {
+        vec3 old = spaceship->getPosition();
+        old.z -= 0.01f;
+        spaceship->setPosition(old);
+        drawBlack = true;
     }
 }
 
@@ -976,7 +991,9 @@ void GameManager::renderGame(int fps) {
             spacebox->render(P, V);
             program->bind();
             glUniformMatrix4fv(program->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
+
             glUniformMatrix4fv(program->getUniform("V"), 1, GL_FALSE, value_ptr(V->topMatrix()));
+
             glUniform3fv(program->getUniform("lightPos"), 1, value_ptr(vec3(lightPos)));
             glUniform1f(program->getUniform("lightIntensity"), lightIntensity);
             spaceship->draw(program);
@@ -1009,12 +1026,23 @@ void GameManager::renderGame(int fps) {
 
             if (drawBlack) {
 
-                static float lol = 0.0f;
-                lol += 0.02f;
-                gui->drawBlack(lol);
-                if (lol >= 1.0f) {
-                    if (!fmod->isPlaying("crash"))
-                        fmod->playSound("crash", false);
+
+                if (level == NUMLEVELS) {
+                    cout << "fuk" << endl;
+                    static float wat = 0.0f;
+                    wat += 0.0005f;
+                    gui->drawBlack(wat);
+                    if(wat >= 1.0f)
+                        gameState = MENU;
+                } else {
+                    static float lol = 0.0f;
+                    lol += 0.02f;
+                    gui->drawBlack(lol);
+                    if (lol >= 1.0f) {
+                        if (!fmod->isPlaying("crash"))
+                            fmod->playSound("crash", false);
+                    }
+
                 }
 
             }

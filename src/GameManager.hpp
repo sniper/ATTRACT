@@ -18,6 +18,9 @@
 #include <glm/gtc/type_ptr.hpp>
 #include "GameObject.hpp"
 
+
+#define NUMLEVELS 3
+
 class InputManager;
 class Camera;
 class Program;

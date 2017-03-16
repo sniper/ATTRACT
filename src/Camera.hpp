@@ -47,6 +47,8 @@ public:
     float getRot() const {return pitch;}
     std::shared_ptr<AABoundingBox> getPlayerSphere() const {return boundingBox;}
     bool isLookingAtMagnet() const {return lookingAtMagnet;}
+    void setPitch(float in){pitch = in;}
+    void setYaw(float in){yaw = in;}
     
 private:
     glm::vec3 position;
