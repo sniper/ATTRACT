@@ -278,6 +278,32 @@ bool GameManager::toBool(string s) {
     return s != "0";
 }
 
+void GameManager::parseLight(string objectString) {
+    char *str = new char[objectString.length() + 1];
+    strcpy(str, objectString.c_str());
+
+    vector<string> elems;
+    char *tok = strtok(str, ",");
+    while (tok != NULL) {
+        elems.push_back(tok);
+        tok = strtok(NULL, ",");
+    }
+    //split(objectString, ',', back_inserter(elems));
+    string::size_type sz;
+    vec3 pos = vec3(stof(elems[0], &sz), stof(elems[1]), stof(elems[2]));
+    vec3 scale = vec3(stof(elems[3]), stof(elems[4]), stof(elems[5]));
+    vec3 rot = vec3(stof(elems[6]), stof(elems[7]), stof(elems[8]));
+    bool magnetic = toBool(elems[9]);
+    bool deadly = toBool(elems[10]);
+    bool playerSpawn = toBool(elems[11]);
+    bool collectable = toBool(elems[12]);
+    bool light = toBool(elems[13]);
+
+    if (light) {
+        lightPos = vec4(pos, 0.0);
+    }
+}
+
 void GameManager::parseCamera(string objectString) {
     char *str = new char[objectString.length() + 1];
     strcpy(str, objectString.c_str());
@@ -297,6 +323,7 @@ void GameManager::parseCamera(string objectString) {
     bool deadly = toBool(elems[10]);
     bool playerSpawn = toBool(elems[11]);
     bool collectable = toBool(elems[12]);
+    bool light = toBool(elems[13]);
 
     //    cerr << "new camera" << endl;
     //    cerr << pos.x << " " << pos.y << endl;
@@ -330,6 +357,7 @@ void GameManager::parseObject(string objectString, shared_ptr<Material> greyBox,
     bool deadly = toBool(elems[10]);
     bool playerSpawn = toBool(elems[11]);
     bool collectable = toBool(elems[12]);
+    bool light = toBool(elems[13]);
     //    cerr << "new obj" << endl;
     //    cerr << pos.x << " " << pos.y << endl;
     //    cerr << scale.x << " " << scale.y << endl;
@@ -384,6 +412,9 @@ void GameManager::importLevel(string level) {
             200.0f);
 
     if (file.is_open()) {
+        if (getline(file, line)) {
+            parseLight(line);
+        }
         if (getline(file, line)) {
             /*get camera position*/
             parseCamera(line);

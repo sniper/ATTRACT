@@ -72,6 +72,7 @@ private:
     void printStringToScreen(float x, float y, const std::string &text, float r, float g, float b);
     float randFloat(float l, float h);
     void importLevel(std::string level);
+    void parseLight(std::string level);
     void parseCamera(std::string level);
     void parseObject(std::string level, std::shared_ptr<Material> greyBox,
                      std::shared_ptr<Material> magnetSurface,
