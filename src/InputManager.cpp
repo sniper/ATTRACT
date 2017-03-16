@@ -30,7 +30,7 @@ InputManager::~InputManager() {
 State InputManager::processGameInputs(shared_ptr<BulletManager> &bullet,
         shared_ptr<FmodManager> &fmod) {
     // Move mouse.
-    camera->mouseMoved(Mouse::getMouseX(), Mouse::getMouseY());
+    camera->mouseMoved(Mouse::getMouseX(), Mouse::getMouseY(), false);
 
     // Create a vector to hold the keyboard inputs
     vector<char> pressedKeys;
@@ -74,7 +74,7 @@ State InputManager::processGameInputs(shared_ptr<BulletManager> &bullet,
 
 State InputManager::processCutsceneInputs(shared_ptr<BulletManager> &bullet,
         shared_ptr<FmodManager> &fmod, shared_ptr<GameObject> obj) {
-    camera->mouseMoved(Mouse::getMouseX(), Mouse::getMouseY());
+    camera->mouseMoved(Mouse::getMouseX(), Mouse::getMouseY(), true);
 
     vec3 old = obj->getPosition();
 

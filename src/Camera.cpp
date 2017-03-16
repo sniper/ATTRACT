@@ -64,13 +64,19 @@ Camera::~Camera() {
 
 }
 
-void Camera::mouseMoved(double x, double y) {
+void Camera::mouseMoved(double x, double y, bool constrainYaw) {
     vec2 mouseCurr(x, y);
     vec2 dv = mouseCurr - mousePrev;
     int width, height;
     glfwGetWindowSize(window, &width, &height);
 
-    yaw += (dv[0] / width) * MOUSE_SENSITIVITY;
+    if (constrainYaw) {
+        if (dv[0] < 0.0 && yaw >= -9.3 || dv[0] > 0.0 && yaw <= -6.4) {
+            yaw += (dv[0] / width) * MOUSE_SENSITIVITY;
+        }
+    } else {
+        yaw += (dv[0] / width) * MOUSE_SENSITIVITY;
+    }
 
     if (dv[1] > 0.0f && pitch >= -PITCH_CUTOFF || dv[1] < 0.0f && pitch <= PITCH_CUTOFF) {
         pitch -= (dv[1] / height) * MOUSE_SENSITIVITY;

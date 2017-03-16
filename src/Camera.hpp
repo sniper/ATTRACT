@@ -29,7 +29,7 @@ public:
     Camera(const glm::vec3 &position, GLFWwindow *window);
     virtual ~Camera();
     
-    void mouseMoved(double x, double y);
+    void mouseMoved(double x, double y, bool constrainYaw);
     void interpretPressedKeys(const std::vector<char> &pressedKeys, std::shared_ptr<BulletManager> bullet, std::shared_ptr<FmodManager> fmod);
     void applyProjectionMatrix(std::shared_ptr<MatrixStack> P) const;
     void applyViewMatrix(std::shared_ptr<MatrixStack> MV) const;
