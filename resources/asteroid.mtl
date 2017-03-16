@@ -1,0 +1,5 @@
+newmtl asteroid
+Kd 0.640000 0.640000 0.640000
+map_Kd asteroid.jpg
+map_bump asteroid_normal.jpg
+

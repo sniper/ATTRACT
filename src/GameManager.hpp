@@ -112,6 +112,7 @@ private:
     std::shared_ptr<GameObject> magnetBeamOrange;
     std::shared_ptr<GameObject> magnetBeamBlue;
     std::shared_ptr<GameObject> spaceship;
+    std::shared_ptr<GameObject> asteroid;
 
     std::vector<std::shared_ptr<GameObject>> deathObjects;
 
@@ -130,7 +131,7 @@ private:
     std::shared_ptr<Camera> camera;
 
     std::shared_ptr<Program> program, shipPartProgram, skyscraperProgram,
-    depthProg, depthDebugProg;
+    depthProg, depthDebugProg, asteroidProgram;
     std::shared_ptr<Texture> shipPartColorTexture, shipPartSpecularTexture,
     skyscraperColorTexture, skyscraperSpecularTexture;
     std::map<std::string, std::shared_ptr<Shape>> shapes;

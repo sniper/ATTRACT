@@ -159,6 +159,27 @@ void GameManager::initScene() {
     skyscraperProgram->addUniform("LS");
 
     //
+    // Asteroids
+    //
+    asteroidProgram = make_shared<Program>();
+    asteroidProgram->setShaderNames(RESOURCE_DIR + "asteroidVert.glsl", RESOURCE_DIR + "asteroidFrag.glsl");
+    asteroidProgram->setVerbose(true);
+    asteroidProgram->init();
+    asteroidProgram->addAttribute("aPos");
+    asteroidProgram->addAttribute("aNor");
+    asteroidProgram->addAttribute("aTex");
+    asteroidProgram->addAttribute("aTangent");
+    asteroidProgram->addAttribute("aBitangent");
+    asteroidProgram->addUniform("M");
+    asteroidProgram->addUniform("V");
+    asteroidProgram->addUniform("P");
+    asteroidProgram->addUniform("diffuseTex");
+    asteroidProgram->addUniform("specularTex");
+    asteroidProgram->addUniform("normalTex");
+    asteroidProgram->addUniform("lightPos");
+    asteroidProgram->addUniform("viewPos");
+
+    //
     // Ship Parts
     //
     shipPartProgram = make_shared<Program>();
@@ -231,6 +252,11 @@ void GameManager::initScene() {
     temp->init();
     shapes.insert(make_pair("sphere", temp));
 
+    temp = make_shared<Shape>();
+    temp->loadMesh(RESOURCE_DIR + "asteroid.obj", RESOURCE_DIR);
+    temp->fitToUnitBox();
+    temp->init();
+    shapes.insert(make_pair("asteroid", temp));
 
     /* Shadow stuff */
     // Initialize the GLSL programs
@@ -289,6 +315,7 @@ void GameManager::initScene() {
     magnetBeamBlue->setYRot(-0.08f);
 
     spaceship = make_shared<GameObject>(vec3(6.06999, 2.4, 3.7), vec3(1, 0, 0), vec3(5, 5, 5), 0, shapes["spaceship"], material3);
+    asteroid = make_shared<GameObject>(vec3(6.06999, 2.4, -1.7), vec3(1, 0, 0), vec3(5, 5, 5), 0, shapes["asteroid"], nullptr);
     shared_ptr<Material> spacePart = make_shared<Material>(vec3(0.2f, 0.2f, 0.2f),
             vec3(1.0f, 1.0f, 0.0f),
             vec3(1.0f, 0.9f, 0.8f),
@@ -302,7 +329,6 @@ void GameManager::initScene() {
     spaceShipPart3 = make_shared<SpaceShipPart>(vec3(5, 5.4, 4.3), vec3(0, 0, 0),
             CUBE_HALF_EXTENTS, vec3(1, 1, 1),
             shapes["shipPart"], spacePart);
-
 }
 
 bool GameManager::toBool(string s) {
@@ -616,7 +642,6 @@ void GameManager::updateGame(double dt) {
                 camera->setPosition(orig);
             else
                 camera->setPosition(old);
-
         }
         if (t > 1750) {
             float r1 = -0.02 + static_cast<float> (rand()) / (static_cast<float> (RAND_MAX / ((0.02)-(-0.02))));
@@ -634,7 +659,6 @@ void GameManager::updateGame(double dt) {
                 camera->setPosition(old);
 
             drawBlack = true;
-
         }
 
         if (drawShipParts) {
@@ -963,6 +987,14 @@ void GameManager::renderGame(int fps) {
                 shipPartColorTexture->unbind();
                 shipPartProgram->unbind();
             }
+
+            asteroidProgram->bind();
+            glUniformMatrix4fv(asteroidProgram->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
+            glUniformMatrix4fv(asteroidProgram->getUniform("V"), 1, GL_FALSE, value_ptr(V->topMatrix()));
+            glUniform3fv(asteroidProgram->getUniform("lightPos"), 1, value_ptr(vec3(lightPos)));
+            glUniform3fv(asteroidProgram->getUniform("viewPos"), 1, value_ptr(camera->getPosition()));
+            asteroid->draw(asteroidProgram);
+            asteroidProgram->unbind();
 
 
             if (drawBlack) {
