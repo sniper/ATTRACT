@@ -36,6 +36,8 @@ curSound(""){
     createStream("gps","gps.mp3", false);
     createStream("error", "error.mp3", false);
     createStream("crash", "crash.mp3", false);
+    createStream("start","start.mp3",false);
+    createStream("gunget","gunget.mp3",false);
 }
 
 FmodManager::FmodManager(const FmodManager& orig) {

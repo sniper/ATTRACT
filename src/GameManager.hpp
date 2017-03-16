@@ -126,6 +126,7 @@ private:
     bool drawShipParts;
     bool drawBlack;
 
+
     std::shared_ptr<Camera> camera;
 
     std::shared_ptr<Program> program, shipPartProgram, skyscraperProgram,
