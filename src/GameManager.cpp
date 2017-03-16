@@ -544,14 +544,23 @@ void GameManager::updateGame(double dt) {
         psystem->update(dt, camera->getPosition());
 
         if (camera->checkForCollision(spaceShipPart)) {
-            //cout << "Collision" << endl;
+            spaceShipPart->startWin();
+            if (!fmod->isPlaying("collecting")) {
+                fmod->playSound("collecting", true, 4.5);
+            }
+        }
+        if (spaceShipPart->doneWinning()) {
             kdtree = nullptr;
             bvh = nullptr;
             objects.clear();
             deathObjects.clear();
+            if (fmod->isPlaying("collecting")) {
+                fmod->stopSound("collecting");
+            }
             fmod->playSound("win", false);
             gameState = WIN;
         }
+
         /*check for collision with death objects*/
         for (unsigned int i = 0; i < deathObjects.size(); i++) {
             if (camera->checkForCollision(deathObjects.at(i))) {

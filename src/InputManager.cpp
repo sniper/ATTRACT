@@ -66,8 +66,6 @@ State InputManager::processGameInputs(shared_ptr<BulletManager> &bullet,
         return PAUSE;
     }
 
-
-
     camera->interpretPressedKeys(pressedKeys, bullet, fmod);
     return GAME;
 }

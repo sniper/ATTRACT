@@ -25,10 +25,15 @@ public:
     
     void update(float dt);
     void draw(const std::shared_ptr<Program> &prog);
+    void startWin();
+    bool doneWinning();
+
 protected:
     float yOffset;
     float currTime;
     bool collected;
+    bool spinning;
+    float spinTime;
 };
 
 #endif /* SpaceShipPart_hpp */
