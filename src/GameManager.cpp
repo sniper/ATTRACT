@@ -163,7 +163,7 @@ void GameManager::initScene() {
     //
     asteroidProgram = make_shared<Program>();
     asteroidProgram->setShaderNames(RESOURCE_DIR + "asteroidVert.glsl", RESOURCE_DIR + "asteroidFrag.glsl");
-    asteroidProgram->setVerbose(true);
+    asteroidProgram->setVerbose(false);
     asteroidProgram->init();
     asteroidProgram->addAttribute("aPos");
     asteroidProgram->addAttribute("aNor");
@@ -315,7 +315,7 @@ void GameManager::initScene() {
     magnetBeamBlue->setYRot(-0.08f);
 
     spaceship = make_shared<GameObject>(vec3(6.06999, 2.4, 3.7), vec3(1, 0, 0), vec3(5, 5, 5), 0, shapes["spaceship"], material3);
-    asteroid = make_shared<GameObject>(vec3(6.06999, 2.4, -1.7), vec3(1, 0, 0), vec3(5, 5, 5), 0, shapes["asteroid"], nullptr);
+    asteroid = make_shared<GameObject>(vec3(6.06999, 6.4, -1.7), vec3(1, 0, 0), vec3(5, 5, 5), 0, shapes["asteroid"], nullptr);
     shared_ptr<Material> spacePart = make_shared<Material>(vec3(0.2f, 0.2f, 0.2f),
             vec3(1.0f, 1.0f, 0.0f),
             vec3(1.0f, 0.9f, 0.8f),
@@ -612,6 +612,16 @@ void GameManager::updateGame(double dt) {
         static int t = 0;
         static vec3 orig = camera->getPosition();
         t++;
+        
+        vec3 old = asteroid->getPosition();
+        old.z += 0.3f;
+        if (old.z >= 9.0f) {
+            old.z = -25.0f;
+            old.y = randFloat(5.0f, 8.0f);
+            old.x = randFloat(-6.0f, 6.0f);
+        }
+        asteroid->setPosition(old);
+
         if (t == 400) {
             if (!fmod->isPlaying("gps"))
                 fmod->playSound("gps", false);
