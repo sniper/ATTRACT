@@ -21,7 +21,7 @@ class Skybox
 {
 public:
     Skybox(const std::string &resourceDir,
-           const std::shared_ptr<Shape> &skyShape);
+           const std::shared_ptr<Shape> &skyShape, int flag);
     virtual ~Skybox();
     
     void render(std::shared_ptr<MatrixStack> &P,

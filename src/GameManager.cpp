@@ -68,7 +68,8 @@ level(0),
 drawBeam(false),
 colorBeam(ORANGE),
 drawEmergency(false),
-drawShipParts(false) {
+drawShipParts(false),
+drawBlack(false) {
     objIntervalCounter = 0.0f;
     numObjCollected = 0;
     gameWon = false;
@@ -232,7 +233,8 @@ void GameManager::initScene() {
     //
     // Make Skybox
     //
-    skybox = make_shared<Skybox>(RESOURCE_DIR, shapes["sphere"]);
+    skybox = make_shared<Skybox>(RESOURCE_DIR, shapes["sphere"],1);
+    spacebox = make_shared<Skybox>(RESOURCE_DIR, shapes["sphere"],0);
 
     //lightPos = vec4(0.0f, 10.0f, 0.0f, 1.0f);
     lightIntensity = 0.6f;
@@ -490,6 +492,7 @@ void GameManager::updateGame(double dt) {
         if (t == 400) {
             if (!fmod->isPlaying("gps"))
                 fmod->playSound("gps", false);
+
         }
         if (t == 900) {
             drawEmergency = true;
@@ -532,25 +535,36 @@ void GameManager::updateGame(double dt) {
                 camera->setPosition(orig);
             else
                 camera->setPosition(old);
+
+            drawBlack = true;
+
         }
-        
-        if(drawShipParts) {
+
+        if (drawShipParts) {
             vec3 old1 = spaceShipPart1->getPosition();
             vec3 old2 = spaceShipPart2->getPosition();
             vec3 old3 = spaceShipPart3->getPosition();
             float z = 0.09f;
-            old1.z-= z;
-            old2.z-= z;
-            old3.z-= z;
-            
+            old1.z -= z;
+            old2.z -= z;
+            old3.z -= z;
+
             float y = 0.04f;
-            old1.y-= y;
-            old2.y-= y;
-            old3.y-= y;
+            old1.y -= y;
+            old2.y -= y;
+            old3.y -= y;
             spaceShipPart1->setPosition(old1);
             spaceShipPart2->setPosition(old2);
             spaceShipPart3->setPosition(old3);
         }
+        cout << t << endl;
+        if(t == 2000) {
+            level++;
+            importLevel(to_string(level));
+            fmod->stopSound("flying");
+            gameState = GAME;
+        }
+            
 
     }
 }
@@ -599,7 +613,10 @@ void GameManager::renderGame(int fps) {
         V->pushMatrix();
         camera->applyViewMatrix(V);
 
-        skybox->render(P, V);
+        if(gameState == GAME)
+            skybox->render(P, V);
+        else if(gameState == CUTSCENE)
+            spacebox->render(P,V);
 
 
         lightPos = vec4(camera->getPosition(), 1.0);
@@ -736,11 +753,16 @@ void GameManager::renderGame(int fps) {
             }
 
 
-            if (drawEmergency) {
-                cout << "drawing emergency" << endl;
-
-                gui->drawCutscene(V->topMatrix());
-
+            if (drawBlack) {
+                cout << "drawing black" << endl;
+                static float lol = 0.0f;
+                lol += 0.02f;
+                 gui->drawBlack(lol);
+                 if(lol >= 1.0f) {
+                     if(!fmod->isPlaying("crash"))
+                         fmod->playSound("crash",false);
+                 }
+                     
             }
 
 

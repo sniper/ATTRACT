@@ -6,7 +6,10 @@ in vec2 vTex;
 
 out vec4 color;
 
+uniform float alpha;
+
 void main(){
   color = texture(guiTex, vTex);
-  //color = vec4(1,0.1,0.5,0.5);
+   if(alpha != -1)
+    color.a = alpha;
 }

@@ -110,6 +110,7 @@ private:
     
     bool drawEmergency;
     bool drawShipParts;
+    bool drawBlack;
 
     std::shared_ptr<InputManager> inputManager;
     std::shared_ptr<Camera> camera;
@@ -126,6 +127,7 @@ private:
     std::shared_ptr<SpaceShipPart> spaceShipPart3;
 
     std::shared_ptr<Skybox> skybox;
+    std::shared_ptr<Skybox> spacebox;
 
     glm::vec4 lightPos;
     float lightIntensity;
