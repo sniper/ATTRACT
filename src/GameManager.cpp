@@ -67,7 +67,8 @@ gameState(MENU),
 level(0),
 drawBeam(false),
 colorBeam(ORANGE),
-drawEmergency(false) {
+drawEmergency(false),
+drawShipParts(false) {
     objIntervalCounter = 0.0f;
     numObjCollected = 0;
     gameWon = false;
@@ -255,6 +256,20 @@ void GameManager::initScene() {
     magnetBeamBlue->setYRot(-0.08f);
 
     spaceship = make_shared<GameObject>(vec3(6.06999, 2.4, 3.7), vec3(1, 0, 0), vec3(5, 5, 5), 0, shapes["spaceship"], material3);
+    shared_ptr<Material> spacePart = make_shared<Material>(vec3(0.2f, 0.2f, 0.2f),
+            vec3(1.0f, 1.0f, 0.0f),
+            vec3(1.0f, 0.9f, 0.8f),
+            200.0f);
+    spaceShipPart1 = make_shared<SpaceShipPart>(vec3(6, 5.4, 4.0), vec3(0, 0, 0),
+            CUBE_HALF_EXTENTS, vec3(1, 1, 1),
+            shapes["shipPart"], spacePart);
+    spaceShipPart2 = make_shared<SpaceShipPart>(vec3(6, 5.4, 5.0), vec3(0, 0, 0),
+            CUBE_HALF_EXTENTS, vec3(1, 1, 1),
+            shapes["shipPart"], spacePart);
+    spaceShipPart3 = make_shared<SpaceShipPart>(vec3(5, 5.4, 4.3), vec3(0, 0, 0),
+            CUBE_HALF_EXTENTS, vec3(1, 1, 1),
+            shapes["shipPart"], spacePart);
+
 }
 
 bool GameManager::toBool(string s) {
@@ -486,7 +501,8 @@ void GameManager::updateGame(double dt) {
         if (t > 900 && t % 100 > 50)
             drawEmergency = false;
 
-        if (t > 1200) {
+        if (t > 1300) {
+            drawShipParts = true;
             float r1 = -0.001 + static_cast<float> (rand()) / (static_cast<float> (RAND_MAX / ((0.001)-(-0.001))));
             float r2 = -0.001 + static_cast<float> (rand()) / (static_cast<float> (RAND_MAX / ((0.001)-(-0.001))));
             float r3 = -0.001 + static_cast<float> (rand()) / (static_cast<float> (RAND_MAX / ((0.001)-(-0.001))));
@@ -502,7 +518,7 @@ void GameManager::updateGame(double dt) {
                 camera->setPosition(old);
 
         }
-        if (t > 1300) {
+        if (t > 1750) {
             float r1 = -0.02 + static_cast<float> (rand()) / (static_cast<float> (RAND_MAX / ((0.02)-(-0.02))));
             float r2 = -0.02 + static_cast<float> (rand()) / (static_cast<float> (RAND_MAX / ((0.02)-(-0.02))));
             float r3 = -0.02 + static_cast<float> (rand()) / (static_cast<float> (RAND_MAX / ((0.02)-(-0.02))));
@@ -517,21 +533,25 @@ void GameManager::updateGame(double dt) {
             else
                 camera->setPosition(old);
         }
-
-        cout << t << endl;
-        for (unsigned int i = 0; i < objects.size(); i++) {
-            vec3 old = objects[i]->getPosition();
-            old.x += 0.01f;
-            //objects[i]->setPosition(old);
-
-            old = camera->getPosition();
-            old.x += 0.01f;
-            //camera->setPosition(old);
-
-            old = spaceship->getPosition();
-            old.x += 0.01f;
-            //spaceship->setPosition(old);
+        
+        if(drawShipParts) {
+            vec3 old1 = spaceShipPart1->getPosition();
+            vec3 old2 = spaceShipPart2->getPosition();
+            vec3 old3 = spaceShipPart3->getPosition();
+            float z = 0.09f;
+            old1.z-= z;
+            old2.z-= z;
+            old3.z-= z;
+            
+            float y = 0.04f;
+            old1.y-= y;
+            old2.y-= y;
+            old3.y-= y;
+            spaceShipPart1->setPosition(old1);
+            spaceShipPart2->setPosition(old2);
+            spaceShipPart3->setPosition(old3);
         }
+
     }
 }
 
@@ -698,6 +718,23 @@ void GameManager::renderGame(int fps) {
             glUniform1f(program->getUniform("lightIntensity"), lightIntensity);
             spaceship->draw(program);
             program->unbind();
+
+            if (drawShipParts) {
+                shipPartProgram->bind();
+                shipPartColorTexture->bind(shipPartProgram->getUniform("diffuseTex"));
+                shipPartSpecularTexture->bind(shipPartProgram->getUniform("specularTex"));
+                glUniformMatrix4fv(shipPartProgram->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
+                glUniformMatrix4fv(shipPartProgram->getUniform("V"), 1, GL_FALSE, value_ptr(V->topMatrix()));
+                glUniform3fv(shipPartProgram->getUniform("lightPos"), 1, value_ptr(vec3(l)));
+
+                spaceShipPart1->draw(shipPartProgram);
+                spaceShipPart2->draw(shipPartProgram);
+                spaceShipPart3->draw(shipPartProgram);
+                shipPartSpecularTexture->unbind();
+                shipPartColorTexture->unbind();
+                shipPartProgram->unbind();
+            }
+
 
             if (drawEmergency) {
                 cout << "drawing emergency" << endl;

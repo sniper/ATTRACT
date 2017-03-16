@@ -109,6 +109,7 @@ private:
     int colorBeam;
     
     bool drawEmergency;
+    bool drawShipParts;
 
     std::shared_ptr<InputManager> inputManager;
     std::shared_ptr<Camera> camera;
@@ -119,6 +120,10 @@ private:
     std::map<std::string, std::shared_ptr<Shape>> shapes;
 
     std::shared_ptr<SpaceShipPart> spaceShipPart;
+    
+    std::shared_ptr<SpaceShipPart> spaceShipPart1;
+    std::shared_ptr<SpaceShipPart> spaceShipPart2;
+    std::shared_ptr<SpaceShipPart> spaceShipPart3;
 
     std::shared_ptr<Skybox> skybox;
 
