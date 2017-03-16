@@ -503,6 +503,7 @@ State GameManager::processInputs() {
     } else if (gameState == WIN) {
         gameState = inputManager->processWinInputs(gui, fmod);
         if (gameState == GAME) {
+
             level++;
             importLevel(to_string(level));
         } else if (gameState == MENU) {
@@ -513,8 +514,11 @@ State GameManager::processInputs() {
         if (gameState == GAME) {
             level++;
             fmod->stopSound("flying");
+            vec3 old = spaceship->getPosition();
+            old.y += 2.0f;
+            spaceship->setPosition(old);
             importLevel(to_string(level));
-
+            bullet->createMagneticBox(to_string(-1), spaceship->getPosition(), CUBE_HALF_EXTENTS, vec3(2, 2, 2), 0);
         }
     }
 
@@ -532,7 +536,13 @@ void GameManager::updateGame(double dt) {
     //bullet->rayTrace(camera->getPosition(), camera->getPosition() + (camera->getDirection() * MAGNET_RANGE));
 
     if (gameState != CUTSCENE) {
-        resolveMagneticInteractions();
+        /*scripted stuff for level 1*/
+
+
+
+
+        if (!fmod->isPlaying("start"))
+            resolveMagneticInteractions();
 
         spaceShipPart->update(dt);
 
@@ -644,11 +654,16 @@ void GameManager::updateGame(double dt) {
             spaceShipPart2->setPosition(old2);
             spaceShipPart3->setPosition(old3);
         }
-        
+
         if (t == 2000) {
+
+            fmod->stopSound("flying");
+            vec3 old = spaceship->getPosition();
+            old.y += 2.0f;
+            spaceship->setPosition(old);
             level++;
             importLevel(to_string(level));
-            fmod->stopSound("flying");
+            bullet->createMagneticBox(to_string(-1), spaceship->getPosition(), CUBE_HALF_EXTENTS, vec3(2, 2, 2), 0);
             gameState = GAME;
         }
 
@@ -871,10 +886,42 @@ void GameManager::renderGame(int fps) {
             skybox->render(P, V);
             drawScene(P, V, false);
             drawShipPart(P, V, false);
-            drawMagnetGun(P, V, false);
-            if (gameState != PAUSE) {
+            if (level == 1) {
+
+
+
+                program->bind();
+                //spaceship->setPosition(camera->getPosition());
+                glUniformMatrix4fv(program->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
+                glUniformMatrix4fv(program->getUniform("V"), 1, GL_FALSE, value_ptr(V->topMatrix()));
+                glUniform3fv(program->getUniform("lightPos"), 1, value_ptr(vec3(lightPos)));
+                glUniform1f(program->getUniform("lightIntensity"), lightIntensity);
+                spaceship->draw(program);
+                program->unbind();
+                static float lol = 1.0f;
+                if (lol >= 0.0f) {
+                    lol -= 0.02f;
+                    if (!fmod->isPlaying("start"))
+                        fmod->playSound("start", false);
+
+                }
+                static int flag = 1;
+
+                if (flag && !fmod->isPlaying("start")) {
+                    fmod->playSound("gunget", false);
+                    flag = 0;
+                }
+
+
+                gui->drawBlack(lol);
+            }
+            if (!fmod->isPlaying("start"))
+                drawMagnetGun(P, V, false);
+            if (gameState != PAUSE && !fmod->isPlaying("start")) {
                 gui->drawHUD(camera->isLookingAtMagnet(), Mouse::isLeftMouseButtonPressed(), Mouse::isRightMouseButtonPressed());
             }
+
+
 
             if (SHADOW_DEBUG) {
                 glClear(GL_DEPTH_BUFFER_BIT);
@@ -886,6 +933,7 @@ void GameManager::renderGame(int fps) {
                 depthDebugProg->unbind();
                 glViewport(0, 0, width, height);
             }
+
 
 
 
@@ -918,7 +966,7 @@ void GameManager::renderGame(int fps) {
 
 
             if (drawBlack) {
-                cout << "drawing black" << endl;
+
                 static float lol = 0.0f;
                 lol += 0.02f;
                 gui->drawBlack(lol);
