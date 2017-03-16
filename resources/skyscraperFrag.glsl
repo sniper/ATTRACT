@@ -47,15 +47,11 @@ void main()
 {
     vec3 color = texture(diffuseTex, vTex).rgb;
     //    vec3 ks = texture(specularTex, vTex).rgb;
-    
+
     vec3 normal = texture(normalTex, vTex).rgb;
-    if (normal.g != 1.0) { // pure green is marking the top/bottom for now
-        normal = normalize(normal * 2.0 - 1.0);
-        normal = normalize(TBN * normal);
-    } else {
-        normal = normalize(fragNor.xyz);
-    }
-    
+    normal = normalize(normal * 2.0 - 1.0);
+    normal = normalize(TBN * normal);
+
     vec3 lightColor = vec3(1.0);
     vec3 ambient = 0.3 * color;
     vec3 lightDir = normalize(lightPos - fragPos);
