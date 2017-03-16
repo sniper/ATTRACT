@@ -40,7 +40,7 @@ void Shape::loadMesh(const string &meshName, const string &resourceDir) {
     bool rc = tinyobj::LoadObj(shapes, objMaterials, errStr, meshName.c_str(),
                                resourceDir.c_str());
     if (!rc) {
-        cerr << errStr << endl;
+        cerr << "errr: " << errStr << endl;
     } else {
         vector<unsigned int> tempEleBuf;
         

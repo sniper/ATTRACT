@@ -32,6 +32,10 @@ curSound(""){
     createStream("choose", "choose.mp3",false);
     createStream("death", "death.mp3",false);
     createStream("win", "win.mp3",false);
+    createStream("flying", "flying.mp3", true);
+    createStream("gps","gps.mp3", false);
+    createStream("error", "error.mp3", false);
+    createStream("crash", "crash.mp3", false);
 }
 
 FmodManager::FmodManager(const FmodManager& orig) {

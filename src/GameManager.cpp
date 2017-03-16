@@ -10,6 +10,7 @@
 #include <math.h>
 #include <time.h>
 
+
 #define GLEW_STATIC
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -61,9 +62,12 @@ GameManager::GameManager(GLFWwindow *window, const string &resourceDir) :
 window(window),
 RESOURCE_DIR(resourceDir),
 gameState(MENU),
-level(1),
+level(0),
 drawBeam(false),
-colorBeam(ORANGE) {
+colorBeam(ORANGE),
+drawEmergency(false),
+drawShipParts(false),
+drawBlack(false) {
     objIntervalCounter = 0.0f;
     numObjCollected = 0;
     gameWon = false;
@@ -86,10 +90,10 @@ colorBeam(ORANGE) {
     fmod = make_shared<FmodManager>(RESOURCE_DIR);
     gui = make_shared<GuiManager>(RESOURCE_DIR);
     psystem = make_shared<ParticleManager>(RESOURCE_DIR);
-    
+
     shadowManager = make_shared<ShadowManager>();
     shadowManager->init();
-    
+
     // Initialize the scene.
     initScene();
 }
@@ -220,41 +224,52 @@ void GameManager::initScene() {
     temp->fitToUnitBox();
     temp->init();
     shapes.insert(make_pair("cylinder", temp));
-    
+
     temp = make_shared<Shape>();
     temp->loadMesh(RESOURCE_DIR + "sphere.obj", RESOURCE_DIR);
     temp->fitToUnitBox();
     temp->init();
     shapes.insert(make_pair("sphere", temp));
-    
+
+
     /* Shadow stuff */
     // Initialize the GLSL programs
     depthProg = make_shared<Program>();
     depthProg->setVerbose(false);
     depthProg->setShaderNames(RESOURCE_DIR + "depthVert.glsl", RESOURCE_DIR + "depthFrag.glsl");
     depthProg->init();
-    
+
     depthProg->addUniform("LS");
     depthProg->addUniform("M");
     depthProg->addAttribute("aPos");
     //un-needed, but easier then modifying shape
     depthProg->addAttribute("aNor");
     depthProg->addAttribute("aTex");
-    
+
     if (SHADOW_DEBUG) {
         depthDebugProg = make_shared<Program>();
         depthDebugProg->setVerbose(false);
         depthDebugProg->setShaderNames(RESOURCE_DIR + "depthDebugVert.glsl", RESOURCE_DIR + "depthDebugFrag.glsl");
         depthDebugProg->init();
-        
+
         depthDebugProg->addUniform("texBuf");
         depthDebugProg->addAttribute("aPos");
     }
-    
+
+
+
+    temp = make_shared<Shape>();
+    temp->loadMesh(RESOURCE_DIR + "temp/untitled.obj", RESOURCE_DIR + "temp/");
+    temp->fitToUnitBox();
+    temp->init();
+    shapes.insert(make_pair("spaceship", temp));
+
+
     //
     // Make Skybox
     //
-    skybox = make_shared<Skybox>(RESOURCE_DIR, shapes["sphere"]);
+    skybox = make_shared<Skybox>(RESOURCE_DIR, shapes["sphere"], 1);
+    spacebox = make_shared<Skybox>(RESOURCE_DIR, shapes["sphere"], 0);
 
     lightPos = vec4(4.0f, 15.0f, 4.0f, 0.0f);
     lightIntensity = 0.6f;
@@ -272,6 +287,22 @@ void GameManager::initScene() {
     shared_ptr<Material> material3 = make_shared<Material>(vec3(0.5f, 1.0f, 1.0f), vec3(0.5f, 1.0f, 1.0f), vec3(0.5f, 0.5f, 1.0f), 200.0f);
     magnetBeamBlue = make_shared<GameObject>(vec3(0.18, -0.15, -3), vec3(0.1, 0, -0.01), vec3(0.2, 0.2, 3.5), 0, shapes["cylinder"], material3);
     magnetBeamBlue->setYRot(-0.08f);
+
+    spaceship = make_shared<GameObject>(vec3(6.06999, 2.4, 3.7), vec3(1, 0, 0), vec3(5, 5, 5), 0, shapes["spaceship"], material3);
+    shared_ptr<Material> spacePart = make_shared<Material>(vec3(0.2f, 0.2f, 0.2f),
+            vec3(1.0f, 1.0f, 0.0f),
+            vec3(1.0f, 0.9f, 0.8f),
+            200.0f);
+    spaceShipPart1 = make_shared<SpaceShipPart>(vec3(6, 5.4, 4.0), vec3(0, 0, 0),
+            CUBE_HALF_EXTENTS, vec3(1, 1, 1),
+            shapes["shipPart"], spacePart);
+    spaceShipPart2 = make_shared<SpaceShipPart>(vec3(6, 5.4, 5.0), vec3(0, 0, 0),
+            CUBE_HALF_EXTENTS, vec3(1, 1, 1),
+            shapes["shipPart"], spacePart);
+    spaceShipPart3 = make_shared<SpaceShipPart>(vec3(5, 5.4, 4.3), vec3(0, 0, 0),
+            CUBE_HALF_EXTENTS, vec3(1, 1, 1),
+            shapes["shipPart"], spacePart);
+
 }
 
 bool GameManager::toBool(string s) {
@@ -395,6 +426,10 @@ void GameManager::parseObject(string objectString, shared_ptr<Material> greyBox,
 void GameManager::importLevel(string level) {
     string line;
     ifstream file;
+    kdtree = nullptr;
+    bvh = nullptr;
+    objects.clear();
+    deathObjects.clear();
     bullet = make_shared<BulletManager>();
     file.open(RESOURCE_DIR + "levels/" + level);
 
@@ -452,6 +487,12 @@ State GameManager::processInputs() {
             fmod->playSound("menu", true);
         if (gameState == GAME) {
             fmod->stopSound("menu");
+
+            importLevel(to_string(level));
+        }
+        if (gameState == CUTSCENE) {
+            fmod->stopSound("menu");
+            fmod->playSound("flying", true, 0.3);
             importLevel(to_string(level));
         }
     } else if (gameState == DEATH) {
@@ -467,13 +508,20 @@ State GameManager::processInputs() {
         } else if (gameState == MENU) {
             fmod->stopSound("menu");
         }
+    } else if (gameState == CUTSCENE) {
+        gameState = inputManager->processCutsceneInputs(bullet, fmod, spaceship);
+        if (gameState == GAME) {
+            level++;
+            fmod->stopSound("flying");
+            importLevel(to_string(level));
+
+        }
     }
-    
-    if (gameState == GAME) {
+
+    if (gameState == GAME || gameState == CUTSCENE) {
         // Set cursor position callback.
         glfwSetCursorPosCallback(window, Mouse::cursor_position_callback);
-    }
-    else {
+    } else {
         glfwSetCursorPosCallback(window, NULL);
     }
 
@@ -482,50 +530,134 @@ State GameManager::processInputs() {
 
 void GameManager::updateGame(double dt) {
     //bullet->rayTrace(camera->getPosition(), camera->getPosition() + (camera->getDirection() * MAGNET_RANGE));
-    resolveMagneticInteractions();
 
-    spaceShipPart->update(dt);
+    if (gameState != CUTSCENE) {
+        resolveMagneticInteractions();
 
-    //step the bullet, update test obj
-    bullet->step(dt);
+        spaceShipPart->update(dt);
 
-    camera->setPosition(bullet->getBulletObjectState("cam"));
+        //step the bullet, update test obj
+        bullet->step(dt);
 
-    psystem->update(dt, camera->getPosition());
+        camera->setPosition(bullet->getBulletObjectState("cam"));
 
-    if (camera->checkForCollision(spaceShipPart)) {
-        //cout << "Collision" << endl;
-        kdtree = nullptr;
-        bvh = nullptr;
-        objects.clear();
-        deathObjects.clear();
-        fmod->playSound("win", false);
-        gameState = WIN;
-    }
-    /*check for collision with death objects*/
-    for (unsigned int i = 0; i < deathObjects.size(); i++) {
-        if (camera->checkForCollision(deathObjects.at(i))) {
+        psystem->update(dt, camera->getPosition());
+
+        if (camera->checkForCollision(spaceShipPart)) {
+            //cout << "Collision" << endl;
+            kdtree = nullptr;
+            bvh = nullptr;
             objects.clear();
             deathObjects.clear();
-            fmod->playSound("death", false);
-            gameState = DEATH;
+            fmod->playSound("win", false);
+            gameState = WIN;
         }
+        /*check for collision with death objects*/
+        for (unsigned int i = 0; i < deathObjects.size(); i++) {
+            if (camera->checkForCollision(deathObjects.at(i))) {
+                objects.clear();
+                deathObjects.clear();
+                fmod->playSound("death", false);
+                gameState = DEATH;
+            }
+        }
+
+    }/* cutscene stuff*/
+    else {
+        static int t = 0;
+        static vec3 orig = camera->getPosition();
+        t++;
+        if (t == 400) {
+            if (!fmod->isPlaying("gps"))
+                fmod->playSound("gps", false);
+
+        }
+        if (t == 900) {
+            drawEmergency = true;
+            if (!fmod->isPlaying("error"))
+                fmod->playSound("error", false);
+        }
+        if (t > 900 && t % 100 <= 50)
+            drawEmergency = true;
+        if (t > 900 && t % 100 > 50)
+            drawEmergency = false;
+
+        if (t > 1300) {
+            drawShipParts = true;
+            float r1 = -0.001 + static_cast<float> (rand()) / (static_cast<float> (RAND_MAX / ((0.001)-(-0.001))));
+            float r2 = -0.001 + static_cast<float> (rand()) / (static_cast<float> (RAND_MAX / ((0.001)-(-0.001))));
+            float r3 = -0.001 + static_cast<float> (rand()) / (static_cast<float> (RAND_MAX / ((0.001)-(-0.001))));
+
+            vec3 old = camera->getPosition();
+            old.x += r1;
+            old.y += r2;
+            old.z += r3;
+
+            if (abs(old.x - orig.x) >= 0.08 || abs(old.y - orig.y) >= 0.08 || abs(old.z - orig.z) >= 0.08)
+                camera->setPosition(orig);
+            else
+                camera->setPosition(old);
+
+        }
+        if (t > 1750) {
+            float r1 = -0.02 + static_cast<float> (rand()) / (static_cast<float> (RAND_MAX / ((0.02)-(-0.02))));
+            float r2 = -0.02 + static_cast<float> (rand()) / (static_cast<float> (RAND_MAX / ((0.02)-(-0.02))));
+            float r3 = -0.02 + static_cast<float> (rand()) / (static_cast<float> (RAND_MAX / ((0.02)-(-0.02))));
+
+            vec3 old = camera->getPosition();
+            old.x += r1;
+            old.y += r2;
+            old.z += r3;
+
+            if (abs(old.x - orig.x) >= 0.08 || abs(old.y - orig.y) >= 0.08 || abs(old.z - orig.z) >= 0.08)
+                camera->setPosition(orig);
+            else
+                camera->setPosition(old);
+
+            drawBlack = true;
+
+        }
+
+        if (drawShipParts) {
+            vec3 old1 = spaceShipPart1->getPosition();
+            vec3 old2 = spaceShipPart2->getPosition();
+            vec3 old3 = spaceShipPart3->getPosition();
+            float z = 0.09f;
+            old1.z -= z;
+            old2.z -= z;
+            old3.z -= z;
+
+            float y = 0.04f;
+            old1.y -= y;
+            old2.y -= y;
+            old3.y -= y;
+            spaceShipPart1->setPosition(old1);
+            spaceShipPart2->setPosition(old2);
+            spaceShipPart3->setPosition(old3);
+        }
+        
+        if (t == 2000) {
+            level++;
+            importLevel(to_string(level));
+            fmod->stopSound("flying");
+            gameState = GAME;
+        }
+
+
     }
 }
 
 void GameManager::drawScene(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> V,
-                            bool depthBufferPass)
-{
+        bool depthBufferPass) {
     shared_ptr<Program> shaderMagnet, shaderBuilding;
     if (depthBufferPass) {
         shaderMagnet = depthProg;
         shaderBuilding = depthProg;
-    }
-    else {
+    } else {
         shaderMagnet = program;
         shaderBuilding = skyscraperProgram;
     }
-    
+
     vfc->extractVFPlanes(P->topMatrix(), V->topMatrix());
     for (unsigned int i = 0; i < objects.size(); i++) {
         if (objects.at(i)->isCuboid()) {
@@ -561,24 +693,22 @@ void GameManager::drawScene(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> V
                     shaderBuilding->unbind();
                 }
             }
-            
+
             delete temp;
         }
     }
 }
 
 void GameManager::drawShipPart(shared_ptr<MatrixStack> P,
-                               shared_ptr<MatrixStack> V,
-                               bool depthBufferPass)
-{
+        shared_ptr<MatrixStack> V,
+        bool depthBufferPass) {
     std::shared_ptr<Program> shader;
     if (depthBufferPass) {
         shader = depthProg;
-    }
-    else {
+    } else {
         shader = shipPartProgram;
     }
-    
+
     // Draw ship part
     shader->bind();
     shadowManager->setUnit(3);
@@ -597,17 +727,15 @@ void GameManager::drawShipPart(shared_ptr<MatrixStack> P,
 }
 
 void GameManager::drawMagnetGun(shared_ptr<MatrixStack> P,
-                                shared_ptr<MatrixStack> V,
-                                bool depthBufferPass)
-{
+        shared_ptr<MatrixStack> V,
+        bool depthBufferPass) {
     shared_ptr<Program> shader;
     if (depthBufferPass) {
         shader = depthProg;
-    }
-    else {
+    } else {
         shader = program;
     }
-    
+
     // Render magnet gun
     shader->bind();
     shadowManager->setUnit(3);
@@ -624,7 +752,7 @@ void GameManager::drawMagnetGun(shared_ptr<MatrixStack> P,
     magnetGun->draw(shader);
     shadowManager->unbind();
     V->popMatrix();
-    
+
     if (drawBeam) {
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -636,17 +764,17 @@ void GameManager::drawMagnetGun(shared_ptr<MatrixStack> P,
             magnetBeamOrange->draw(shader);
             psystem->setColor(ORANGE);
         }
-        
+
         glDisable(GL_BLEND);
-        
+
         V->pushMatrix();
         V->loadIdentity();
         psystem->draw(V->topMatrix(), P->topMatrix(), 0);
         V->popMatrix();
-        
+
         glDisable(GL_BLEND);
     }
-    
+
     glEnable(GL_DEPTH_TEST);
     program->unbind();
 }
@@ -705,56 +833,114 @@ void GameManager::renderGame(int fps) {
         V->pushMatrix();
         camera->applyViewMatrix(V);
 
-        /* BEGIN DEPTH MAP */
-        shadowManager->bindFramebuffer();
-        //set up shadow shader
-        depthProg->bind();
-        mat4 LO = SetOrthoMatrix();
-        mat4 LV = SetLightView(vec3(lightPos), vec3(0), vec3(0, 1, 0));
-        LSpace = LO*LV;
-        glUniformMatrix4fv(depthProg->getUniform("LS"), 1, GL_FALSE, value_ptr(LSpace));
-        
-        drawScene(P, V, true);
-        drawShipPart(P, V, true);
-        //drawMagnetGun(P, V, true);
-        
-        depthProg->unbind();
-        shadowManager->unbindFramebuffer();
-        /* END DEPTH MAP */
-        
-        glViewport(0, 0, width, height);
-        // Clear framebuffer.
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        
-        skybox->render(P, V);
-        drawScene(P, V, false);
-        drawShipPart(P, V, false);
-        drawMagnetGun(P, V, false);
-        if (gameState != PAUSE) {
-            gui->drawHUD(camera->isLookingAtMagnet(), Mouse::isLeftMouseButtonPressed(), Mouse::isRightMouseButtonPressed());
-        }
-        
-        if (SHADOW_DEBUG) {
-            glClear( GL_DEPTH_BUFFER_BIT);
-            glViewport(0, 0, 500, 500);
-            depthDebugProg->bind();
-            shadowManager->setUnit(3);
-            shadowManager->bind(depthDebugProg->getUniform("texBuf"));
-            shadowManager->drawDebug();
-            depthDebugProg->unbind();
+
+
+
+        if (gameState != CUTSCENE) {
+
+            /* BEGIN DEPTH MAP */
+            shadowManager->bindFramebuffer();
+            //set up shadow shader
+            depthProg->bind();
+            mat4 LO = SetOrthoMatrix();
+            mat4 LV = SetLightView(vec3(lightPos), vec3(0), vec3(0, 1, 0));
+            LSpace = LO*LV;
+            glUniformMatrix4fv(depthProg->getUniform("LS"), 1, GL_FALSE, value_ptr(LSpace));
+
+            drawScene(P, V, true);
+            drawShipPart(P, V, true);
+            //drawMagnetGun(P, V, true);
+
+            depthProg->unbind();
+            shadowManager->unbindFramebuffer();
+            /* END DEPTH MAP */
+
             glViewport(0, 0, width, height);
+            // Clear framebuffer.
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+            skybox->render(P, V);
+            drawScene(P, V, false);
+            drawShipPart(P, V, false);
+            drawMagnetGun(P, V, false);
+            if (gameState != PAUSE) {
+                gui->drawHUD(camera->isLookingAtMagnet(), Mouse::isLeftMouseButtonPressed(), Mouse::isRightMouseButtonPressed());
+            }
+
+            if (SHADOW_DEBUG) {
+                glClear(GL_DEPTH_BUFFER_BIT);
+                glViewport(0, 0, 500, 500);
+                depthDebugProg->bind();
+                shadowManager->setUnit(3);
+                shadowManager->bind(depthDebugProg->getUniform("texBuf"));
+                shadowManager->drawDebug();
+                depthDebugProg->unbind();
+                glViewport(0, 0, width, height);
+            }
+
+
+
+        }/*draw cutscene only stuff here*/
+        else {
+            spacebox->render(P, V);
+            program->bind();
+            glUniformMatrix4fv(program->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
+            glUniformMatrix4fv(program->getUniform("V"), 1, GL_FALSE, value_ptr(V->topMatrix()));
+            glUniform3fv(program->getUniform("lightPos"), 1, value_ptr(vec3(lightPos)));
+            glUniform1f(program->getUniform("lightIntensity"), lightIntensity);
+            spaceship->draw(program);
+            program->unbind();
+
+            if (drawShipParts) {
+                shipPartProgram->bind();
+                shipPartColorTexture->bind(shipPartProgram->getUniform("diffuseTex"));
+                shipPartSpecularTexture->bind(shipPartProgram->getUniform("specularTex"));
+                glUniformMatrix4fv(shipPartProgram->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
+                glUniformMatrix4fv(shipPartProgram->getUniform("V"), 1, GL_FALSE, value_ptr(V->topMatrix()));
+                glUniform3fv(shipPartProgram->getUniform("lightPos"), 1, value_ptr(vec3(lightPos)));
+
+                spaceShipPart1->draw(shipPartProgram);
+                spaceShipPart2->draw(shipPartProgram);
+                spaceShipPart3->draw(shipPartProgram);
+                shipPartSpecularTexture->unbind();
+                shipPartColorTexture->unbind();
+                shipPartProgram->unbind();
+            }
+
+
+            if (drawBlack) {
+                cout << "drawing black" << endl;
+                static float lol = 0.0f;
+                lol += 0.02f;
+                gui->drawBlack(lol);
+                if (lol >= 1.0f) {
+                    if (!fmod->isPlaying("crash"))
+                        fmod->playSound("crash", false);
+                }
+
+            }
+
+
         }
-        
+
+
+
+
+
+
+
+
         V->popMatrix();
         P->popMatrix();
-        
+
         if (gameState == PAUSE) {
             gui->drawPause(level);
-        } 
+        }
     }
 }
 
 // If the window is resized, capture the new size and reset the viewport
+
 void GameManager::resize_callback(GLFWwindow *window, int width, int height) {
     glViewport(0, 0, width, height);
 }

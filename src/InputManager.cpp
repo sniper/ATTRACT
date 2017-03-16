@@ -67,9 +67,41 @@ State InputManager::processGameInputs(shared_ptr<BulletManager> &bullet,
     }
 
 
- 
+
     camera->interpretPressedKeys(pressedKeys, bullet, fmod);
     return GAME;
+}
+
+State InputManager::processCutsceneInputs(shared_ptr<BulletManager> &bullet,
+        shared_ptr<FmodManager> &fmod, shared_ptr<GameObject> obj) {
+    camera->mouseMoved(Mouse::getMouseX(), Mouse::getMouseY());
+
+    vec3 old = obj->getPosition();
+
+    if (Keyboard::isPressed(GLFW_KEY_Y)) {
+        old.x += 0.01f;
+    }
+    if (Keyboard::isPressed(GLFW_KEY_U)) {
+        old.x -= 0.01f;
+    }
+    if (Keyboard::isPressed(GLFW_KEY_H)) {
+        old.y += 0.01f;
+    }
+    if (Keyboard::isPressed(GLFW_KEY_J)) {
+        old.y -= 0.01f;
+    }
+    if (Keyboard::isPressed(GLFW_KEY_B)) {
+        old.z += 0.01f;
+    }
+    if (Keyboard::isPressed(GLFW_KEY_N)) {
+        old.z -= 0.01f;
+    }
+    if (Keyboard::isPressed(GLFW_KEY_SPACE)) {
+        return GAME;
+    }
+
+    //obj->setPosition(old);
+    return CUTSCENE;
 }
 
 State InputManager::processMenuInputs(shared_ptr<GuiManager> &gui,

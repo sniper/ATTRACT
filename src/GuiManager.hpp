@@ -45,6 +45,8 @@ public:
     virtual ~GuiManager();
     void drawAll();
     void drawMenu();
+    void drawBlack(float alpha);
+    void drawCutscene(glm::mat4 V);
     void drawPause(int level);
     void drawDeath();
     void drawWin(int level);
@@ -70,6 +72,8 @@ private:
     GLuint vao;
 
     void draw(std::string name);
+    void draw(std::string name, glm::mat4 V);
+    void draw(std::string name, float alpha);
 
     int width, height;
 };

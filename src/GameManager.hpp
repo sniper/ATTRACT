@@ -36,7 +36,7 @@ class ShadowManager;
 class GuiManager;
 
 enum State {
-    GAME, MENU, PAUSE, DEATH, WIN
+    GAME, MENU, PAUSE, DEATH, WIN, CUTSCENE
 };
 
 #define BLUE 1
@@ -75,18 +75,19 @@ private:
     void parseLight(std::string level);
     void parseCamera(std::string level);
     void parseObject(std::string level, std::shared_ptr<Material> greyBox,
-                     std::shared_ptr<Material> magnetSurface,
-                     std::shared_ptr<Material> spacePart);
+            std::shared_ptr<Material> magnetSurface,
+            std::shared_ptr<Material> spacePart);
+
     bool toBool(std::string s);
     void drawScene(std::shared_ptr<MatrixStack> P,
-                   std::shared_ptr<MatrixStack> V,
-                   bool depthBufferPass);
+            std::shared_ptr<MatrixStack> V,
+            bool depthBufferPass);
     void drawShipPart(std::shared_ptr<MatrixStack> P,
-                      std::shared_ptr<MatrixStack> V,
-                      bool depthBufferPass);
+            std::shared_ptr<MatrixStack> V,
+            bool depthBufferPass);
     void drawMagnetGun(std::shared_ptr<MatrixStack> P,
-                       std::shared_ptr<MatrixStack> V,
-                       bool depthBufferPass);
+            std::shared_ptr<MatrixStack> V,
+            bool depthBufferPass);
 
 
     GLFWwindow *window;
@@ -110,6 +111,7 @@ private:
     std::shared_ptr<GameObject> magnetGun;
     std::shared_ptr<GameObject> magnetBeamOrange;
     std::shared_ptr<GameObject> magnetBeamBlue;
+    std::shared_ptr<GameObject> spaceship;
 
     std::vector<std::shared_ptr<GameObject>> deathObjects;
 
@@ -120,17 +122,26 @@ private:
     bool drawBeam;
     int colorBeam;
 
+    bool drawEmergency;
+    bool drawShipParts;
+    bool drawBlack;
+
     std::shared_ptr<Camera> camera;
 
     std::shared_ptr<Program> program, shipPartProgram, skyscraperProgram,
-        depthProg, depthDebugProg;
+    depthProg, depthDebugProg;
     std::shared_ptr<Texture> shipPartColorTexture, shipPartSpecularTexture,
-        skyscraperColorTexture, skyscraperSpecularTexture;
+    skyscraperColorTexture, skyscraperSpecularTexture;
     std::map<std::string, std::shared_ptr<Shape>> shapes;
 
     std::shared_ptr<SpaceShipPart> spaceShipPart;
-    
+
+    std::shared_ptr<SpaceShipPart> spaceShipPart1;
+    std::shared_ptr<SpaceShipPart> spaceShipPart2;
+    std::shared_ptr<SpaceShipPart> spaceShipPart3;
+
     std::shared_ptr<Skybox> skybox;
+    std::shared_ptr<Skybox> spacebox;
 
     glm::vec4 lightPos;
     float lightIntensity;

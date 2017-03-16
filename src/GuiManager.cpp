@@ -26,6 +26,8 @@ RESOURCE_DIR(resource) {
         0.5f, -0.5f, 0.0f,
         0.5f, 0.5f, 0.0f,
         -0.5f, 0.5f, 0.0f,
+        0.5f,-0.5f,0.0f,
+        0.5f,0.5f,0.0f,
     };
 
     static const GLfloat tex_buffer_data[] = {
@@ -44,6 +46,9 @@ RESOURCE_DIR(resource) {
     guiShader->addUniform("guiTex");
     guiShader->addUniform("M");
     guiShader->addUniform("P");
+    guiShader->addUniform("V");
+    guiShader->addUniform("F");
+    guiShader->addUniform("alpha");
 
     GLSL::checkError(GET_FILE_LINE);
 
@@ -62,6 +67,8 @@ RESOURCE_DIR(resource) {
     addTexture("nextlevel_noselect", vec3(0.7, 0.7, 1), vec3(0, -0.25, 0));
     addTexture("tryagain_noselect", vec3(0.7, 0.7, 1), vec3(0, -0.18, 0));
     addTexture("tryagain_select", vec3(0.7, 0.7, 1), vec3(0, -0.18, 0));
+    addTexture("emergency", vec3(5.2, 1.5, 2), vec3(0.5, 0.5, 0.5));
+    addTexture("black", vec3(10, 10, 1), vec3(0, 0, 0));
     vec3 retScale = vec3(0.25, 0.25, 1);
     vec3 retTrans = vec3(0, 0, 0);
     addTexture("reticle_center_off", retScale, retTrans);
@@ -116,7 +123,7 @@ State GuiManager::interpretMenuPressedKeys(vector<char> pressedKeys) {
         selectedName = "play";
     } else if (find(pressedKeys.begin(), pressedKeys.end(), '\n') != pressedKeys.end()) {
         if (selectedName == "play")
-            return GAME;
+            return CUTSCENE;
         else if (selectedName == "quit")
             exit(0);
     }
@@ -160,7 +167,7 @@ State GuiManager::interpretWinPressedKeys(std::vector<char> pressedKeys) {
     } else if (find(pressedKeys.begin(), pressedKeys.end(), '\n') != pressedKeys.end()) {
         if (selectedName == "quit")
             exit(0);
-        else if (selectedName == "nextlevel")
+        else if (selectedName == "nextlevel" || selectedName == "play")
             return GAME;
     }
     return WIN;
@@ -172,7 +179,7 @@ void GuiManager::drawMenu() {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     draw("attract");
-   
+
     if (selectedName == "play") {
         draw("play_select");
         draw("quit_noselect");
@@ -180,7 +187,7 @@ void GuiManager::drawMenu() {
         draw("play_noselect");
         draw("quit_select");
     }
-     
+
     glDisable(GL_BLEND);
     glDepthMask(GL_TRUE);
 }
@@ -284,6 +291,26 @@ void GuiManager::drawWin(int level) {
     glDepthMask(GL_TRUE);
 }
 
+void GuiManager::drawCutscene(glm::mat4 V) {
+    glDepthMask(GL_FALSE);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    draw("emergency", V);
+    glDisable(GL_BLEND);
+    glDepthMask(GL_TRUE);
+}
+
+void GuiManager::drawBlack(float alpha) {
+    glDepthMask(GL_FALSE);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    
+    draw("black", alpha);
+    
+    glDisable(GL_BLEND);
+    glDepthMask(GL_TRUE);
+}
+
 void GuiManager::drawAll() {
     for (std::map<string, shared_ptr < Texture>>::iterator it = guiTextures.begin(); it != guiTextures.end(); ++it) {
         draw(it->first);
@@ -292,6 +319,11 @@ void GuiManager::drawAll() {
 
 void GuiManager::draw(string name) {
     auto M = make_shared<MatrixStack>();
+    auto V = make_shared<MatrixStack>();
+
+    V->pushMatrix();
+    V->loadIdentity();
+
     M->pushMatrix();
     M->loadIdentity();
 
@@ -301,7 +333,7 @@ void GuiManager::draw(string name) {
     //auto P = make_shared<MatrixStack>();
     //P->ortho(0.0f, (float) width, 0.0f, (float) height, 0.0f, 10.0f);
     float aspect = (float) width / (float) height;
-    mat4 P = glm::perspective(80.0f, aspect,0.0f, 1.0f);
+    mat4 P = glm::perspective(80.0f, aspect, 0.0f, 1.0f);
 
     glDisable(GL_DEPTH_TEST);
 
@@ -316,8 +348,10 @@ void GuiManager::draw(string name) {
     GLSL::checkError(GET_FILE_LINE);
 
     glUniformMatrix4fv(guiShader->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix()));
+    glUniformMatrix4fv(guiShader->getUniform("V"), 1, GL_FALSE, value_ptr(V->topMatrix()));
+    glUniform1f(guiShader->getUniform("F"), 1);
     glUniformMatrix4fv(guiShader->getUniform("P"), 1, GL_FALSE, value_ptr(P));
-
+    glUniform1f(guiShader->getUniform("alpha"), -1);
     int pos = guiShader->getAttribute("pos");
 
     glEnableVertexAttribArray(pos);
@@ -342,7 +376,7 @@ void GuiManager::draw(string name) {
 
     // Draw the triangle !
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 5); // Starting from vertex 0; 3 vertices total -> 1 triangle
-   
+
     GLSL::checkError(GET_FILE_LINE);
 
     glDisableVertexAttribArray(pos);
@@ -352,5 +386,153 @@ void GuiManager::draw(string name) {
     guiShader->unbind();
     glEnable(GL_DEPTH_TEST);
     M->popMatrix();
+    V->popMatrix();
+}
+
+void GuiManager::draw(string name, glm::mat4 V) {
+    auto M = make_shared<MatrixStack>();
+
+    auto Z = make_shared<MatrixStack>();
+
+    Z->pushMatrix();
+    Z->loadIdentity();
+
+    M->pushMatrix();
+    M->loadIdentity();
+
+    M->translate(translates[name]);
+    M->scale(scales[name]);
+
+    //auto P = make_shared<MatrixStack>();
+    //P->ortho(0.0f, (float) width, 0.0f, (float) height, 0.0f, 10.0f);
+    float aspect = (float) width / (float) height;
+    mat4 P = glm::perspective(80.0f, aspect, 0.0f, 1.0f);
+
+    glDisable(GL_DEPTH_TEST);
+
+    GLSL::checkError(GET_FILE_LINE);
+
+    guiShader->bind();
+
+    //glBindVertexArray(vao);
+
+    guiTextures[name]->bind(guiShader->getUniform("guiTex"));
+
+    GLSL::checkError(GET_FILE_LINE);
+
+    glUniformMatrix4fv(guiShader->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix()));
+    glUniformMatrix4fv(guiShader->getUniform("V"), 1, GL_FALSE, value_ptr(V));
+    glUniform1f(guiShader->getUniform("F"), 0);
+    glUniformMatrix4fv(guiShader->getUniform("P"), 1, GL_FALSE, value_ptr(P));
+    glUniform1f(guiShader->getUniform("alpha"), -1);
+    int pos = guiShader->getAttribute("pos");
+
+    glEnableVertexAttribArray(pos);
+    glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+    GLSL::checkError(GET_FILE_LINE);
+
+    glVertexAttribPointer(
+            pos, // attribute 0. No particular reason for 0, but must match the layout in the shader.
+            3, // size
+            GL_FLOAT, // type
+            GL_FALSE, // normalized?
+            0, // stride
+            (void*) 0 // array buffer offset
+            );
+    GLSL::checkError(GET_FILE_LINE);
+
+    glEnableVertexAttribArray(guiShader->getAttribute("posTex"));
+    glBindBuffer(GL_ARRAY_BUFFER, texbuffer);
+    glVertexAttribPointer(guiShader->getAttribute("posTex"), 2, GL_FLOAT, GL_FALSE, 0, (void *) 0);
+
+    GLSL::checkError(GET_FILE_LINE);
+
+    // Draw the triangle !
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 5); // Starting from vertex 0; 3 vertices total -> 1 triangle
+
+    GLSL::checkError(GET_FILE_LINE);
+
+    glDisableVertexAttribArray(pos);
+
+    GLSL::checkError(GET_FILE_LINE);
+
+    guiShader->unbind();
+    glEnable(GL_DEPTH_TEST);
+    M->popMatrix();
+    Z->popMatrix();
+
+}
+
+void GuiManager::draw(string name, float alpha) {
+    auto M = make_shared<MatrixStack>();
+    auto V = make_shared<MatrixStack>();
+
+    V->pushMatrix();
+    V->loadIdentity();
+
+    M->pushMatrix();
+    M->loadIdentity();
+
+    M->translate(translates[name]);
+    M->scale(scales[name]);
+
+    //auto P = make_shared<MatrixStack>();
+    //P->ortho(0.0f, (float) width, 0.0f, (float) height, 0.0f, 10.0f);
+    float aspect = (float) width / (float) height;
+    mat4 P = glm::perspective(80.0f, aspect, 0.0f, 1.0f);
+
+    glDisable(GL_DEPTH_TEST);
+
+    GLSL::checkError(GET_FILE_LINE);
+
+    guiShader->bind();
+
+    //glBindVertexArray(vao);
+
+    guiTextures[name]->bind(guiShader->getUniform("guiTex"));
+
+    GLSL::checkError(GET_FILE_LINE);
+
+    glUniformMatrix4fv(guiShader->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix()));
+    glUniformMatrix4fv(guiShader->getUniform("V"), 1, GL_FALSE, value_ptr(V->topMatrix()));
+    glUniform1f(guiShader->getUniform("F"), 1);
+    glUniformMatrix4fv(guiShader->getUniform("P"), 1, GL_FALSE, value_ptr(P));
+    glUniform1f(guiShader->getUniform("alpha"), alpha);
+    int pos = guiShader->getAttribute("pos");
+
+    glEnableVertexAttribArray(pos);
+    glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+    GLSL::checkError(GET_FILE_LINE);
+
+    glVertexAttribPointer(
+            pos, // attribute 0. No particular reason for 0, but must match the layout in the shader.
+            3, // size
+            GL_FLOAT, // type
+            GL_FALSE, // normalized?
+            0, // stride
+            (void*) 0 // array buffer offset
+            );
+    GLSL::checkError(GET_FILE_LINE);
+
+    glEnableVertexAttribArray(guiShader->getAttribute("posTex"));
+    glBindBuffer(GL_ARRAY_BUFFER, texbuffer);
+    glVertexAttribPointer(guiShader->getAttribute("posTex"), 2, GL_FLOAT, GL_FALSE, 0, (void *) 0);
+
+    GLSL::checkError(GET_FILE_LINE);
+
+    // Draw the triangle !
+    glDrawArrays(GL_TRIANGLES, 0, 9); // Starting from vertex 0; 3 vertices total -> 1 triangle
+
+    GLSL::checkError(GET_FILE_LINE);
+
+    glDisableVertexAttribArray(pos);
+
+    GLSL::checkError(GET_FILE_LINE);
+
+    guiShader->unbind();
+    glEnable(GL_DEPTH_TEST);
+    M->popMatrix();
+    V->popMatrix();
+
 }
 
