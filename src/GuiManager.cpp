@@ -26,8 +26,8 @@ RESOURCE_DIR(resource) {
         0.5f, -0.5f, 0.0f,
         0.5f, 0.5f, 0.0f,
         -0.5f, 0.5f, 0.0f,
-        0.5f,-0.5f,0.0f,
-        0.5f,0.5f,0.0f,
+        0.5f, -0.5f, 0.0f,
+        0.5f, 0.5f, 0.0f,
     };
 
     static const GLfloat tex_buffer_data[] = {
@@ -124,7 +124,7 @@ State GuiManager::interpretMenuPressedKeys(vector<char> pressedKeys) {
         selectedName = "play";
     } else if (find(pressedKeys.begin(), pressedKeys.end(), '\n') != pressedKeys.end()) {
         if (selectedName == "play")
-            return CUTSCENE;
+            return CUTSCENE_START;
         else if (selectedName == "quit")
             exit(0);
     }
@@ -197,6 +197,14 @@ void GuiManager::drawMenu() {
 void GuiManager::resetMenu() {
     translates.at("AT") = vec3(-2.1, 0.5, 0);
     translates.at("TRACT") = vec3(2.0, 0.5, 0);
+}
+
+void GuiManager::resetWin() {
+    selectedName = "nextlevel";
+}
+
+void GuiManager::resetDeath() {
+    selectedName = "tryagain";
 }
 
 void GuiManager::update() {
@@ -290,6 +298,7 @@ void GuiManager::drawWin(int level) {
     draw("win");
 
 
+
     if (selectedName == "quit") {
         draw("quit_select");
         draw("nextlevel_noselect");
@@ -323,9 +332,9 @@ void GuiManager::drawBlack(float alpha) {
     glDepthMask(GL_FALSE);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    
+
     draw("black", alpha);
-    
+
     glDisable(GL_BLEND);
     glDepthMask(GL_TRUE);
 }

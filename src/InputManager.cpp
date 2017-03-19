@@ -71,7 +71,7 @@ State InputManager::processGameInputs(shared_ptr<BulletManager> &bullet,
 }
 
 State InputManager::processCutsceneInputs(shared_ptr<BulletManager> &bullet,
-        shared_ptr<FmodManager> &fmod, shared_ptr<GameObject> obj) {
+        shared_ptr<FmodManager> &fmod, shared_ptr<GameObject> obj, State gameState ) {
     camera->mouseMoved(Mouse::getMouseX(), Mouse::getMouseY(), true);
 
     vec3 old = obj->getPosition();
@@ -95,11 +95,14 @@ State InputManager::processCutsceneInputs(shared_ptr<BulletManager> &bullet,
         old.z -= 0.01f;
     }
     if (Keyboard::isPressed(GLFW_KEY_SPACE)) {
-        return GAME;
+        if(gameState == CUTSCENE_START)
+            return GAME;
+        else
+            return MENU;
     }
     //cout << old.x << " " << old.y << " " << old.z << endl;
     //obj->setPosition(old);
-    return CUTSCENE;
+    return gameState;
 }
 
 State InputManager::processMenuInputs(shared_ptr<GuiManager> &gui,

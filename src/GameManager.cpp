@@ -65,11 +65,14 @@ gameState(MENU),
 level(0),
 drawBeam(false),
 colorBeam(ORANGE),
-drawEmergency(false),
 drawShipParts(false),
-drawBlack(false),
-drawDeath(false),
-deathAlpha(0.0f) {
+fadeToBlack(false),
+toBlackAlpha(0.0f),
+fadeFromBlack(true),
+cutsceneTime(0),
+playStartSound(false),
+fromBlackAlpha(1.0f),
+playGunGet(false) {
     objIntervalCounter = 0.0f;
     numObjCollected = 0;
     gameWon = false;
@@ -458,9 +461,23 @@ void GameManager::importLevel(string level) {
     bvh = nullptr;
     objects.clear();
     deathObjects.clear();
-    drawDeath = false;
-    deathAlpha = 0.0f;
+
+    fadeToBlack = false;
+    toBlackAlpha = 0.0f;
+
+    fadeFromBlack = true;
+    fromBlackAlpha = 1.0f;
     bullet = make_shared<BulletManager>();
+    cutsceneTime = 0;
+    playStartSound = false;
+    playGunGet = false;
+
+    if (level == "0")
+        spaceship->setPosition(vec3(6.06999, 2.4, 3.7));
+
+    if (level == "1")
+        bullet->createMagneticBox(to_string(-1), spaceship->getPosition(), CUBE_HALF_EXTENTS, vec3(2, 2, 2), 0);
+
     file.open(RESOURCE_DIR + "levels/" + level);
 
     shared_ptr<Material> greyBox = make_shared<Material>(vec3(0.9f, 0.9f, 0.9f),
@@ -520,7 +537,9 @@ State GameManager::processInputs() {
 
             importLevel(to_string(level));
         }
-        if (gameState == CUTSCENE) {
+        if (gameState == CUTSCENE_START || gameState == CUTSCENE_END) {
+            cout << gameState << endl;
+            cout << level << endl;
             fmod->stopSound("menu");
             fmod->playSound("flying", true, 0.3);
             importLevel(to_string(level));
@@ -536,7 +555,7 @@ State GameManager::processInputs() {
 
             level++;
             if (level == NUMLEVELS) {
-                gameState = CUTSCENE;
+                gameState = CUTSCENE_END;
 
                 spaceship->setPosition(vec3(0, 0, 5));
 
@@ -546,10 +565,11 @@ State GameManager::processInputs() {
         } else if (gameState == MENU) {
             fmod->stopSound("menu");
         }
-    } else if (gameState == CUTSCENE) {
+    } else if (gameState == CUTSCENE_START || gameState == CUTSCENE_END) {
 
 
-        gameState = inputManager->processCutsceneInputs(bullet, fmod, spaceship);
+        gameState = inputManager->processCutsceneInputs(bullet, fmod, spaceship, gameState);
+
         if (gameState == GAME) {
             level++;
             fmod->stopSound("flying");
@@ -558,10 +578,11 @@ State GameManager::processInputs() {
             spaceship->setPosition(old);
             importLevel(to_string(level));
             bullet->createMagneticBox(to_string(-1), spaceship->getPosition(), CUBE_HALF_EXTENTS, vec3(2, 2, 2), 0);
-        }
+        } else if (gameState == MENU)
+            level = 0;
     }
 
-    if ((gameState == GAME || gameState == CUTSCENE)) {
+    if ((gameState == GAME || gameState == CUTSCENE_START || gameState == CUTSCENE_END)) {
         // Set cursor position callback.
         glfwSetCursorPosCallback(window, Mouse::cursor_position_callback);
     } else {
@@ -579,8 +600,24 @@ void GameManager::updateGame(double dt) {
     } else {
         gui->resetMenu();
 
-        if (gameState != CUTSCENE) {
+        if (gameState != CUTSCENE_START && gameState != CUTSCENE_END) {
             /*scripted stuff for level 1*/
+            if (level == 1) {
+
+                if (!playStartSound && 0 == 1) {
+
+                    playStartSound = true;
+                    fmod->playSound("start", false);
+
+                }
+
+
+
+                if (!playGunGet && !fmod->isPlaying("start") && 0 == 1) {
+                    fmod->playSound("gunget", false);
+                    playGunGet = true;
+                }
+            }
 
             if (!fmod->isPlaying("start") && gameState != MENU) {
                 resolveMagneticInteractions();
@@ -610,6 +647,7 @@ void GameManager::updateGame(double dt) {
                     fmod->stopSound("collecting");
                 }
                 fmod->playSound("win", false);
+                gui->resetWin();
                 gameState = WIN;
             }
 
@@ -619,15 +657,18 @@ void GameManager::updateGame(double dt) {
                     fmod->playSound("death", false);
                     if (fmod->isPlaying("start"))
                         fmod->stopSound("start");
+                    if (fmod->isPlaying("collecting")) {
+                        fmod->stopSound("collecting");
+                    }
                     gameState = DEATHANIMATION;
                 }
             }
 
         }/* cutscene stuff*/
         else if (level == 0) {
-            static int t = 0;
+
             static vec3 orig = camera->getPosition();
-            t++;
+            cutsceneTime++;
 
             vec3 old = asteroid->getPosition();
             old.z += 0.3f;
@@ -638,22 +679,19 @@ void GameManager::updateGame(double dt) {
             }
             asteroid->setPosition(old);
 
-            if (t == 400) {
+            if (cutsceneTime == 400) {
                 if (!fmod->isPlaying("gps"))
                     fmod->playSound("gps", false);
 
             }
-            if (t == 900) {
-                drawEmergency = true;
+            if (cutsceneTime == 900) {
+
                 if (!fmod->isPlaying("error"))
                     fmod->playSound("error", false);
             }
-            if (t > 900 && t % 100 <= 50)
-                drawEmergency = true;
-            if (t > 900 && t % 100 > 50)
-                drawEmergency = false;
 
-            if (t > 1300) {
+
+            if (cutsceneTime > 1300) {
                 drawShipParts = true;
                 float r1 = -0.001 + static_cast<float> (rand()) / (static_cast<float> (RAND_MAX / ((0.001)-(-0.001))));
                 float r2 = -0.001 + static_cast<float> (rand()) / (static_cast<float> (RAND_MAX / ((0.001)-(-0.001))));
@@ -669,7 +707,7 @@ void GameManager::updateGame(double dt) {
                 else
                     camera->setPosition(old);
             }
-            if (t > 1750) {
+            if (cutsceneTime > 1750) {
                 float r1 = -0.02 + static_cast<float> (rand()) / (static_cast<float> (RAND_MAX / ((0.02)-(-0.02))));
                 float r2 = -0.02 + static_cast<float> (rand()) / (static_cast<float> (RAND_MAX / ((0.02)-(-0.02))));
                 float r3 = -0.02 + static_cast<float> (rand()) / (static_cast<float> (RAND_MAX / ((0.02)-(-0.02))));
@@ -684,7 +722,7 @@ void GameManager::updateGame(double dt) {
                 else
                     camera->setPosition(old);
 
-                drawBlack = true;
+                fadeToBlack = true;
             }
 
             if (drawShipParts) {
@@ -705,7 +743,7 @@ void GameManager::updateGame(double dt) {
                 spaceShipPart3->setPosition(old3);
             }
 
-            if (t == 2000) {
+            if (cutsceneTime == 2000) {
 
                 fmod->stopSound("flying");
                 vec3 old = spaceship->getPosition();
@@ -723,7 +761,7 @@ void GameManager::updateGame(double dt) {
             vec3 old = spaceship->getPosition();
             old.z -= 0.01f;
             spaceship->setPosition(old);
-            drawBlack = true;
+            fadeToBlack = true;
         }
     }
 }
@@ -916,7 +954,7 @@ void GameManager::renderGame(int fps) {
 
 
 
-        if (gameState != CUTSCENE) {
+        if (gameState != CUTSCENE_START && gameState != CUTSCENE_END) {
 
             /* BEGIN DEPTH MAP */
             shadowManager->bindFramebuffer();
@@ -944,16 +982,25 @@ void GameManager::renderGame(int fps) {
             drawShipPart(P, V, false);
             if (gameState == DEATHANIMATION) {
 
-                deathAlpha += 0.04f;
-                gui->drawBlack(deathAlpha);
-                if (deathAlpha >= 1.0f) {
+                toBlackAlpha += 0.04f;
+                gui->drawBlack(toBlackAlpha);
+                if (toBlackAlpha >= 1.0f) {
                     objects.clear();
                     deathObjects.clear();
-
+                    toBlackAlpha = 0;
                     gameState = DEATH;
+                    gui->resetDeath();
                 }
 
+            } else if (fadeFromBlack) {
+                fromBlackAlpha -= 0.02f;
+                gui->drawBlack(fromBlackAlpha);
+                if (fromBlackAlpha <= 0.0f) {
+                    fadeFromBlack = false;
+                    fromBlackAlpha = 1.0f;
+                }
             }
+
             if (level == 1) {
 
 
@@ -966,22 +1013,11 @@ void GameManager::renderGame(int fps) {
                 glUniform1f(program->getUniform("lightIntensity"), lightIntensity);
                 spaceship->draw(program);
                 program->unbind();
-                static float lol = 1.0f;
-                if (lol >= 0.0f) {
-                    lol -= 0.02f;
-                    if (!fmod->isPlaying("start"))
-                        fmod->playSound("start", false);
-
-                }
-                static int flag = 1;
-
-                if (flag && !fmod->isPlaying("start")) {
-                    fmod->playSound("gunget", false);
-                    flag = 0;
-                }
 
 
-                gui->drawBlack(lol);
+
+
+
             }
             if (!fmod->isPlaying("start"))
                 drawMagnetGun(P, V, false);
@@ -1043,59 +1079,35 @@ void GameManager::renderGame(int fps) {
             asteroidProgram->unbind();
 
 
-            if (drawBlack) {
+            if (fadeToBlack) {
 
 
                 if (level == NUMLEVELS) {
-
-                    static bool fadeIn = true;
-                    static float alpha = 1.0f;
-                    if (fadeIn) {
-                        alpha -= 0.005f;
-                        if (alpha > 0.0f) {
-                            gui->drawBlack(alpha);
-                        } else {
-                            fadeIn = false;
-                        }
-                    } else {
-                        static float wat = 0.0f;
-                        wat += 0.0005f;
-                        gui->drawBlack(wat);
-                        
-                        if (wat >= 1.0f) {
-                            gameState = MENU;
-                            level = 0;
-                        }
-                            
+                    toBlackAlpha += 0.0005f;
+                    gui->drawBlack(toBlackAlpha);
+                    if (toBlackAlpha >= 1.0f) {
+                        gameState = MENU;
+                        level = 0;
                     }
-
-
-
-
-
                 } else {
-                    static float lol = 0.0f;
-                    lol += 0.02f;
-                    gui->drawBlack(lol);
-                    if (lol >= 1.0f) {
+
+                    toBlackAlpha += 0.02f;
+                    gui->drawBlack(toBlackAlpha);
+                    if (toBlackAlpha >= 1.0f) {
                         if (!fmod->isPlaying("crash"))
                             fmod->playSound("crash", false);
                     }
-
-                }
-
-            }
-
-            static bool fadeIn = true;
-            static float alpha = 1.0f;
-            if (fadeIn) {
-                alpha -= 0.005f;
-                if (alpha > 0.0f) {
-                    gui->drawBlack(alpha);
-                } else {
-                    fadeIn = false;
                 }
             }
+            if (fadeFromBlack) {
+                fromBlackAlpha -= 0.005f;
+                gui->drawBlack(fromBlackAlpha);
+                if (fromBlackAlpha <= 0.0f) {
+                    fadeFromBlack = false;
+                    fromBlackAlpha = 1.0f;
+                }
+            }
+
 
 
         }

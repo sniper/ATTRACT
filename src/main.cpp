@@ -93,7 +93,7 @@ int main(int argc, char **argv) {
 
         // Poll inputs
         gameState = gameManager->processInputs();
-        if (gameState == GAME || gameState == CUTSCENE || gameState == MENU) {
+        if (gameState == GAME || gameState == CUTSCENE_START || gameState == CUTSCENE_END || gameState == MENU) {
             while (elapsedTime > 0) {
                 dt = glm::min(elapsedTime, IDEAL_DT);
                 // Simulate movement/physics
