@@ -14,7 +14,7 @@
 #ifndef PARTICLEMANAGER_HPP
 #define PARTICLEMANAGER_HPP
 
-#define MAXPARTICLES 100
+#define MAXPARTICLES 50
 
 #include <iostream>
 

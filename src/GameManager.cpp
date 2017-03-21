@@ -582,7 +582,7 @@ State GameManager::processInputs() {
             level = 0;
     }
 
-    if ((gameState == GAME || gameState == CUTSCENE_END)) {
+    if ((gameState == GAME ||gameState == CUTSCENE_END)) {
         // Set cursor position callback.
         glfwSetCursorPosCallback(window, Mouse::cursor_position_callback);
     } else {

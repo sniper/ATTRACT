@@ -30,6 +30,8 @@ private:
     std::shared_ptr<TextureCube> tc;
     std::shared_ptr<Program> prog;
     std::shared_ptr<Shape> shape;
+    
+    int rflag;
 };
 
 #endif /* Skybox_hpp */
