@@ -79,6 +79,8 @@ RESOURCE_DIR(resource) {
     addTexture("reticle_bottom_off", retScale, retTrans);
     addTexture("reticle_bottom_on", retScale, retTrans);
 
+    addTexture("skip", vec3(1, 1, 1), vec3(0, -1.1, 0));
+
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
     GLSL::checkError(GET_FILE_LINE);
@@ -324,6 +326,28 @@ void GuiManager::drawCutscene(glm::mat4 V) {
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     draw("emergency", V);
+    glDisable(GL_BLEND);
+    glDepthMask(GL_TRUE);
+}
+
+void GuiManager::drawSkip(int time) {
+    glDepthMask(GL_FALSE);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    translates["black"] = vec3(0, -1.35, 0);
+    scales["black"] = vec3(10, 1, 1);
+    draw("black");
+    
+    if(time >= 200 && (time % 100 > 50))
+        draw("skip");
+
+    translates["black"] = vec3(0, 1.35, 0);
+    draw("black");
+
+    scales["black"] = vec3(10, 10, 1);
+    translates["black"] = vec3(0, 0, 0);
+
+
     glDisable(GL_BLEND);
     glDepthMask(GL_TRUE);
 }

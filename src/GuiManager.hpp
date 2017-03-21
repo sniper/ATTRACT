@@ -49,6 +49,7 @@ public:
     void update();
     void drawBlack(float alpha);
     void drawCutscene(glm::mat4 V);
+    void drawSkip(int time);
     void drawPause(int level);
     void drawDeath();
     void drawWin(int level);

@@ -568,7 +568,7 @@ State GameManager::processInputs() {
     } else if (gameState == CUTSCENE_START || gameState == CUTSCENE_END) {
 
 
-        gameState = inputManager->processCutsceneInputs(bullet, fmod, spaceship, gameState);
+        gameState = inputManager->processCutsceneInputs(bullet, fmod, spaceship, gameState, gui);
 
         if (gameState == GAME) {
             level++;
@@ -582,7 +582,7 @@ State GameManager::processInputs() {
             level = 0;
     }
 
-    if ((gameState == GAME || gameState == CUTSCENE_START || gameState == CUTSCENE_END)) {
+    if ((gameState == GAME || gameState == CUTSCENE_END)) {
         // Set cursor position callback.
         glfwSetCursorPosCallback(window, Mouse::cursor_position_callback);
     } else {
@@ -678,6 +678,11 @@ void GameManager::updateGame(double dt) {
                 old.x = randFloat(-6.0f, 6.0f);
             }
             asteroid->setPosition(old);
+            
+            if(cutsceneTime % 50 > 25) {
+                
+                //cout << "here" << endl;
+            }
 
             if (cutsceneTime == 400) {
                 if (!fmod->isPlaying("gps"))
@@ -758,6 +763,7 @@ void GameManager::updateGame(double dt) {
 
         }//ending cutscene
         else {
+            cutsceneTime++;
             vec3 old = spaceship->getPosition();
             old.z -= 0.01f;
             spaceship->setPosition(old);
@@ -1054,6 +1060,7 @@ void GameManager::renderGame(int fps) {
             spaceship->draw(program);
             program->unbind();
 
+            
             if (drawShipParts) {
                 shipPartProgram->bind();
                 shipPartColorTexture->bind(shipPartProgram->getUniform("diffuseTex"));
@@ -1109,7 +1116,7 @@ void GameManager::renderGame(int fps) {
             }
 
 
-
+            gui->drawSkip(cutsceneTime);
         }
 
 

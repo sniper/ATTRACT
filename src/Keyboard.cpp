@@ -33,8 +33,9 @@ void Keyboard::key_callback(GLFWwindow *window, int key, int scancode, int actio
             keyToggles[key] = !keyToggles[key];
         }
 
-
-    } else if (action == GLFW_PRESS) {
+ 
+    } 
+    else if (action == GLFW_PRESS) {
         keyToggles[key] = true;
     } else if (action == GLFW_RELEASE) {
         keyToggles[key] = false;
