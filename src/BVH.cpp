@@ -65,7 +65,7 @@ void BVH::buildTree(const vector<shared_ptr<GameObject>> &objects)
     }
 }
 
-shared_ptr<GameObject> BVH::findClosestHitObject(vec3 &start, vec3 &end)
+shared_ptr<GameObject> BVH::findClosestHitObject(vec3 &start, vec3 &end, float *distance)
 {
     shared_ptr<BVHNode> curNode = nodeList.at(0);
     shared_ptr<GameObject> closestHit = nullptr;
@@ -146,6 +146,7 @@ shared_ptr<GameObject> BVH::findClosestHitObject(vec3 &start, vec3 &end)
 //        }
         
         if (nodeStack.empty()) {
+            *distance = closestDist;
             return closestHit;
         }
         else {

@@ -1144,20 +1144,22 @@ void GameManager::resize_callback(GLFWwindow *window, int width, int height) {
 void GameManager::resolveMagneticInteractions() {
     vec3 startLoc = camera->getPosition();
     vec3 endLoc = startLoc + camera->getDirection() * MAGNET_RANGE;
+    float dist;
 
     //vector<shared_ptr<GameObject>> nearObjs = kdtree->findObjectsIntersectedByRay(startLoc, endLoc);
     //shared_ptr<GameObject> obj = RayTrace::rayTrace(startLoc, endLoc, objects);
-    shared_ptr<GameObject> obj = bvh->findClosestHitObject(startLoc, endLoc);
+    shared_ptr<GameObject> obj = bvh->findClosestHitObject(startLoc, endLoc, &dist);
     drawBeam = false;
     if (obj && obj->isMagnetic()) {
         camera->setLookingAtMagnet(true);
+        cout << dist << endl;
         if (Mouse::isLeftMouseButtonPressed()) {
             if (!fmod->isPlaying("magnet")) {
                 fmod->playSound("magnet", false, 1);
             }
             vec3 dir = normalize(endLoc - startLoc);
             btVector3 bulletDir = btVector3(dir.x, dir.y, dir.z);
-            bullet->getBulletObject("cam")->getRigidBody()->setLinearVelocity(bulletDir * MAGNET_STRENGTH);
+            bullet->getBulletObject("cam")->getRigidBody()->setLinearVelocity(bulletDir * MAGNET_STRENGTH * ((MAGNET_RANGE - dist + 1) / (MAGNET_RANGE / 2.0)));
             drawBeam = true;
             colorBeam = ORANGE;
         } else if (Mouse::isRightMouseButtonPressed()) {
@@ -1166,7 +1168,7 @@ void GameManager::resolveMagneticInteractions() {
             }
             vec3 dir = normalize(startLoc - endLoc);
             btVector3 bulletDir = btVector3(dir.x, dir.y, dir.z);
-            bullet->getBulletObject("cam")->getRigidBody()->setLinearVelocity(bulletDir * MAGNET_STRENGTH);
+            bullet->getBulletObject("cam")->getRigidBody()->setLinearVelocity(bulletDir * MAGNET_STRENGTH * ((MAGNET_RANGE - dist + 1)/(MAGNET_RANGE / 2.0)));
             drawBeam = true;
             colorBeam = BLUE;
         }

@@ -25,7 +25,7 @@ public:
     
     void buildTree(const std::vector<std::shared_ptr<GameObject>> &objects);
 
-    std::shared_ptr<GameObject> findClosestHitObject(glm::vec3 &start, glm::vec3 &end);
+    std::shared_ptr<GameObject> findClosestHitObject(glm::vec3 &start, glm::vec3 &end, float *distance);
     
     void printTree();
 private:
