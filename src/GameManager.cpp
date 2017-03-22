@@ -482,6 +482,7 @@ void GameManager::parseObject(string objectString, shared_ptr<Material> greyBox,
         spaceShipPart = make_shared<SpaceShipPart>(pos, vec3(0, 0, 0),
                 CUBE_HALF_EXTENTS, scale,
                 shapes["shipPart"], spacePart);
+        bullet->createBox(to_string(name++), pos, CUBE_HALF_EXTENTS, scale, 0);
     } else {
         shared_ptr<Cuboid> groundPlane = make_shared<Cuboid>(pos, vec3(0, 0, 0),
                 CUBE_HALF_EXTENTS,

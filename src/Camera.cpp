@@ -153,34 +153,12 @@ void Camera::interpretPressedKeys(const vector<char> &pressedKeys,
         btCollisionWorld::ClosestRayResultCallback RayCB(start, end);
         bullet->getDynamicsWorld()->rayTest(start, end, RayCB);
 
-        // Get the object that is hit.
-        //const btRigidBody *hitShape = (btRigidBody *) RayCB.m_collisionObject;
-
-        /****** NOTE: IF AN OBJECT INTERRUPTS THE JUMPING PROCESS (GETS IN THE WAY) AND
-         THE PLAYER HOLDS DOWN SPACE BAR, THE CHARACTER FLOATS ******/
-
-        // Check if the ground was hit
-        // TODO: check all objects which can be jumped off of
-
-        /*
-        std::map<std::string, BulletObject*> objects = bullet->getBulletObjects();
-        for (auto iter = objects.begin(); iter != objects.end(); ++iter) {
-            if (RayCB.hasHit() && hitShape == iter->second->getRigidBody()) {
-                movement += btVector3(0, JUMP_VELOCITY, 0);
-
-
-
-            }
-        }
-         */
-
         if (RayCB.hasHit()) {
             movement += btVector3(0, JUMP_VELOCITY, 0);
             if (!fmod->isPlaying("jump")) {
                 fmod->playSound("jump", false, 2.2);
             }
         }
-
     }
 
     // ray test to see if you're in the air. If you are, don't have any friction
