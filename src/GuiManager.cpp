@@ -200,6 +200,7 @@ void GuiManager::drawMenu() {
 void GuiManager::resetMenu() {
     translates.at("AT") = vec3(-2.1, 0.5, 0);
     translates.at("TRACT") = vec3(2.0, 0.5, 0);
+    selectedName = "play";
 }
 
 void GuiManager::resetWin() {

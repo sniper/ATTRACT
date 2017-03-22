@@ -66,7 +66,7 @@ void FmodManager::createStream(string name, string path, bool loop) {
         result = fmodSystem->createSound((RESOURCE_DIR + path).c_str(), (FMOD_MODE) FMOD_LOOP_NORMAL, NULL, &sound);
     else
         result = fmodSystem->createSound((RESOURCE_DIR + path).c_str(), (FMOD_MODE) FMOD_LOOP_OFF, NULL, &sound);
-    ERRCHECK(result);
+    //ERRCHECK(result);
     sounds.insert(make_pair(name, sound));
     
     channels.insert(make_pair(name,channel));
@@ -94,7 +94,7 @@ void FmodManager::playSound(string name, bool loop, float volume) {
 
 void FmodManager::stopSound(string name) {
     result = channels[name]->stop();
-    ERRCHECK(result);
+    //ERRCHECK(result);
 }
 
 string FmodManager::getCurSound() {
@@ -107,14 +107,14 @@ bool FmodManager::isPlaying(string name) {
     if(channels[name] == 0)
         return false;
     result = channels[name]->isPlaying(&ret);
-    ERRCHECK(result);
+    //ERRCHECK(result);
     return ret;
     
 }
 
 void FmodManager::setPaused(string name, bool state) {
     result = channels[name]->setPaused(state);
-    ERRCHECK(result);
+    //ERRCHECK(result);
     
 }
 
