@@ -577,6 +577,8 @@ State GameManager::processInputs() {
         }
 
         if (Keyboard::isPressed(']')) {
+            //fmod->playSound("win",false);
+            fmod->playSound("cheater",false);
             gui->resetWin();
             gameState = WIN;
         }

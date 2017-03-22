@@ -40,6 +40,7 @@ curSound(""){
     createStream("start","start.mp3",false);
     createStream("gunget","gunget.mp3",false);
     createStream("boom","boom.mp3",false);
+    createStream("cheater","cheater.mp3",false);
 
 }
 
