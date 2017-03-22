@@ -726,9 +726,9 @@ void GameManager::updateGame(double dt) {
             cutsceneTime++;
 
             vec3 old = asteroid->getPosition();
-            old.z += 0.3f;
+            old.z += 1.5f;
             if (old.z >= 9.0f) {
-                old.z = -25.0f;
+                old.z = -200.0f;
                 old.y = randFloat(5.0f, 8.0f);
                 old.x = randFloat(-7.0f, 25.0f);
             }
