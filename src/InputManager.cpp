@@ -72,27 +72,27 @@ State InputManager::processGameInputs(shared_ptr<BulletManager> &bullet,
 
 State InputManager::processCutsceneInputs(shared_ptr<BulletManager> &bullet,
         shared_ptr<FmodManager> &fmod, shared_ptr<GameObject> obj, State gameState, shared_ptr<GuiManager> &gui) {
-    camera->mouseMoved(Mouse::getMouseX(), Mouse::getMouseY(), true);
+    //camera->mouseMoved(Mouse::getMouseX(), Mouse::getMouseY(), true);
 
     vec3 old = obj->getPosition();
-
+    float movement = 0.01f;
     if (Keyboard::isPressed(GLFW_KEY_Y)) {
-        old.x += 0.01f;
+        old.x += movement;
     }
     if (Keyboard::isPressed(GLFW_KEY_U)) {
-        old.x -= 0.01f;
+        old.x -= movement;
     }
     if (Keyboard::isPressed(GLFW_KEY_H)) {
-        old.y += 0.01f;
+        old.y +=movement;
     }
     if (Keyboard::isPressed(GLFW_KEY_J)) {
-        old.y -= 0.01f;
+        old.y -= movement;
     }
     if (Keyboard::isPressed(GLFW_KEY_B)) {
-        old.z += 0.01f;
+        old.z += movement;
     }
     if (Keyboard::isPressed(GLFW_KEY_N)) {
-        old.z -= 0.01f;
+        old.z -= movement;
     }
     
     

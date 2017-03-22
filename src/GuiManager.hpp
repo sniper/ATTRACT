@@ -48,6 +48,7 @@ public:
     void resetMenu();
     void update();
     void drawBlack(float alpha);
+    void drawEnd(float alpha);
     void drawCutscene(glm::mat4 V);
     void drawSkip(int time);
     void drawPause(int level);

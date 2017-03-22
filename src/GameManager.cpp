@@ -72,7 +72,9 @@ fadeFromBlack(true),
 cutsceneTime(0),
 playStartSound(false),
 fromBlackAlpha(1.0f),
-playGunGet(false) {
+playGunGet(false),
+playBoom(false),
+endFade(false) {
     objIntervalCounter = 0.0f;
     numObjCollected = 0;
     gameWon = false;
@@ -471,6 +473,9 @@ void GameManager::importLevel(string level) {
     cutsceneTime = 0;
     playStartSound = false;
     playGunGet = false;
+    drawShipParts = false;
+    playBoom = false;
+    endFade = false;
 
     if (level == "0")
         spaceship->setPosition(vec3(6.06999, 2.4, 3.7));
@@ -538,8 +543,13 @@ State GameManager::processInputs() {
             importLevel(to_string(level));
         }
         if (gameState == CUTSCENE_START || gameState == CUTSCENE_END) {
-            cout << gameState << endl;
-            cout << level << endl;
+            glfwSetCursorPosCallback(window, NULL);
+            spaceShipPart1->setPosition(vec3(6, 5.4, 4.0));
+            spaceShipPart2->setPosition(vec3(6, 5.4, 5.0));
+            spaceShipPart3->setPosition(vec3(5, 5.4, 4.3));
+            camera->setPosition(vec3(0.0f, 0.5f, 0.0f));
+            camera->setYaw(0.0f);
+            camera->setPitch(0.0f);
             fmod->stopSound("menu");
             fmod->playSound("flying", true, 0.3);
             importLevel(to_string(level));
@@ -556,8 +566,7 @@ State GameManager::processInputs() {
             level++;
             if (level == NUMLEVELS) {
                 gameState = CUTSCENE_END;
-
-                spaceship->setPosition(vec3(0, 0, 5));
+                spaceship->setPosition(vec3(1.119955, -0.490005, 3.55));
 
             }
 
@@ -572,14 +581,29 @@ State GameManager::processInputs() {
 
         if (gameState == GAME) {
             level++;
+
             fmod->stopSound("flying");
+            if (fmod->isPlaying("gps"))
+                fmod->stopSound("gps");
+            if (fmod->isPlaying("error"))
+                fmod->stopSound("error");
+            if (fmod->isPlaying("crash"))
+                fmod->stopSound("crash");
             vec3 old = spaceship->getPosition();
             old.y += 2.0f;
             spaceship->setPosition(old);
             importLevel(to_string(level));
             bullet->createMagneticBox(to_string(-1), spaceship->getPosition(), CUBE_HALF_EXTENTS, vec3(2, 2, 2), 0);
-        } else if (gameState == MENU)
+        } else if (gameState == MENU) {
+            if (fmod->isPlaying("gps"))
+                fmod->stopSound("gps");
+            if (fmod->isPlaying("error"))
+                fmod->stopSound("error");
+            if (fmod->isPlaying("crash"))
+                fmod->stopSound("crash");
             level = 0;
+        }
+
     }
 
     if ((gameState == GAME || gameState == CUTSCENE_END)) {
@@ -678,9 +702,9 @@ void GameManager::updateGame(double dt) {
                 old.x = randFloat(-6.0f, 6.0f);
             }
             asteroid->setPosition(old);
-            
-            if(cutsceneTime % 50 > 25) {
-                
+
+            if (cutsceneTime % 50 > 25) {
+
                 //cout << "here" << endl;
             }
 
@@ -766,8 +790,27 @@ void GameManager::updateGame(double dt) {
             cutsceneTime++;
             vec3 old = spaceship->getPosition();
             old.z -= 0.01f;
+
+            if (!playBoom) {
+                if (!fmod->isPlaying("flying"))
+                    fmod->playSound("flying", true);
+            }
+
+            if (cutsceneTime == 500) {
+                if (fmod->isPlaying("flying"))
+                    fmod->stopSound("flying");
+                if (!playBoom) {
+                    playBoom = true;
+                    fmod->playSound("boom", false);
+                }
+
+
+                fadeToBlack = true;
+            }
+            if (cutsceneTime >= 500)
+                old.z -= 1.0f;
             spaceship->setPosition(old);
-            fadeToBlack = true;
+
         }
     }
 }
@@ -983,7 +1026,7 @@ void GameManager::renderGame(int fps) {
             // Clear framebuffer.
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-            skybox->render(P, V);
+            skybox->render(P, V, 0);
             drawScene(P, V, false);
             drawShipPart(P, V, false);
             if (gameState == DEATHANIMATION) {
@@ -1049,7 +1092,10 @@ void GameManager::renderGame(int fps) {
 
         }/*draw cutscene only stuff here*/
         else {
-            spacebox->render(P, V);
+            if (level == 0)
+                spacebox->render(P, V, cutsceneTime);
+            else if (!endFade)
+                spacebox->render(P, V, 0);
             program->bind();
             glUniformMatrix4fv(program->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
 
@@ -1060,41 +1106,48 @@ void GameManager::renderGame(int fps) {
             spaceship->draw(program);
             program->unbind();
 
-            
-            if (drawShipParts) {
-                shipPartProgram->bind();
-                shipPartColorTexture->bind(shipPartProgram->getUniform("diffuseTex"));
-                shipPartSpecularTexture->bind(shipPartProgram->getUniform("specularTex"));
-                glUniformMatrix4fv(shipPartProgram->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
-                glUniformMatrix4fv(shipPartProgram->getUniform("V"), 1, GL_FALSE, value_ptr(V->topMatrix()));
-                glUniform3fv(shipPartProgram->getUniform("lightPos"), 1, value_ptr(vec3(lightPos)));
+            if (level == 0) {
+                if (drawShipParts) {
+                    shipPartProgram->bind();
+                    shipPartColorTexture->bind(shipPartProgram->getUniform("diffuseTex"));
+                    shipPartSpecularTexture->bind(shipPartProgram->getUniform("specularTex"));
+                    glUniformMatrix4fv(shipPartProgram->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
+                    glUniformMatrix4fv(shipPartProgram->getUniform("V"), 1, GL_FALSE, value_ptr(V->topMatrix()));
+                    glUniform3fv(shipPartProgram->getUniform("lightPos"), 1, value_ptr(vec3(lightPos)));
+                    spaceShipPart1->draw(shipPartProgram);
+                    spaceShipPart2->draw(shipPartProgram);
+                    spaceShipPart3->draw(shipPartProgram);
+                    shipPartSpecularTexture->unbind();
+                    shipPartColorTexture->unbind();
+                    shipPartProgram->unbind();
+                }
 
-                spaceShipPart1->draw(shipPartProgram);
-                spaceShipPart2->draw(shipPartProgram);
-                spaceShipPart3->draw(shipPartProgram);
-                shipPartSpecularTexture->unbind();
-                shipPartColorTexture->unbind();
-                shipPartProgram->unbind();
+                asteroidProgram->bind();
+                glUniformMatrix4fv(asteroidProgram->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
+                glUniformMatrix4fv(asteroidProgram->getUniform("V"), 1, GL_FALSE, value_ptr(V->topMatrix()));
+                glUniform3fv(asteroidProgram->getUniform("lightPos"), 1, value_ptr(vec3(lightPos)));
+                glUniform3fv(asteroidProgram->getUniform("viewPos"), 1, value_ptr(camera->getPosition()));
+                asteroid->draw(asteroidProgram);
+                asteroidProgram->unbind();
             }
 
-            asteroidProgram->bind();
-            glUniformMatrix4fv(asteroidProgram->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
-            glUniformMatrix4fv(asteroidProgram->getUniform("V"), 1, GL_FALSE, value_ptr(V->topMatrix()));
-            glUniform3fv(asteroidProgram->getUniform("lightPos"), 1, value_ptr(vec3(lightPos)));
-            glUniform3fv(asteroidProgram->getUniform("viewPos"), 1, value_ptr(camera->getPosition()));
-            asteroid->draw(asteroidProgram);
-            asteroidProgram->unbind();
 
 
             if (fadeToBlack) {
 
 
                 if (level == NUMLEVELS) {
-                    toBlackAlpha += 0.0005f;
+                    toBlackAlpha += 0.005f;
                     gui->drawBlack(toBlackAlpha);
                     if (toBlackAlpha >= 1.0f) {
-                        gameState = MENU;
-                        level = 0;
+                        endFade = true;
+                        toBlackAlpha = 0.0f;
+                        fromBlackAlpha = 1.0f;
+                        fadeToBlack = false;
+                        fadeFromBlack = false;
+                        cout << "trigger" << endl;
+                        //gameState = MENU;
+                        //level = 0;
                     }
                 } else {
 
@@ -1112,6 +1165,27 @@ void GameManager::renderGame(int fps) {
                 if (fromBlackAlpha <= 0.0f) {
                     fadeFromBlack = false;
                     fromBlackAlpha = 1.0f;
+                }
+            }
+
+            if (endFade) {
+                if (fromBlackAlpha >= 0.0f) {
+                    fromBlackAlpha -= 0.005f;
+                    gui->drawEnd(fromBlackAlpha);
+                    gui->drawBlack(fromBlackAlpha);
+                    //cout << "fade from black " << fromBlackAlpha << endl;
+
+                } else {
+                    toBlackAlpha += 0.005f;
+                    gui->drawEnd(toBlackAlpha);
+                    gui->drawBlack(toBlackAlpha);
+                    cout << "fade to black" << endl;
+                    if (toBlackAlpha >= 0.9f) {
+
+                        gameState = MENU;
+                        level = 0;
+                        endFade = false;
+                    }
                 }
             }
 
