@@ -575,6 +575,10 @@ State GameManager::processInputs() {
             pausedXMouse = Mouse::getMouseX();
             pausedYMouse = Mouse::getMouseY();
         }
+        
+        if (Keyboard::isPressed(']')) {
+            gameState = WIN;
+        }
     } else if (gameState == PAUSE) {
         gameState = inputManager->processPauseInputs(gui, fmod);
         if (gameState == GAME) {
