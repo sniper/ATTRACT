@@ -42,6 +42,7 @@
 #include "SpaceShipPart.hpp"
 #include "Skybox.hpp"
 #include "ShadowManager.hpp"
+#include "Bloom.hpp"
 #include <fstream>
 
 #include "GuiManager.hpp"
@@ -51,6 +52,7 @@
 #include "BVH.hpp"
 
 #define SHADOW_DEBUG 0
+#define BLOOM_DEBUG 0
 #define MAGNET_RANGE 13.0f
 #define MAGNET_STRENGTH 7.0f
 #define CUBE_HALF_EXTENTS vec3(0.5f, 0.5f, 0.5f)
@@ -98,6 +100,11 @@ playGunGet(false) {
 
     shadowManager = make_shared<ShadowManager>();
     shadowManager->init();
+    
+    GLSL::checkError();
+    bloom = make_shared<Bloom>();
+    bloom->init();
+    GLSL::checkError();
 
     // Initialize the scene.
     initScene();
@@ -216,7 +223,28 @@ void GameManager::initScene() {
     shipPartSpecularTexture->init();
     shipPartSpecularTexture->setUnit(1);
     shipPartSpecularTexture->setWrapModes(GL_REPEAT, GL_REPEAT);
-
+    
+    //
+    // Stuff for bloom
+    //
+    gaussianProg = make_shared<Program>();
+    gaussianProg->setShaderNames(RESOURCE_DIR + "gaussianVert.glsl",
+                                 RESOURCE_DIR + "gaussianFrag.glsl");
+    gaussianProg->setVerbose(false);
+    gaussianProg->init();
+    gaussianProg->addAttribute("aPos");
+    gaussianProg->addUniform("image");
+    gaussianProg->addUniform("horizontal");
+    
+    bloomProg = make_shared<Program>();
+    bloomProg->setShaderNames(RESOURCE_DIR + "bloomVert.glsl",
+                              RESOURCE_DIR + "bloomFrag.glsl");
+    bloomProg->setVerbose(false);
+    bloomProg->init();
+    bloomProg->addAttribute("aPos");
+    bloomProg->addUniform("scene");
+    bloomProg->addUniform("bloomBlur");
+    
     //
     // Loading obj files
     //
@@ -278,23 +306,29 @@ void GameManager::initScene() {
     depthProg->addAttribute("aTex");
 
     if (SHADOW_DEBUG) {
-        depthDebugProg = make_shared<Program>();
-        depthDebugProg->setVerbose(false);
-        depthDebugProg->setShaderNames(RESOURCE_DIR + "depthDebugVert.glsl", RESOURCE_DIR + "depthDebugFrag.glsl");
-        depthDebugProg->init();
+        debugProg = make_shared<Program>();
+        debugProg->setVerbose(false);
+        debugProg->setShaderNames(RESOURCE_DIR + "debugVert.glsl", RESOURCE_DIR + "depthDebugFrag.glsl");
+        debugProg->init();
 
-        depthDebugProg->addUniform("texBuf");
-        depthDebugProg->addAttribute("aPos");
+        debugProg->addUniform("texBuf");
+        debugProg->addAttribute("aPos");
     }
-
-
+    else if (BLOOM_DEBUG) {
+        debugProg = make_shared<Program>();
+        debugProg->setVerbose(false);
+        debugProg->setShaderNames(RESOURCE_DIR + "debugVert.glsl", RESOURCE_DIR + "debugFrag.glsl");
+        debugProg->init();
+        
+        debugProg->addUniform("texBuf");
+        debugProg->addAttribute("aPos");
+    }
 
     temp = make_shared<Shape>();
     temp->loadMesh(RESOURCE_DIR + "temp/untitled.obj", RESOURCE_DIR + "temp/");
     temp->fitToUnitBox();
     temp->init();
     shapes.insert(make_pair("spaceship", temp));
-
 
     //
     // Make Skybox
@@ -605,13 +639,9 @@ void GameManager::updateGame(double dt) {
             if (level == 1) {
 
                 if (!playStartSound && 0 == 1) {
-
                     playStartSound = true;
                     fmod->playSound("start", false);
-
                 }
-
-
 
                 if (!playGunGet && !fmod->isPlaying("start") && 0 == 1) {
                     fmod->playSound("gunget", false);
@@ -666,7 +696,6 @@ void GameManager::updateGame(double dt) {
 
         }/* cutscene stuff*/
         else if (level == 0) {
-
             static vec3 orig = camera->getPosition();
             cutsceneTime++;
 
@@ -685,11 +714,9 @@ void GameManager::updateGame(double dt) {
 
             }
             if (cutsceneTime == 900) {
-
                 if (!fmod->isPlaying("error"))
                     fmod->playSound("error", false);
             }
-
 
             if (cutsceneTime > 1300) {
                 drawShipParts = true;
@@ -777,11 +804,13 @@ void GameManager::drawScene(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> V
         shaderBuilding = skyscraperProgram;
     }
 
+    GLSL::checkError();
     vfc->extractVFPlanes(P->topMatrix(), V->topMatrix());
     for (unsigned int i = 0; i < objects.size(); i++) {
         if (objects.at(i)->isCuboid()) {
             std::shared_ptr<Cuboid> cub = dynamic_pointer_cast<Cuboid>(objects.at(i));
             std::vector<vec3> *temp = cub->getAabbMinsMaxs();
+            GLSL::checkError();
             if (!vfc->viewFrustCull(temp) || depthBufferPass) {
                 if (cub->isMagnetic()) {
                     shaderMagnet->bind();
@@ -807,6 +836,7 @@ void GameManager::drawScene(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> V
                     glUniform3fv(shaderBuilding->getUniform("viewPos"), 1, value_ptr(camera->getPosition()));
                     glUniform1f(shaderBuilding->getUniform("lightIntensity"), lightIntensity);
                     glUniform3fv(shaderBuilding->getUniform("scalingFactor"), 1, value_ptr(cub->getScale()));
+                    GLSL::checkError();
                     cub->draw(shaderBuilding);
                     shadowManager->unbind();
                     shaderBuilding->unbind();
@@ -868,6 +898,7 @@ void GameManager::drawMagnetGun(shared_ptr<MatrixStack> P,
     if (!depthBufferPass) {
         glClear(GL_DEPTH_BUFFER_BIT);
     }
+    GLSL::checkError();
     magnetGun->draw(shader);
     shadowManager->unbind();
     V->popMatrix();
@@ -951,13 +982,12 @@ void GameManager::renderGame(int fps) {
         V->pushMatrix();
         camera->applyViewMatrix(V);
 
-
-
-
         if (gameState != CUTSCENE_START && gameState != CUTSCENE_END) {
 
             /* BEGIN DEPTH MAP */
+            GLSL::checkError();
             shadowManager->bindFramebuffer();
+            GLSL::checkError();
             //set up shadow shader
             depthProg->bind();
             mat4 LO = SetOrthoMatrix();
@@ -965,6 +995,7 @@ void GameManager::renderGame(int fps) {
             LSpace = LO*LV;
             glUniformMatrix4fv(depthProg->getUniform("LS"), 1, GL_FALSE, value_ptr(LSpace));
 
+            GLSL::checkError();
             drawScene(P, V, true);
             drawShipPart(P, V, true);
             //drawMagnetGun(P, V, true);
@@ -973,15 +1004,13 @@ void GameManager::renderGame(int fps) {
             shadowManager->unbindFramebuffer();
             /* END DEPTH MAP */
 
-            glViewport(0, 0, width, height);
-            // Clear framebuffer.
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+            /* Rendering scene for bloom effects */
+            bloom->bindFramebuffer();
             skybox->render(P, V);
             drawScene(P, V, false);
             drawShipPart(P, V, false);
+            
             if (gameState == DEATHANIMATION) {
-
                 toBlackAlpha += 0.04f;
                 gui->drawBlack(toBlackAlpha);
                 if (toBlackAlpha >= 1.0f) {
@@ -1002,9 +1031,6 @@ void GameManager::renderGame(int fps) {
             }
 
             if (level == 1) {
-
-
-
                 program->bind();
                 //spaceship->setPosition(camera->getPosition());
                 glUniformMatrix4fv(program->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
@@ -1013,34 +1039,51 @@ void GameManager::renderGame(int fps) {
                 glUniform1f(program->getUniform("lightIntensity"), lightIntensity);
                 spaceship->draw(program);
                 program->unbind();
-
-
-
-
-
             }
+            bloom->unbindFramebuffer();
+            GLSL::checkError();
+            /* Blurring the bloom objects */
+            gaussianProg->bind();
+            bloom->gaussianBlur(gaussianProg->getUniform("horizontal"));
+            gaussianProg->unbind();
+            
+            GLSL::checkError();
+            glViewport(0, 0, width, height);
+            glClear(GL_DEPTH_BUFFER_BIT);
+            
+            /* Merging the scene and bloom objects */
+            bloomProg->bind();
+            bloom->applyBloom(bloomProg->getUniform("scene"),
+                              bloomProg->getUniform("bloomBlur"));
+            bloomProg->unbind();
+            
+            GLSL::checkError();
             if (!fmod->isPlaying("start"))
                 drawMagnetGun(P, V, false);
             if (gameState != PAUSE && !fmod->isPlaying("start")) {
                 gui->drawHUD(camera->isLookingAtMagnet(), Mouse::isLeftMouseButtonPressed(), Mouse::isRightMouseButtonPressed());
             }
 
-
-
             if (SHADOW_DEBUG) {
                 glClear(GL_DEPTH_BUFFER_BIT);
                 glViewport(0, 0, 500, 500);
-                depthDebugProg->bind();
-                shadowManager->setUnit(3);
-                shadowManager->bind(depthDebugProg->getUniform("texBuf"));
+                debugProg->bind();
+                shadowManager->setUnit(0);
+                shadowManager->bind(debugProg->getUniform("texBuf"));
                 shadowManager->drawDebug();
-                depthDebugProg->unbind();
+                debugProg->unbind();
                 glViewport(0, 0, width, height);
             }
-
-
-
-
+            else if (BLOOM_DEBUG) {
+                glClear(GL_DEPTH_BUFFER_BIT);
+                glViewport(0, 0, 500, 500);
+                debugProg->bind();
+                bloom->setUnit(0);
+                bloom->bindColor(debugProg->getUniform("texBuf"));
+                bloom->renderQuad();
+                debugProg->unbind();
+                glViewport(0, 0, width, height);
+            }
         }/*draw cutscene only stuff here*/
         else {
             spacebox->render(P, V);
@@ -1078,10 +1121,7 @@ void GameManager::renderGame(int fps) {
             asteroid->draw(asteroidProgram);
             asteroidProgram->unbind();
 
-
             if (fadeToBlack) {
-
-
                 if (level == NUMLEVELS) {
                     toBlackAlpha += 0.0005f;
                     gui->drawBlack(toBlackAlpha);
@@ -1090,7 +1130,6 @@ void GameManager::renderGame(int fps) {
                         level = 0;
                     }
                 } else {
-
                     toBlackAlpha += 0.02f;
                     gui->drawBlack(toBlackAlpha);
                     if (toBlackAlpha >= 1.0f) {
@@ -1107,17 +1146,7 @@ void GameManager::renderGame(int fps) {
                     fromBlackAlpha = 1.0f;
                 }
             }
-
-
-
         }
-
-
-
-
-
-
-
 
         V->popMatrix();
         P->popMatrix();

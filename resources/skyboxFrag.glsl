@@ -4,18 +4,14 @@ uniform samplerCube cubemap;
 
 in vec3 vNor; // normal in world space
 
-out vec4 color;
+layout (location = 0) out vec4 FragColor;
+layout (location = 1) out vec4 BloomColor;
 
 uniform float T;
-
 
 void main()
 {
     // We want the normal to be in world coords, not camera coords.
-    color = texture(cubemap, vNor);
-
-
-
-
-    
+    FragColor = texture(cubemap, vNor);
+    BloomColor = vec4(0.0);
 }

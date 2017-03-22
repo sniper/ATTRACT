@@ -35,6 +35,7 @@ class ParticleManager;
 class Skybox;
 class MatrixStack;
 class ShadowManager;
+class Bloom;
 
 class GuiManager;
 
@@ -102,6 +103,7 @@ private:
     std::shared_ptr<FmodManager> fmod;
     std::shared_ptr<ShadowManager> shadowManager;
     std::shared_ptr<InputManager> inputManager;
+    std::shared_ptr<Bloom> bloom;
 
     std::shared_ptr<GuiManager> gui;
     std::shared_ptr<ParticleManager> psystem;
@@ -139,7 +141,7 @@ private:
     std::shared_ptr<Camera> camera;
 
     std::shared_ptr<Program> program, shipPartProgram, skyscraperProgram,
-    depthProg, depthDebugProg, asteroidProgram;
+    depthProg, debugProg, asteroidProgram, gaussianProg, bloomProg;
     std::shared_ptr<Texture> shipPartColorTexture, shipPartSpecularTexture,
     skyscraperColorTexture, skyscraperSpecularTexture;
     std::map<std::string, std::shared_ptr<Shape>> shapes;
