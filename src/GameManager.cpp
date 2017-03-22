@@ -585,7 +585,7 @@ State GameManager::processInputs() {
             fmod->playSound("flying", true, 0.3);
             importLevel(to_string(level));
 
-            
+
             camera->setYaw(-7.85);
             camera->setPitch(-0.14);
 
@@ -733,8 +733,8 @@ void GameManager::updateGame(double dt) {
                 old.x = randFloat(-7.0f, 25.0f);
             }
             asteroid->setPosition(old);
-            
-            cout << asteroid->getPosition().x << " " << asteroid->getPosition().y << endl;
+
+            //cout << asteroid->getPosition().x << " " << asteroid->getPosition().y << endl;
 
             if (cutsceneTime % 50 > 25) {
 
@@ -1169,13 +1169,20 @@ void GameManager::renderGame(int fps) {
                     shipPartProgram->unbind();
                 }
 
+                static float angle = 0;
+                angle++;
+     
+                asteroid->setYRot(angle/20);
                 asteroidProgram->bind();
                 glUniformMatrix4fv(asteroidProgram->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
+
+
                 glUniformMatrix4fv(asteroidProgram->getUniform("V"), 1, GL_FALSE, value_ptr(V->topMatrix()));
                 glUniform3fv(asteroidProgram->getUniform("lightPos"), 1, value_ptr(vec3(lightPos)));
                 glUniform3fv(asteroidProgram->getUniform("viewPos"), 1, value_ptr(camera->getPosition()));
                 asteroid->draw(asteroidProgram);
                 asteroidProgram->unbind();
+                
             }
 
 
