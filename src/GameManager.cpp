@@ -358,9 +358,9 @@ void GameManager::initScene() {
     spaceship = make_shared<GameObject>(vec3(6.06999, 2.4, 3.7), vec3(1, 0, 0), vec3(5, 5, 5), 0, shapes["spaceship"], material3);
     asteroid = make_shared<GameObject>(vec3(6.06999, 6.4, -1.7), vec3(1, 0, 0), vec3(5, 5, 5), 0, shapes["asteroid"], nullptr);
     asteroid2 = make_shared<GameObject>(vec3(6.06999, -26.4, -1.7), vec3(1, 0, 0), vec3(5, 5, 5), 0, shapes["asteroid"], nullptr);
-    asteroid->setScale(vec3(10,10,10));
-    asteroid2->setScale(vec3(10,10,10));
-    
+    asteroid->setScale(vec3(10, 10, 10));
+    asteroid2->setScale(vec3(10, 10, 10));
+
     shared_ptr<Material> spacePart = make_shared<Material>(vec3(0.2f, 0.2f, 0.2f),
             vec3(1.0f, 1.0f, 0.0f),
             vec3(1.0f, 0.9f, 0.8f),
@@ -393,12 +393,12 @@ void GameManager::parseLight(string objectString) {
     //split(objectString, ',', back_inserter(elems));
     string::size_type sz;
     vec3 pos = vec3(stof(elems[0], &sz), stof(elems[1]), stof(elems[2]));
-//    vec3 scale = vec3(stof(elems[3]), stof(elems[4]), stof(elems[5]));
-//    vec3 rot = vec3(stof(elems[6]), stof(elems[7]), stof(elems[8]));
-//    bool magnetic = toBool(elems[9]);
-//    bool deadly = toBool(elems[10]);
-//    bool playerSpawn = toBool(elems[11]);
-//    bool collectable = toBool(elems[12]);
+    //    vec3 scale = vec3(stof(elems[3]), stof(elems[4]), stof(elems[5]));
+    //    vec3 rot = vec3(stof(elems[6]), stof(elems[7]), stof(elems[8]));
+    //    bool magnetic = toBool(elems[9]);
+    //    bool deadly = toBool(elems[10]);
+    //    bool playerSpawn = toBool(elems[11]);
+    //    bool collectable = toBool(elems[12]);
     bool light = toBool(elems[13]);
 
     if (light) {
@@ -421,12 +421,12 @@ void GameManager::parseCamera(string objectString) {
     vec3 pos = vec3(stof(elems[0], &sz), stof(elems[1]), stof(elems[2]));
     //vec3 scale = vec3(stof(elems[3]), stof(elems[4]), stof(elems[5]));
     vec3 scale = vec3(0.5f, 1.0f, 0.5f);
-//    vec3 rot = vec3(stof(elems[6]), stof(elems[7]), stof(elems[8]));
-//    bool magnetic = toBool(elems[9]);
-//    bool deadly = toBool(elems[10]);
-//    bool playerSpawn = toBool(elems[11]);
-//    bool collectable = toBool(elems[12]);
-//    bool light = toBool(elems[13]);
+    //    vec3 rot = vec3(stof(elems[6]), stof(elems[7]), stof(elems[8]));
+    //    bool magnetic = toBool(elems[9]);
+    //    bool deadly = toBool(elems[10]);
+    //    bool playerSpawn = toBool(elems[11]);
+    //    bool collectable = toBool(elems[12]);
+    //    bool light = toBool(elems[13]);
 
     //    cerr << "new camera" << endl;
     //    cerr << pos.x << " " << pos.y << endl;
@@ -455,12 +455,12 @@ void GameManager::parseObject(string objectString, shared_ptr<Material> greyBox,
     string::size_type sz;
     vec3 pos = vec3(stof(elems[0], &sz), stof(elems[1]), stof(elems[2]));
     vec3 scale = vec3(stof(elems[3]), stof(elems[4]), stof(elems[5]));
-//    vec3 rot = vec3(stof(elems[6]), stof(elems[7]), stof(elems[8]));
+    //    vec3 rot = vec3(stof(elems[6]), stof(elems[7]), stof(elems[8]));
     bool magnetic = toBool(elems[9]);
     bool deadly = toBool(elems[10]);
-//    bool playerSpawn = toBool(elems[11]);
+    //    bool playerSpawn = toBool(elems[11]);
     bool collectable = toBool(elems[12]);
-//    bool light = toBool(elems[13]);
+    //    bool light = toBool(elems[13]);
     //    cerr << "new obj" << endl;
     //    cerr << pos.x << " " << pos.y << endl;
     //    cerr << scale.x << " " << scale.y << endl;
@@ -562,7 +562,7 @@ void GameManager::importLevel(string level) {
 
     bvh = make_shared<BVH>(objects);
     //bvh->printTree();
-    
+
     Mouse::resetMouse(window, 0, 0);
 }
 
@@ -575,8 +575,9 @@ State GameManager::processInputs() {
             pausedXMouse = Mouse::getMouseX();
             pausedYMouse = Mouse::getMouseY();
         }
-        
+
         if (Keyboard::isPressed(']')) {
+            gui->resetWin();
             gameState = WIN;
         }
     } else if (gameState == PAUSE) {
@@ -648,12 +649,16 @@ State GameManager::processInputs() {
             importLevel(to_string(level));
             bullet->createMagneticBox(to_string(-1), spaceship->getPosition(), CUBE_HALF_EXTENTS, vec3(2, 2, 2), 0);
         } else if (gameState == MENU) {
+            if (fmod->isPlaying("flying"))
+                fmod->stopSound("flying");
             if (fmod->isPlaying("gps"))
                 fmod->stopSound("gps");
             if (fmod->isPlaying("error"))
                 fmod->stopSound("error");
             if (fmod->isPlaying("crash"))
                 fmod->stopSound("crash");
+            if (fmod->isPlaying("boom"))
+                fmod->stopSound("boom");
             level = 0;
         }
 
@@ -746,10 +751,10 @@ void GameManager::updateGame(double dt) {
 
             vec3 old1 = asteroid->getPosition();
             vec3 old2 = asteroid2->getPosition();
-            
+
             old1.z += 1.5f;
             old2.z += 1.f;
-            
+
             static bool a1 = false;
             static bool a2 = false;
             if (old1.z >= -60.0f && !a1) {
@@ -759,8 +764,7 @@ void GameManager::updateGame(double dt) {
                 a1 = true;
                 a2 = false;
             }
-              
-            
+
             else if (old2.z >= -60.0f && !a2) {
                 old1.z = -200.0f;
                 old1.y = randFloat(6.0f, 8.0f);
@@ -768,8 +772,8 @@ void GameManager::updateGame(double dt) {
                 a1 = false;
                 a2 = true;
             }
-            
-            
+
+
             asteroid->setPosition(old1);
             asteroid2->setPosition(old2);
 
@@ -1155,7 +1159,7 @@ void GameManager::renderGame(int fps) {
             if (gameState != PAUSE && !fmod->isPlaying("start")) {
                 gui->drawHUD(camera->isLookingAtMagnet(), Mouse::isLeftMouseButtonPressed(), Mouse::isRightMouseButtonPressed());
             }
-            
+
             if (gameState == DEATHANIMATION) {
                 toBlackAlpha += 0.04f;
                 gui->drawBlack(toBlackAlpha);
@@ -1166,7 +1170,7 @@ void GameManager::renderGame(int fps) {
                     gameState = DEATH;
                     gui->resetDeath();
                 }
-                
+
             } else if (fadeFromBlack) {
                 fromBlackAlpha -= 0.02f;
                 gui->drawBlack(fromBlackAlpha);
@@ -1229,9 +1233,9 @@ void GameManager::renderGame(int fps) {
 
                 static float angle = 0;
                 angle++;
-     
-                asteroid->setYRot(angle/20);
-                asteroid2->setYRot(angle/20);
+
+                asteroid->setYRot(angle / 20);
+                asteroid2->setYRot(angle / 20);
                 asteroidProgram->bind();
                 glUniformMatrix4fv(asteroidProgram->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
 
@@ -1242,7 +1246,7 @@ void GameManager::renderGame(int fps) {
                 asteroid->draw(asteroidProgram);
                 asteroid2->draw(asteroidProgram);
                 asteroidProgram->unbind();
-                
+
             }
 
 
