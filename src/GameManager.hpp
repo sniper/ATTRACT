@@ -19,7 +19,7 @@
 #include "GameObject.hpp"
 
 
-#define NUMLEVELS 3
+#define NUMLEVELS 7
 
 class InputManager;
 class Camera;

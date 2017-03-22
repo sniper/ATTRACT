@@ -948,7 +948,7 @@ void GameManager::drawMagnetGun(shared_ptr<MatrixStack> P,
 }
 
 mat4 SetOrthoMatrix() {
-    mat4 OP = glm::ortho(-30.0, 30.0, -30.0, 30.0, 0.1, 50.0);
+    mat4 OP = glm::ortho(-30.0, 30.0, -30.0, 30.0, 0.1, 80.0);
     return OP;
 }
 
@@ -1226,7 +1226,6 @@ void GameManager::resolveMagneticInteractions() {
     drawBeam = false;
     if (obj && obj->isMagnetic()) {
         camera->setLookingAtMagnet(true);
-        cout << dist << endl;
         if (Mouse::isLeftMouseButtonPressed()) {
             if (!fmod->isPlaying("magnet")) {
                 fmod->playSound("magnet", false, 1);
