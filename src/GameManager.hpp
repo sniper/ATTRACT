@@ -134,6 +134,8 @@ private:
     bool fadeToBlack;
     float toBlackAlpha;
     int cutsceneTime;
+    bool playBoom;
+    bool endFade;
 
 
     std::shared_ptr<Camera> camera;

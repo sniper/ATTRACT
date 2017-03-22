@@ -72,7 +72,9 @@ fadeFromBlack(true),
 cutsceneTime(0),
 playStartSound(false),
 fromBlackAlpha(1.0f),
-playGunGet(false) {
+playGunGet(false),
+playBoom(false),
+endFade(false) {
     objIntervalCounter = 0.0f;
     numObjCollected = 0;
     gameWon = false;
@@ -472,6 +474,8 @@ void GameManager::importLevel(string level) {
     playStartSound = false;
     playGunGet = false;
     drawShipParts = false;
+    playBoom = false;
+    endFade = false;
 
     if (level == "0")
         spaceship->setPosition(vec3(6.06999, 2.4, 3.7));
@@ -786,8 +790,27 @@ void GameManager::updateGame(double dt) {
             cutsceneTime++;
             vec3 old = spaceship->getPosition();
             old.z -= 0.01f;
+
+            if (!playBoom) {
+                if (!fmod->isPlaying("flying"))
+                    fmod->playSound("flying", true);
+            }
+
+            if (cutsceneTime == 500) {
+                if (fmod->isPlaying("flying"))
+                    fmod->stopSound("flying");
+                if (!playBoom) {
+                    playBoom = true;
+                    fmod->playSound("boom", false);
+                }
+
+
+                fadeToBlack = true;
+            }
+            if (cutsceneTime >= 500)
+                old.z -= 1.0f;
             spaceship->setPosition(old);
-            fadeToBlack = true;
+
         }
     }
 }
@@ -1071,7 +1094,7 @@ void GameManager::renderGame(int fps) {
         else {
             if (level == 0)
                 spacebox->render(P, V, cutsceneTime);
-            else
+            else if (!endFade)
                 spacebox->render(P, V, 0);
             program->bind();
             glUniformMatrix4fv(program->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
@@ -1114,11 +1137,17 @@ void GameManager::renderGame(int fps) {
 
 
                 if (level == NUMLEVELS) {
-                    toBlackAlpha += 0.0005f;
+                    toBlackAlpha += 0.005f;
                     gui->drawBlack(toBlackAlpha);
                     if (toBlackAlpha >= 1.0f) {
-                        gameState = MENU;
-                        level = 0;
+                        endFade = true;
+                        toBlackAlpha = 0.0f;
+                        fromBlackAlpha = 1.0f;
+                        fadeToBlack = false;
+                        fadeFromBlack = false;
+                        cout << "trigger" << endl;
+                        //gameState = MENU;
+                        //level = 0;
                     }
                 } else {
 
@@ -1136,6 +1165,27 @@ void GameManager::renderGame(int fps) {
                 if (fromBlackAlpha <= 0.0f) {
                     fadeFromBlack = false;
                     fromBlackAlpha = 1.0f;
+                }
+            }
+
+            if (endFade) {
+                if (fromBlackAlpha >= 0.0f) {
+                    fromBlackAlpha -= 0.005f;
+                    gui->drawEnd(fromBlackAlpha);
+                    gui->drawBlack(fromBlackAlpha);
+                    //cout << "fade from black " << fromBlackAlpha << endl;
+
+                } else {
+                    toBlackAlpha += 0.005f;
+                    gui->drawEnd(toBlackAlpha);
+                    gui->drawBlack(toBlackAlpha);
+                    cout << "fade to black" << endl;
+                    if (toBlackAlpha >= 0.9f) {
+
+                        gameState = MENU;
+                        level = 0;
+                        endFade = false;
+                    }
                 }
             }
 

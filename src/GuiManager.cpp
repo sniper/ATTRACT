@@ -81,6 +81,8 @@ RESOURCE_DIR(resource) {
 
     addTexture("skip", vec3(1, 1, 1), vec3(0, -1.1, 0));
 
+    addTexture("end", vec3(0.7, 0.7, 1), vec3(0, 0, 0));
+
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
     GLSL::checkError(GET_FILE_LINE);
@@ -337,8 +339,8 @@ void GuiManager::drawSkip(int time) {
     translates["black"] = vec3(0, -1.35, 0);
     scales["black"] = vec3(10, 1, 1);
     draw("black");
-    
-    if(time >= 200 && (time % 100 > 50))
+
+    if (time >= 200 && (time % 100 > 50))
         draw("skip");
 
     translates["black"] = vec3(0, 1.35, 0);
@@ -358,6 +360,17 @@ void GuiManager::drawBlack(float alpha) {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     draw("black", alpha);
+
+    glDisable(GL_BLEND);
+    glDepthMask(GL_TRUE);
+}
+
+void GuiManager::drawEnd(float alpha) {
+    glDepthMask(GL_FALSE);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    draw("end");
 
     glDisable(GL_BLEND);
     glDepthMask(GL_TRUE);
