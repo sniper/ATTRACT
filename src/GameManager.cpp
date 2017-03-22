@@ -764,7 +764,6 @@ void GameManager::updateGame(double dt) {
                 a1 = true;
                 a2 = false;
             }
-
             else if (old2.z >= -60.0f && !a2) {
                 old1.z = -200.0f;
                 old1.y = randFloat(6.0f, 8.0f);
@@ -1203,8 +1202,8 @@ void GameManager::renderGame(int fps) {
         else {
             if (level == 0)
                 spacebox->render(P, V, cutsceneTime);
-            else if (!endFade)
-                spacebox->render(P, V, 0);
+
+            spacebox->render(P, V, 0);
             program->bind();
             glUniformMatrix4fv(program->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
 
