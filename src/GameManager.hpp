@@ -118,6 +118,7 @@ private:
     std::shared_ptr<GameObject> magnetBeamBlue;
     std::shared_ptr<GameObject> spaceship;
     std::shared_ptr<GameObject> asteroid;
+    std::shared_ptr<GameObject> asteroid2;
 
     std::vector<std::shared_ptr<GameObject>> deathObjects;
 

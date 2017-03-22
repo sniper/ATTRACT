@@ -356,6 +356,8 @@ void GameManager::initScene() {
 
     spaceship = make_shared<GameObject>(vec3(6.06999, 2.4, 3.7), vec3(1, 0, 0), vec3(5, 5, 5), 0, shapes["spaceship"], material3);
     asteroid = make_shared<GameObject>(vec3(6.06999, 6.4, -1.7), vec3(1, 0, 0), vec3(5, 5, 5), 0, shapes["asteroid"], nullptr);
+    asteroid2 = make_shared<GameObject>(vec3(6.06999, -26.4, -1.7), vec3(1, 0, 0), vec3(5, 5, 5), 0, shapes["asteroid"], nullptr);
+
     shared_ptr<Material> spacePart = make_shared<Material>(vec3(0.2f, 0.2f, 0.2f),
             vec3(1.0f, 1.0f, 0.0f),
             vec3(1.0f, 0.9f, 0.8f),
@@ -725,14 +727,34 @@ void GameManager::updateGame(double dt) {
             static vec3 orig = camera->getPosition();
             cutsceneTime++;
 
-            vec3 old = asteroid->getPosition();
-            old.z += 1.5f;
-            if (old.z >= 9.0f) {
-                old.z = -200.0f;
-                old.y = randFloat(5.0f, 8.0f);
-                old.x = randFloat(-7.0f, 25.0f);
+            vec3 old1 = asteroid->getPosition();
+            vec3 old2 = asteroid2->getPosition();
+            
+            old1.z += 1.5f;
+            old2.z += 1.f;
+            
+            static bool a1 = false;
+            static bool a2 = false;
+            if (old1.z >= -60.0f && !a1) {
+                old2.z = -200.0f;
+                old2.y = randFloat(5.0f, 8.0f);
+                old2.x = randFloat(-35.0f, 25.0f);
+                a1 = true;
+                a2 = false;
             }
-            asteroid->setPosition(old);
+              
+            
+            else if (old2.z >= -60.0f && !a2) {
+                old1.z = -200.0f;
+                old1.y = randFloat(5.0f, 8.0f);
+                old1.x = randFloat(-35.0f, 25.0f);
+                a1 = false;
+                a2 = true;
+            }
+            
+            
+            asteroid->setPosition(old1);
+            asteroid2->setPosition(old2);
 
             //cout << asteroid->getPosition().x << " " << asteroid->getPosition().y << endl;
 
@@ -1173,6 +1195,7 @@ void GameManager::renderGame(int fps) {
                 angle++;
      
                 asteroid->setYRot(angle/20);
+                asteroid2->setYRot(angle/20);
                 asteroidProgram->bind();
                 glUniformMatrix4fv(asteroidProgram->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
 
@@ -1181,6 +1204,7 @@ void GameManager::renderGame(int fps) {
                 glUniform3fv(asteroidProgram->getUniform("lightPos"), 1, value_ptr(vec3(lightPos)));
                 glUniform3fv(asteroidProgram->getUniform("viewPos"), 1, value_ptr(camera->getPosition()));
                 asteroid->draw(asteroidProgram);
+                asteroid2->draw(asteroidProgram);
                 asteroidProgram->unbind();
                 
             }
