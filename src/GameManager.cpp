@@ -357,7 +357,9 @@ void GameManager::initScene() {
     spaceship = make_shared<GameObject>(vec3(6.06999, 2.4, 3.7), vec3(1, 0, 0), vec3(5, 5, 5), 0, shapes["spaceship"], material3);
     asteroid = make_shared<GameObject>(vec3(6.06999, 6.4, -1.7), vec3(1, 0, 0), vec3(5, 5, 5), 0, shapes["asteroid"], nullptr);
     asteroid2 = make_shared<GameObject>(vec3(6.06999, -26.4, -1.7), vec3(1, 0, 0), vec3(5, 5, 5), 0, shapes["asteroid"], nullptr);
-
+    asteroid->setScale(vec3(10,10,10));
+    asteroid2->setScale(vec3(10,10,10));
+    
     shared_ptr<Material> spacePart = make_shared<Material>(vec3(0.2f, 0.2f, 0.2f),
             vec3(1.0f, 1.0f, 0.0f),
             vec3(1.0f, 0.9f, 0.8f),
@@ -737,7 +739,7 @@ void GameManager::updateGame(double dt) {
             static bool a2 = false;
             if (old1.z >= -60.0f && !a1) {
                 old2.z = -200.0f;
-                old2.y = randFloat(5.0f, 8.0f);
+                old2.y = randFloat(6.0f, 8.0f);
                 old2.x = randFloat(-35.0f, 25.0f);
                 a1 = true;
                 a2 = false;
@@ -746,7 +748,7 @@ void GameManager::updateGame(double dt) {
             
             else if (old2.z >= -60.0f && !a2) {
                 old1.z = -200.0f;
-                old1.y = randFloat(5.0f, 8.0f);
+                old1.y = randFloat(6.0f, 8.0f);
                 old1.x = randFloat(-35.0f, 25.0f);
                 a1 = false;
                 a2 = true;
