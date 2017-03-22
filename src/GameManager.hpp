@@ -160,7 +160,8 @@ private:
     glm::vec4 lightPos;
     float lightIntensity;
     glm::mat4 LSpace;
-
+    
+    double pausedXMouse, pausedYMouse;
 };
 
 #endif /* GameManager_hpp */

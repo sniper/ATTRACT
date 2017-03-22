@@ -88,6 +88,7 @@ endFade(false) {
     glfwSetKeyCallback(window, Keyboard::key_callback);
     // Sets cursor movement to unlimited.
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetCursorPosCallback(window, Mouse::cursor_position_callback);
     // Set the mouse button callback.
     glfwSetMouseButtonCallback(window, Mouse::mouse_button_callback);
     // Set the window resize call back.
@@ -389,12 +390,12 @@ void GameManager::parseLight(string objectString) {
     //split(objectString, ',', back_inserter(elems));
     string::size_type sz;
     vec3 pos = vec3(stof(elems[0], &sz), stof(elems[1]), stof(elems[2]));
-    vec3 scale = vec3(stof(elems[3]), stof(elems[4]), stof(elems[5]));
-    vec3 rot = vec3(stof(elems[6]), stof(elems[7]), stof(elems[8]));
-    bool magnetic = toBool(elems[9]);
-    bool deadly = toBool(elems[10]);
-    bool playerSpawn = toBool(elems[11]);
-    bool collectable = toBool(elems[12]);
+//    vec3 scale = vec3(stof(elems[3]), stof(elems[4]), stof(elems[5]));
+//    vec3 rot = vec3(stof(elems[6]), stof(elems[7]), stof(elems[8]));
+//    bool magnetic = toBool(elems[9]);
+//    bool deadly = toBool(elems[10]);
+//    bool playerSpawn = toBool(elems[11]);
+//    bool collectable = toBool(elems[12]);
     bool light = toBool(elems[13]);
 
     if (light) {
@@ -415,13 +416,14 @@ void GameManager::parseCamera(string objectString) {
     //split(objectString, ',', back_inserter(elems));
     string::size_type sz;
     vec3 pos = vec3(stof(elems[0], &sz), stof(elems[1]), stof(elems[2]));
-    vec3 scale = vec3(stof(elems[3]), stof(elems[4]), stof(elems[5]));
-    vec3 rot = vec3(stof(elems[6]), stof(elems[7]), stof(elems[8]));
-    bool magnetic = toBool(elems[9]);
-    bool deadly = toBool(elems[10]);
-    bool playerSpawn = toBool(elems[11]);
-    bool collectable = toBool(elems[12]);
-    bool light = toBool(elems[13]);
+    //vec3 scale = vec3(stof(elems[3]), stof(elems[4]), stof(elems[5]));
+    vec3 scale = vec3(0.5f, 1.0f, 0.5f);
+//    vec3 rot = vec3(stof(elems[6]), stof(elems[7]), stof(elems[8]));
+//    bool magnetic = toBool(elems[9]);
+//    bool deadly = toBool(elems[10]);
+//    bool playerSpawn = toBool(elems[11]);
+//    bool collectable = toBool(elems[12]);
+//    bool light = toBool(elems[13]);
 
     //    cerr << "new camera" << endl;
     //    cerr << pos.x << " " << pos.y << endl;
@@ -450,12 +452,12 @@ void GameManager::parseObject(string objectString, shared_ptr<Material> greyBox,
     string::size_type sz;
     vec3 pos = vec3(stof(elems[0], &sz), stof(elems[1]), stof(elems[2]));
     vec3 scale = vec3(stof(elems[3]), stof(elems[4]), stof(elems[5]));
-    vec3 rot = vec3(stof(elems[6]), stof(elems[7]), stof(elems[8]));
+//    vec3 rot = vec3(stof(elems[6]), stof(elems[7]), stof(elems[8]));
     bool magnetic = toBool(elems[9]);
     bool deadly = toBool(elems[10]);
-    bool playerSpawn = toBool(elems[11]);
+//    bool playerSpawn = toBool(elems[11]);
     bool collectable = toBool(elems[12]);
-    bool light = toBool(elems[13]);
+//    bool light = toBool(elems[13]);
     //    cerr << "new obj" << endl;
     //    cerr << pos.x << " " << pos.y << endl;
     //    cerr << scale.x << " " << scale.y << endl;
@@ -556,6 +558,8 @@ void GameManager::importLevel(string level) {
 
     bvh = make_shared<BVH>(objects);
     //bvh->printTree();
+    
+    Mouse::resetMouse(window, 0, 0);
 }
 
 State GameManager::processInputs() {
@@ -563,8 +567,15 @@ State GameManager::processInputs() {
         if (!fmod->isPlaying("game"))
             fmod->playSound("game", true, 0.4f);
         gameState = inputManager->processGameInputs(bullet, fmod);
+        if (gameState == PAUSE) {
+            pausedXMouse = Mouse::getMouseX();
+            pausedYMouse = Mouse::getMouseY();
+        }
     } else if (gameState == PAUSE) {
         gameState = inputManager->processPauseInputs(gui, fmod);
+        if (gameState == GAME) {
+            Mouse::resetMouse(window, pausedXMouse, pausedYMouse);
+        }
     } else if (gameState == MENU) {
         gameState = inputManager->processMenuInputs(gui, fmod);
         if (fmod->isPlaying("game"))
@@ -577,7 +588,6 @@ State GameManager::processInputs() {
             importLevel(to_string(level));
         }
         if (gameState == CUTSCENE_START || gameState == CUTSCENE_END) {
-            glfwSetCursorPosCallback(window, NULL);
             spaceShipPart1->setPosition(vec3(6, 5.4, 4.0));
             spaceShipPart2->setPosition(vec3(6, 5.4, 5.0));
             spaceShipPart3->setPosition(vec3(5, 5.4, 4.3));
@@ -609,8 +619,6 @@ State GameManager::processInputs() {
             fmod->stopSound("menu");
         }
     } else if (gameState == CUTSCENE_START || gameState == CUTSCENE_END) {
-
-
         gameState = inputManager->processCutsceneInputs(bullet, fmod, spaceship, gameState, gui);
 
         if (gameState == GAME) {
@@ -639,14 +647,7 @@ State GameManager::processInputs() {
         }
 
     }
-
-    if ((gameState == GAME || gameState == CUTSCENE_END)) {
-        // Set cursor position callback.
-        glfwSetCursorPosCallback(window, Mouse::cursor_position_callback);
-    } else {
-        glfwSetCursorPosCallback(window, NULL);
-    }
-
+     
     return gameState;
 }
 

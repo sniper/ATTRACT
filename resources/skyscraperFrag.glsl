@@ -19,7 +19,8 @@ layout (location = 1) out vec4 BloomColor;
 /* returns 1 if shadowed */
 /* called with the point projected into the light's coordinate space */
 float TestShadow(vec4 LSfPos) {
-    float bias = 0.004;
+    //float bias = 0.004;
+    float bias = 0.002;
     
     // perspective divide isn't needed since we're using ortho projection, but
     // just in case it changes to persepective.

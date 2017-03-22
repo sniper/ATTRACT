@@ -16,6 +16,7 @@ class Mouse
 public:
     static void cursor_position_callback(GLFWwindow* window, double xmouse, double ymouse);
     static void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
+    static void resetMouse(GLFWwindow* window, double xmouse, double ymouse);
     static double getMouseX() {return mouseX;}
     static double getMouseY() {return mouseY;}
     static bool isLeftMouseButtonPressed() {return mouseToggles[GLFW_MOUSE_BUTTON_LEFT];}

@@ -246,15 +246,12 @@ void GuiManager::drawHUD(bool lookingAtMagnet, bool leftClick, bool rightClick) 
 }
 
 void GuiManager::drawPause(int level) {
-
-
     glDepthMask(GL_FALSE);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     draw("pause");
     draw("quit_select");
     draw("shipparts");
-
 
     selectedName = "quit";
     switch (level) {
@@ -288,8 +285,6 @@ void GuiManager::drawDeath() {
         draw("tryagain_select");
     }
 
-
-
     glDisable(GL_BLEND);
     glDepthMask(GL_TRUE);
 }
@@ -300,8 +295,6 @@ void GuiManager::drawWin(int level) {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     draw("win");
-
-
 
     if (selectedName == "quit") {
         draw("quit_select");
@@ -317,7 +310,6 @@ void GuiManager::drawWin(int level) {
             draw("shipparts1");
             break;
     }
-
 
     glDisable(GL_BLEND);
     glDepthMask(GL_TRUE);
@@ -598,6 +590,5 @@ void GuiManager::draw(string name, float alpha) {
     glEnable(GL_DEPTH_TEST);
     M->popMatrix();
     V->popMatrix();
-
 }
 

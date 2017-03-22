@@ -39,7 +39,7 @@ aspect(1.0f),
 fovy(45.0f),
 znear(0.1f),
 zfar(1000.0f),
-boundingBox(make_shared<AABoundingBox>(position, vec3(0.25f, 0.25f, 0.25f))),
+boundingBox(make_shared<AABoundingBox>(position, vec3(0.25f, 0.5f, 0.25f))),
 lookingAtMagnet(false)
 {
 
@@ -54,7 +54,7 @@ aspect(1.0f),
 fovy(45.0f),
 znear(0.1f),
 zfar(1000.0f),
-boundingBox(make_shared<AABoundingBox>(position, vec3(0.25f, 0.25f, 0.25f))),
+boundingBox(make_shared<AABoundingBox>(position, vec3(0.25f, 0.5f, 0.25f))),
 lookingAtMagnet(false)
 {
 

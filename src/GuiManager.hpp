@@ -74,8 +74,6 @@ private:
 
     std::string selectedName;
 
-    
-    
     GLuint vertexbuffer;
     GLuint texbuffer;
     GLuint vao;

@@ -7,6 +7,7 @@
 //
 
 #include "Mouse.hpp"
+#include <iostream>
 
 double Mouse::mouseX = 0;
 double Mouse::mouseY = 0;
@@ -17,6 +18,15 @@ void Mouse::cursor_position_callback(GLFWwindow* window, double xmouse, double y
 {
     mouseX = xmouse;
     mouseY = ymouse;
+    //std::cout << "(" + std::to_string(xmouse) + ", " + std::to_string(ymouse) + ")" << std::endl;
+}
+
+// This function resets the mouse position
+void Mouse::resetMouse(GLFWwindow* window, double xmouse, double ymouse)
+{
+    mouseX = xmouse;
+    mouseY = ymouse;
+    glfwSetCursorPos(window, mouseX, mouseY);
 }
 
 // This function is called when the mouse buttons are pressed.
