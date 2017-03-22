@@ -81,7 +81,7 @@ void Camera::mouseMoved(double x, double y, bool constrainYaw) {
     if (dv[1] > 0.0f && pitch >= -PITCH_CUTOFF || dv[1] < 0.0f && pitch <= PITCH_CUTOFF) {
         pitch -= (dv[1] / height) * MOUSE_SENSITIVITY;
     }
-    //cout << pitch << " " << yaw << endl;
+    cout << pitch << " " << yaw << endl;
     mousePrev = mouseCurr;
 }
 
@@ -230,6 +230,7 @@ void Camera::applyProjectionMatrix(shared_ptr<MatrixStack> P) const {
 }
 
 void Camera::applyViewMatrix(shared_ptr<MatrixStack> MV) const {
+    cout << yaw << " " << pitch << endl;
     vec3 rot = vec3(cos(pitch) * cos(yaw), sin(pitch), cos(pitch) * cos((3.14 / 2) - yaw));
     vec3 lap = position + rot;
     vec3 up;
