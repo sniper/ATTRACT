@@ -1034,21 +1034,15 @@ void GameManager::renderGame(int fps) {
         if (gameState != CUTSCENE_START && gameState != CUTSCENE_END) {
 
             /* BEGIN DEPTH MAP */
-            GLSL::checkError();
             shadowManager->bindFramebuffer();
-            GLSL::checkError();
             //set up shadow shader
             depthProg->bind();
             mat4 LO = SetOrthoMatrix();
             mat4 LV = SetLightView(vec3(lightPos), vec3(0), vec3(0, 1, 0));
             LSpace = LO*LV;
             glUniformMatrix4fv(depthProg->getUniform("LS"), 1, GL_FALSE, value_ptr(LSpace));
-
-            GLSL::checkError();
             drawScene(P, V, true);
             drawShipPart(P, V, true);
-            //drawMagnetGun(P, V, true);
-
             depthProg->unbind();
             shadowManager->unbindFramebuffer();
             /* END DEPTH MAP */
@@ -1059,26 +1053,6 @@ void GameManager::renderGame(int fps) {
             drawScene(P, V, false);
             drawShipPart(P, V, false);
             
-            if (gameState == DEATHANIMATION) {
-                toBlackAlpha += 0.04f;
-                gui->drawBlack(toBlackAlpha);
-                if (toBlackAlpha >= 1.0f) {
-                    objects.clear();
-                    deathObjects.clear();
-                    toBlackAlpha = 0;
-                    gameState = DEATH;
-                    gui->resetDeath();
-                }
-
-            } else if (fadeFromBlack) {
-                fromBlackAlpha -= 0.02f;
-                gui->drawBlack(fromBlackAlpha);
-                if (fromBlackAlpha <= 0.0f) {
-                    fadeFromBlack = false;
-                    fromBlackAlpha = 1.0f;
-                }
-            }
-
             if (level == 1) {
                 program->bind();
                 //spaceship->setPosition(camera->getPosition());
@@ -1090,13 +1064,12 @@ void GameManager::renderGame(int fps) {
                 program->unbind();
             }
             bloom->unbindFramebuffer();
-            GLSL::checkError();
+
             /* Blurring the bloom objects */
             gaussianProg->bind();
             bloom->gaussianBlur(gaussianProg->getUniform("horizontal"));
             gaussianProg->unbind();
             
-            GLSL::checkError();
             glViewport(0, 0, width, height);
             glClear(GL_DEPTH_BUFFER_BIT);
             
@@ -1106,11 +1079,30 @@ void GameManager::renderGame(int fps) {
                               bloomProg->getUniform("bloomBlur"));
             bloomProg->unbind();
             
-            GLSL::checkError();
             if (!fmod->isPlaying("start"))
                 drawMagnetGun(P, V, false);
             if (gameState != PAUSE && !fmod->isPlaying("start")) {
                 gui->drawHUD(camera->isLookingAtMagnet(), Mouse::isLeftMouseButtonPressed(), Mouse::isRightMouseButtonPressed());
+            }
+            
+            if (gameState == DEATHANIMATION) {
+                toBlackAlpha += 0.04f;
+                gui->drawBlack(toBlackAlpha);
+                if (toBlackAlpha >= 1.0f) {
+                    objects.clear();
+                    deathObjects.clear();
+                    toBlackAlpha = 0;
+                    gameState = DEATH;
+                    gui->resetDeath();
+                }
+                
+            } else if (fadeFromBlack) {
+                fromBlackAlpha -= 0.02f;
+                gui->drawBlack(fromBlackAlpha);
+                if (fromBlackAlpha <= 0.0f) {
+                    fadeFromBlack = false;
+                    fromBlackAlpha = 1.0f;
+                }
             }
 
             if (SHADOW_DEBUG) {
