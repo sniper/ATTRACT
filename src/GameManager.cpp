@@ -471,6 +471,7 @@ void GameManager::importLevel(string level) {
     cutsceneTime = 0;
     playStartSound = false;
     playGunGet = false;
+    drawShipParts = false;
 
     if (level == "0")
         spaceship->setPosition(vec3(6.06999, 2.4, 3.7));
@@ -539,7 +540,10 @@ State GameManager::processInputs() {
         }
         if (gameState == CUTSCENE_START || gameState == CUTSCENE_END) {
             glfwSetCursorPosCallback(window, NULL);
-            camera->setPosition(vec3(0.0f,0.5f,0.0f));
+            spaceShipPart1->setPosition(vec3(6, 5.4, 4.0));
+            spaceShipPart2->setPosition(vec3(6, 5.4, 5.0));
+            spaceShipPart3->setPosition(vec3(5, 5.4, 4.3));
+            camera->setPosition(vec3(0.0f, 0.5f, 0.0f));
             camera->setYaw(0.0f);
             camera->setPitch(0.0f);
             fmod->stopSound("menu");
@@ -558,6 +562,7 @@ State GameManager::processInputs() {
             level++;
             if (level == NUMLEVELS) {
                 gameState = CUTSCENE_END;
+                spaceship->setPosition(vec3(1.119955, -0.490005, 3.55));
 
             }
 
@@ -572,17 +577,29 @@ State GameManager::processInputs() {
 
         if (gameState == GAME) {
             level++;
+
             fmod->stopSound("flying");
-            spaceShipPart1->setPosition(vec3(6, 5.4, 4.0));
-            spaceShipPart2->setPosition(vec3(6, 5.4, 5.0));
-            spaceShipPart3->setPosition(vec3(5, 5.4, 4.3));
+            if (fmod->isPlaying("gps"))
+                fmod->stopSound("gps");
+            if (fmod->isPlaying("error"))
+                fmod->stopSound("error");
+            if (fmod->isPlaying("crash"))
+                fmod->stopSound("crash");
             vec3 old = spaceship->getPosition();
             old.y += 2.0f;
             spaceship->setPosition(old);
             importLevel(to_string(level));
             bullet->createMagneticBox(to_string(-1), spaceship->getPosition(), CUBE_HALF_EXTENTS, vec3(2, 2, 2), 0);
-        } else if (gameState == MENU)
+        } else if (gameState == MENU) {
+            if (fmod->isPlaying("gps"))
+                fmod->stopSound("gps");
+            if (fmod->isPlaying("error"))
+                fmod->stopSound("error");
+            if (fmod->isPlaying("crash"))
+                fmod->stopSound("crash");
             level = 0;
+        }
+
     }
 
     if ((gameState == GAME || gameState == CUTSCENE_END)) {
@@ -769,8 +786,8 @@ void GameManager::updateGame(double dt) {
             cutsceneTime++;
             vec3 old = spaceship->getPosition();
             old.z -= 0.01f;
-            //spaceship->setPosition(old);
-            //fadeToBlack = true;
+            spaceship->setPosition(old);
+            fadeToBlack = true;
         }
     }
 }
@@ -1074,7 +1091,6 @@ void GameManager::renderGame(int fps) {
                     glUniformMatrix4fv(shipPartProgram->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
                     glUniformMatrix4fv(shipPartProgram->getUniform("V"), 1, GL_FALSE, value_ptr(V->topMatrix()));
                     glUniform3fv(shipPartProgram->getUniform("lightPos"), 1, value_ptr(vec3(lightPos)));
-
                     spaceShipPart1->draw(shipPartProgram);
                     spaceShipPart2->draw(shipPartProgram);
                     spaceShipPart3->draw(shipPartProgram);
