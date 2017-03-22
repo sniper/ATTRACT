@@ -20,7 +20,6 @@
 using namespace std;
 
 Skybox::Skybox(const string &resourceDir, const shared_ptr<Shape> &skyShape, int flag) {
-    rflag = flag;
     prog = make_shared<Program>();
     prog->setShaderNames(resourceDir + "skyboxVert.glsl", resourceDir + "skyboxFrag.glsl");
     GLSL::checkError(GET_FILE_LINE);
@@ -70,9 +69,8 @@ Skybox::~Skybox() {
 
 }
 
-void Skybox::render(shared_ptr<MatrixStack> &P, shared_ptr<MatrixStack> &V) {
-    static float t = 0;
-    t--;
+void Skybox::render(shared_ptr<MatrixStack> &P, shared_ptr<MatrixStack> &V, float time) {
+
     shared_ptr<MatrixStack> M = make_shared<MatrixStack>();
     prog->bind();
     tc->bind(prog->getUniform("cubemap"));
@@ -85,10 +83,10 @@ void Skybox::render(shared_ptr<MatrixStack> &P, shared_ptr<MatrixStack> &V) {
     glUniformMatrix4fv(prog->getUniform("V"), 1, GL_FALSE, value_ptr(V->topMatrix()));
     glUniformMatrix4fv(prog->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix()));
 
-    if(rflag == 0)
-        glUniform1f(prog->getUniform("T"), t);
-    else
-        glUniform1f(prog->getUniform("T"), 0);
+
+    glUniform1f(prog->getUniform("T"), time * -1);
+
+   
 
     shape->draw(prog);
     M->popMatrix();

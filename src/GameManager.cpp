@@ -538,8 +538,10 @@ State GameManager::processInputs() {
             importLevel(to_string(level));
         }
         if (gameState == CUTSCENE_START || gameState == CUTSCENE_END) {
-            cout << gameState << endl;
-            cout << level << endl;
+            glfwSetCursorPosCallback(window, NULL);
+            camera->setPosition(vec3(0.0f,0.5f,0.0f));
+            camera->setYaw(0.0f);
+            camera->setPitch(0.0f);
             fmod->stopSound("menu");
             fmod->playSound("flying", true, 0.3);
             importLevel(to_string(level));
@@ -557,8 +559,6 @@ State GameManager::processInputs() {
             if (level == NUMLEVELS) {
                 gameState = CUTSCENE_END;
 
-                spaceship->setPosition(vec3(0, 0, 5));
-
             }
 
             importLevel(to_string(level));
@@ -573,6 +573,9 @@ State GameManager::processInputs() {
         if (gameState == GAME) {
             level++;
             fmod->stopSound("flying");
+            spaceShipPart1->setPosition(vec3(6, 5.4, 4.0));
+            spaceShipPart2->setPosition(vec3(6, 5.4, 5.0));
+            spaceShipPart3->setPosition(vec3(5, 5.4, 4.3));
             vec3 old = spaceship->getPosition();
             old.y += 2.0f;
             spaceship->setPosition(old);
@@ -582,7 +585,7 @@ State GameManager::processInputs() {
             level = 0;
     }
 
-    if ((gameState == GAME ||gameState == CUTSCENE_END)) {
+    if ((gameState == GAME || gameState == CUTSCENE_END)) {
         // Set cursor position callback.
         glfwSetCursorPosCallback(window, Mouse::cursor_position_callback);
     } else {
@@ -678,9 +681,9 @@ void GameManager::updateGame(double dt) {
                 old.x = randFloat(-6.0f, 6.0f);
             }
             asteroid->setPosition(old);
-            
-            if(cutsceneTime % 50 > 25) {
-                
+
+            if (cutsceneTime % 50 > 25) {
+
                 //cout << "here" << endl;
             }
 
@@ -766,8 +769,8 @@ void GameManager::updateGame(double dt) {
             cutsceneTime++;
             vec3 old = spaceship->getPosition();
             old.z -= 0.01f;
-            spaceship->setPosition(old);
-            fadeToBlack = true;
+            //spaceship->setPosition(old);
+            //fadeToBlack = true;
         }
     }
 }
@@ -983,7 +986,7 @@ void GameManager::renderGame(int fps) {
             // Clear framebuffer.
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-            skybox->render(P, V);
+            skybox->render(P, V, 0);
             drawScene(P, V, false);
             drawShipPart(P, V, false);
             if (gameState == DEATHANIMATION) {
@@ -1049,7 +1052,10 @@ void GameManager::renderGame(int fps) {
 
         }/*draw cutscene only stuff here*/
         else {
-            spacebox->render(P, V);
+            if (level == 0)
+                spacebox->render(P, V, cutsceneTime);
+            else
+                spacebox->render(P, V, 0);
             program->bind();
             glUniformMatrix4fv(program->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
 
@@ -1060,30 +1066,32 @@ void GameManager::renderGame(int fps) {
             spaceship->draw(program);
             program->unbind();
 
-            
-            if (drawShipParts) {
-                shipPartProgram->bind();
-                shipPartColorTexture->bind(shipPartProgram->getUniform("diffuseTex"));
-                shipPartSpecularTexture->bind(shipPartProgram->getUniform("specularTex"));
-                glUniformMatrix4fv(shipPartProgram->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
-                glUniformMatrix4fv(shipPartProgram->getUniform("V"), 1, GL_FALSE, value_ptr(V->topMatrix()));
-                glUniform3fv(shipPartProgram->getUniform("lightPos"), 1, value_ptr(vec3(lightPos)));
+            if (level == 0) {
+                if (drawShipParts) {
+                    shipPartProgram->bind();
+                    shipPartColorTexture->bind(shipPartProgram->getUniform("diffuseTex"));
+                    shipPartSpecularTexture->bind(shipPartProgram->getUniform("specularTex"));
+                    glUniformMatrix4fv(shipPartProgram->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
+                    glUniformMatrix4fv(shipPartProgram->getUniform("V"), 1, GL_FALSE, value_ptr(V->topMatrix()));
+                    glUniform3fv(shipPartProgram->getUniform("lightPos"), 1, value_ptr(vec3(lightPos)));
 
-                spaceShipPart1->draw(shipPartProgram);
-                spaceShipPart2->draw(shipPartProgram);
-                spaceShipPart3->draw(shipPartProgram);
-                shipPartSpecularTexture->unbind();
-                shipPartColorTexture->unbind();
-                shipPartProgram->unbind();
+                    spaceShipPart1->draw(shipPartProgram);
+                    spaceShipPart2->draw(shipPartProgram);
+                    spaceShipPart3->draw(shipPartProgram);
+                    shipPartSpecularTexture->unbind();
+                    shipPartColorTexture->unbind();
+                    shipPartProgram->unbind();
+                }
+
+                asteroidProgram->bind();
+                glUniformMatrix4fv(asteroidProgram->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
+                glUniformMatrix4fv(asteroidProgram->getUniform("V"), 1, GL_FALSE, value_ptr(V->topMatrix()));
+                glUniform3fv(asteroidProgram->getUniform("lightPos"), 1, value_ptr(vec3(lightPos)));
+                glUniform3fv(asteroidProgram->getUniform("viewPos"), 1, value_ptr(camera->getPosition()));
+                asteroid->draw(asteroidProgram);
+                asteroidProgram->unbind();
             }
 
-            asteroidProgram->bind();
-            glUniformMatrix4fv(asteroidProgram->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
-            glUniformMatrix4fv(asteroidProgram->getUniform("V"), 1, GL_FALSE, value_ptr(V->topMatrix()));
-            glUniform3fv(asteroidProgram->getUniform("lightPos"), 1, value_ptr(vec3(lightPos)));
-            glUniform3fv(asteroidProgram->getUniform("viewPos"), 1, value_ptr(camera->getPosition()));
-            asteroid->draw(asteroidProgram);
-            asteroidProgram->unbind();
 
 
             if (fadeToBlack) {

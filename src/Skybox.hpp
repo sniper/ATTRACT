@@ -25,13 +25,13 @@ public:
     virtual ~Skybox();
     
     void render(std::shared_ptr<MatrixStack> &P,
-                std::shared_ptr<MatrixStack> &V);
+                std::shared_ptr<MatrixStack> &V, float time);
 private:
     std::shared_ptr<TextureCube> tc;
     std::shared_ptr<Program> prog;
     std::shared_ptr<Shape> shape;
     
-    int rflag;
+
 };
 
 #endif /* Skybox_hpp */

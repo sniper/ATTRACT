@@ -106,8 +106,8 @@ State InputManager::processCutsceneInputs(shared_ptr<BulletManager> &bullet,
 
 
     }
-    //cout << old.x << " " << old.y << " " << old.z << endl;
-    //camera->setPosition(old);
+    cout << old.x << " " << old.y << " " << old.z << endl;
+    //obj->setPosition(old);
     return gameState;
 }
 
