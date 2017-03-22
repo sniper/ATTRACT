@@ -11,7 +11,8 @@ in vec3 fragPos;
 in vec3 fragNor;
 in vec4 fragPosLS;
 
-out vec4 FragColor;
+layout (location = 0) out vec4 FragColor;
+layout (location = 1) out vec4 BloomColor;
 
 /* returns 1 if shadowed */
 /* called with the point projected into the light's coordinate space */
@@ -68,6 +69,7 @@ void main()
     else {
         vec3 lighting = ambient + ((1.0 - shadow) * (diffuse + specular)) * color;
         
-        FragColor = vec4(lighting, 1.0f);
+        FragColor = vec4(lighting, 1.0);
+        BloomColor = vec4(lighting, 1.0);
     }
 }
