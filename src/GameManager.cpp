@@ -103,7 +103,7 @@ endFade(false) {
 
     shadowManager = make_shared<ShadowManager>();
     shadowManager->init();
-    
+
     GLSL::checkError();
     bloom = make_shared<Bloom>();
     bloom->init();
@@ -226,28 +226,28 @@ void GameManager::initScene() {
     shipPartSpecularTexture->init();
     shipPartSpecularTexture->setUnit(1);
     shipPartSpecularTexture->setWrapModes(GL_REPEAT, GL_REPEAT);
-    
+
     //
     // Stuff for bloom
     //
     gaussianProg = make_shared<Program>();
     gaussianProg->setShaderNames(RESOURCE_DIR + "gaussianVert.glsl",
-                                 RESOURCE_DIR + "gaussianFrag.glsl");
+            RESOURCE_DIR + "gaussianFrag.glsl");
     gaussianProg->setVerbose(false);
     gaussianProg->init();
     gaussianProg->addAttribute("aPos");
     gaussianProg->addUniform("image");
     gaussianProg->addUniform("horizontal");
-    
+
     bloomProg = make_shared<Program>();
     bloomProg->setShaderNames(RESOURCE_DIR + "bloomVert.glsl",
-                              RESOURCE_DIR + "bloomFrag.glsl");
+            RESOURCE_DIR + "bloomFrag.glsl");
     bloomProg->setVerbose(false);
     bloomProg->init();
     bloomProg->addAttribute("aPos");
     bloomProg->addUniform("scene");
     bloomProg->addUniform("bloomBlur");
-    
+
     //
     // Loading obj files
     //
@@ -316,13 +316,12 @@ void GameManager::initScene() {
 
         debugProg->addUniform("texBuf");
         debugProg->addAttribute("aPos");
-    }
-    else if (BLOOM_DEBUG) {
+    } else if (BLOOM_DEBUG) {
         debugProg = make_shared<Program>();
         debugProg->setVerbose(false);
         debugProg->setShaderNames(RESOURCE_DIR + "debugVert.glsl", RESOURCE_DIR + "debugFrag.glsl");
         debugProg->init();
-        
+
         debugProg->addUniform("texBuf");
         debugProg->addAttribute("aPos");
     }
@@ -358,6 +357,10 @@ void GameManager::initScene() {
 
     spaceship = make_shared<GameObject>(vec3(6.06999, 2.4, 3.7), vec3(1, 0, 0), vec3(5, 5, 5), 0, shapes["spaceship"], material3);
     asteroid = make_shared<GameObject>(vec3(6.06999, 6.4, -1.7), vec3(1, 0, 0), vec3(5, 5, 5), 0, shapes["asteroid"], nullptr);
+    asteroid2 = make_shared<GameObject>(vec3(6.06999, -26.4, -1.7), vec3(1, 0, 0), vec3(5, 5, 5), 0, shapes["asteroid"], nullptr);
+    asteroid->setScale(vec3(10,10,10));
+    asteroid2->setScale(vec3(10,10,10));
+    
     shared_ptr<Material> spacePart = make_shared<Material>(vec3(0.2f, 0.2f, 0.2f),
             vec3(1.0f, 1.0f, 0.0f),
             vec3(1.0f, 0.9f, 0.8f),
@@ -592,12 +595,15 @@ State GameManager::processInputs() {
             spaceShipPart1->setPosition(vec3(6, 5.4, 4.0));
             spaceShipPart2->setPosition(vec3(6, 5.4, 5.0));
             spaceShipPart3->setPosition(vec3(5, 5.4, 4.3));
-            camera->setPosition(vec3(0.0f, 0.5f, 0.0f));
-            camera->setYaw(0.0f);
-            camera->setPitch(0.0f);
+
             fmod->stopSound("menu");
             fmod->playSound("flying", true, 0.3);
             importLevel(to_string(level));
+
+
+            camera->setYaw(-7.85);
+            camera->setPitch(-0.14);
+
         }
     } else if (gameState == DEATH) {
         gameState = inputManager->processDeathInputs(gui, fmod);
@@ -648,7 +654,16 @@ State GameManager::processInputs() {
         }
 
     }
-     
+
+
+    if ((gameState == GAME)) {
+        // Set cursor position callback.
+        glfwSetCursorPosCallback(window, Mouse::cursor_position_callback);
+    } else {
+        glfwSetCursorPosCallback(window, NULL);
+    }
+
+
     return gameState;
 }
 
@@ -725,31 +740,54 @@ void GameManager::updateGame(double dt) {
             static vec3 orig = camera->getPosition();
             cutsceneTime++;
 
-            vec3 old = asteroid->getPosition();
-            old.z += 0.3f;
-            if (old.z >= 9.0f) {
-                old.z = -25.0f;
-                old.y = randFloat(5.0f, 8.0f);
-                old.x = randFloat(-6.0f, 6.0f);
+            vec3 old1 = asteroid->getPosition();
+            vec3 old2 = asteroid2->getPosition();
+            
+            old1.z += 1.5f;
+            old2.z += 1.f;
+            
+            static bool a1 = false;
+            static bool a2 = false;
+            if (old1.z >= -60.0f && !a1) {
+                old2.z = -200.0f;
+                old2.y = randFloat(6.0f, 8.0f);
+                old2.x = randFloat(-35.0f, 25.0f);
+                a1 = true;
+                a2 = false;
             }
-            asteroid->setPosition(old);
+              
+            
+            else if (old2.z >= -60.0f && !a2) {
+                old1.z = -200.0f;
+                old1.y = randFloat(6.0f, 8.0f);
+                old1.x = randFloat(-35.0f, 25.0f);
+                a1 = false;
+                a2 = true;
+            }
+            
+            
+            asteroid->setPosition(old1);
+            asteroid2->setPosition(old2);
+
+            //cout << asteroid->getPosition().x << " " << asteroid->getPosition().y << endl;
 
             if (cutsceneTime % 50 > 25) {
 
                 //cout << "here" << endl;
             }
-
+            /*
             if (cutsceneTime == 400) {
                 if (!fmod->isPlaying("gps"))
                     fmod->playSound("gps", false);
 
             }
-            if (cutsceneTime == 900) {
+             */
+            if (cutsceneTime == 400) {
                 if (!fmod->isPlaying("error"))
                     fmod->playSound("error", false);
             }
 
-            if (cutsceneTime > 1300) {
+            if (cutsceneTime > 800) {
                 drawShipParts = true;
                 float r1 = -0.001 + static_cast<float> (rand()) / (static_cast<float> (RAND_MAX / ((0.001)-(-0.001))));
                 float r2 = -0.001 + static_cast<float> (rand()) / (static_cast<float> (RAND_MAX / ((0.001)-(-0.001))));
@@ -765,7 +803,7 @@ void GameManager::updateGame(double dt) {
                 else
                     camera->setPosition(old);
             }
-            if (cutsceneTime > 1750) {
+            if (cutsceneTime > 1280) {
                 float r1 = -0.02 + static_cast<float> (rand()) / (static_cast<float> (RAND_MAX / ((0.02)-(-0.02))));
                 float r2 = -0.02 + static_cast<float> (rand()) / (static_cast<float> (RAND_MAX / ((0.02)-(-0.02))));
                 float r3 = -0.02 + static_cast<float> (rand()) / (static_cast<float> (RAND_MAX / ((0.02)-(-0.02))));
@@ -801,7 +839,7 @@ void GameManager::updateGame(double dt) {
                 spaceShipPart3->setPosition(old3);
             }
 
-            if (cutsceneTime == 2000) {
+            if (cutsceneTime == 1500) {
 
                 fmod->stopSound("flying");
                 vec3 old = spaceship->getPosition();
@@ -1054,7 +1092,28 @@ void GameManager::renderGame(int fps) {
             skybox->render(P, V, 0);
             drawScene(P, V, false);
             drawShipPart(P, V, false);
-            
+
+
+            if (gameState == DEATHANIMATION) {
+                toBlackAlpha += 0.04f;
+                gui->drawBlack(toBlackAlpha);
+                if (toBlackAlpha >= 1.0f) {
+                    objects.clear();
+                    deathObjects.clear();
+                    toBlackAlpha = 0;
+                    gameState = DEATH;
+                    gui->resetDeath();
+                }
+
+            } else if (fadeFromBlack) {
+                fromBlackAlpha -= 0.02f;
+                gui->drawBlack(fromBlackAlpha);
+                if (fromBlackAlpha <= 0.0f) {
+                    fadeFromBlack = false;
+                    fromBlackAlpha = 1.0f;
+                }
+            }
+
             if (level == 1) {
                 program->bind();
                 //spaceship->setPosition(camera->getPosition());
@@ -1071,16 +1130,22 @@ void GameManager::renderGame(int fps) {
             gaussianProg->bind();
             bloom->gaussianBlur(gaussianProg->getUniform("horizontal"));
             gaussianProg->unbind();
-            
+
+
+            GLSL::checkError();
+
             glViewport(0, 0, width, height);
             glClear(GL_DEPTH_BUFFER_BIT);
-            
+
             /* Merging the scene and bloom objects */
             bloomProg->bind();
             bloom->applyBloom(bloomProg->getUniform("scene"),
-                              bloomProg->getUniform("bloomBlur"));
+                    bloomProg->getUniform("bloomBlur"));
             bloomProg->unbind();
-            
+
+
+            GLSL::checkError();
+
             if (!fmod->isPlaying("start"))
                 drawMagnetGun(P, V, false);
             if (gameState != PAUSE && !fmod->isPlaying("start")) {
@@ -1116,8 +1181,7 @@ void GameManager::renderGame(int fps) {
                 shadowManager->drawDebug();
                 debugProg->unbind();
                 glViewport(0, 0, width, height);
-            }
-            else if (BLOOM_DEBUG) {
+            } else if (BLOOM_DEBUG) {
                 glClear(GL_DEPTH_BUFFER_BIT);
                 glViewport(0, 0, 500, 500);
                 debugProg->bind();
@@ -1159,13 +1223,22 @@ void GameManager::renderGame(int fps) {
                     shipPartProgram->unbind();
                 }
 
+                static float angle = 0;
+                angle++;
+     
+                asteroid->setYRot(angle/20);
+                asteroid2->setYRot(angle/20);
                 asteroidProgram->bind();
                 glUniformMatrix4fv(asteroidProgram->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
+
+
                 glUniformMatrix4fv(asteroidProgram->getUniform("V"), 1, GL_FALSE, value_ptr(V->topMatrix()));
                 glUniform3fv(asteroidProgram->getUniform("lightPos"), 1, value_ptr(vec3(lightPos)));
                 glUniform3fv(asteroidProgram->getUniform("viewPos"), 1, value_ptr(camera->getPosition()));
                 asteroid->draw(asteroidProgram);
+                asteroid2->draw(asteroidProgram);
                 asteroidProgram->unbind();
+                
             }
 
 
@@ -1179,7 +1252,7 @@ void GameManager::renderGame(int fps) {
                         fromBlackAlpha = 1.0f;
                         fadeToBlack = false;
                         fadeFromBlack = false;
-//                        cout << "trigger" << endl;
+                        //                        cout << "trigger" << endl;
                         //gameState = MENU;
                         //level = 0;
                     }
@@ -1212,7 +1285,7 @@ void GameManager::renderGame(int fps) {
                     toBlackAlpha += 0.005f;
                     gui->drawEnd(toBlackAlpha);
                     gui->drawBlack(toBlackAlpha);
-//                    cout << "fade to black" << endl;
+                    //                    cout << "fade to black" << endl;
                     if (toBlackAlpha >= 0.9f) {
 
                         gameState = MENU;
@@ -1267,7 +1340,7 @@ void GameManager::resolveMagneticInteractions() {
             }
             vec3 dir = normalize(startLoc - endLoc);
             btVector3 bulletDir = btVector3(dir.x, dir.y, dir.z);
-            bullet->getBulletObject("cam")->getRigidBody()->setLinearVelocity(bulletDir * MAGNET_STRENGTH * ((MAGNET_RANGE - dist + 1)/(MAGNET_RANGE / 2.0)));
+            bullet->getBulletObject("cam")->getRigidBody()->setLinearVelocity(bulletDir * MAGNET_STRENGTH * ((MAGNET_RANGE - dist + 1) / (MAGNET_RANGE / 2.0)));
             drawBeam = true;
             colorBeam = BLUE;
         }
