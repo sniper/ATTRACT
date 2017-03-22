@@ -52,22 +52,21 @@ RESOURCE_DIR(resource) {
 
     GLSL::checkError(GET_FILE_LINE);
 
-    addTexture("play_select", vec3(1, 0.7, 1), vec3(0, -0.1, 0));
-    addTexture("play_noselect", vec3(1, 0.7, 1), vec3(0, -0.1, 0));
-    addTexture("AT", vec3(1.5, 1.5, 1), vec3(-2.1, 0.5, 0));
-    addTexture("TRACT", vec3(1.5, 1.5, 1), vec3(2.0, 0.5, 0));
-    addTexture("quit", vec3(1, 0.35, 1), vec3(0, -0.8, 0));
-    addTexture("quit_select", vec3(1, 0.7, 1), vec3(0, -0.6, 0));
-    addTexture("quit_noselect", vec3(1, 0.7, 1), vec3(0, -0.6, 0));
-    addTexture("pause", vec3(1, 1, 1), vec3(-0.5, 0.5, 0));
-    addTexture("shipparts", vec3(0.7, 0.7, 1), vec3(0.5, 0.5, 0));
-    addTexture("shipparts1", vec3(1.5, 1.5, 1), vec3(0.5, 0.2, 0));
-    addTexture("death", vec3(0.7, 0.7, 1), vec3(0, 0.5, 0));
-    addTexture("win", vec3(0.7, 0.7, 1), vec3(-0.4, 0.5, 0));
-    addTexture("nextlevel_select", vec3(0.7, 0.7, 1), vec3(0, -0.25, 0));
-    addTexture("nextlevel_noselect", vec3(0.7, 0.7, 1), vec3(0, -0.25, 0));
-    addTexture("tryagain_noselect", vec3(0.7, 0.7, 1), vec3(0, -0.18, 0));
-    addTexture("tryagain_select", vec3(0.7, 0.7, 1), vec3(0, -0.18, 0));
+    addTexture("play_select", vec3(1, 0.5, 1), vec3(0, -0.4, 0));
+    addTexture("play", vec3(1, 0.5, 1), vec3(0, -0.4, 0));
+    addTexture("AT", vec3(1, 1, 1), vec3(-2.5, 0.5, 0));
+    addTexture("TRACT", vec3(2, 1, 1), vec3(2.0, 0.5, 0));
+    addTexture("quit", vec3(1, 0.5, 1), vec3(0, -0.8, 0));
+    addTexture("quit_select", vec3(1, 0.5, 1), vec3(0, -0.8, 0));
+    addTexture("pause", vec3(1, 0.5, 1), vec3(0, 0.8, 0));
+    addTexture("shipparts", vec3(2, 0.5, 1), vec3(0, 0.5, 0));
+    addTexture("shipparts1", vec3(1.5, 1.5, 1), vec3(0, 0.2, 0));
+    addTexture("death", vec3(2, 1, 1), vec3(0, 0.6, 0));
+    addTexture("win", vec3(4, 1, 1), vec3(0, 0.85, 0));
+    addTexture("nextlevel_select", vec3(1, 0.5, 1), vec3(0, -0.4, 0));
+    addTexture("nextlevel", vec3(1, 0.5, 1), vec3(0, -0.4, 0));
+    addTexture("tryagain", vec3(1, 0.5, 1), vec3(0, -0.2, 0));
+    addTexture("tryagain_select", vec3(1, 0.5, 1), vec3(0, -0.2, 0));
     addTexture("emergency", vec3(5.2, 1.5, 2), vec3(0.5, 0.5, 0.5));
     addTexture("black", vec3(10, 10, 1), vec3(0, 0, 0));
     vec3 retScale = vec3(0.25, 0.25, 1);
@@ -188,9 +187,9 @@ void GuiManager::drawMenu() {
 
     if (selectedName == "play") {
         draw("play_select");
-        draw("quit_noselect");
+        draw("quit");
     } else {
-        draw("play_noselect");
+        draw("play");
         draw("quit_select");
     }
 
@@ -212,11 +211,13 @@ void GuiManager::resetDeath() {
 }
 
 void GuiManager::update() {
-    if (translates.at("AT").x <= -0.38) {
+    if (translates.at("AT").x <= -0.82) {
         translates.at("AT").x += 0.02;
     }
-    if (translates.at("TRACT").x >= 0.32) {
+    if (translates.at("TRACT").x >= 0.34) {
         translates.at("TRACT").x -= 0.02;
+    } else {
+        translates.at("TRACT").x = 0.31;
     }
 }
 
@@ -279,9 +280,9 @@ void GuiManager::drawDeath() {
 
     if (selectedName == "quit") {
         draw("quit_select");
-        draw("tryagain_noselect");
+        draw("tryagain");
     } else {
-        draw("quit_noselect");
+        draw("quit");
         draw("tryagain_select");
     }
 
@@ -298,9 +299,9 @@ void GuiManager::drawWin(int level) {
 
     if (selectedName == "quit") {
         draw("quit_select");
-        draw("nextlevel_noselect");
+        draw("nextlevel");
     } else {
-        draw("quit_noselect");
+        draw("quit");
         draw("nextlevel_select");
     }
 
