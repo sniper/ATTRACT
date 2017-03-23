@@ -140,7 +140,7 @@ void ParticleManager::update(double delta, vec3 cameraPosition) {
         for (int i = 0; i < MAXPARTICLES; i++) {
             int particleIndex = i;
             ParticlesContainer[particleIndex].life = 5.0f; // This particle will live 5 seconds.
-            float randz = randomFloat(-1, -4);
+            float randz = randomFloat(-1.25, -4);
             ParticlesContainer[particleIndex].pos = vec3(0.3, -0.3, randz);
             ParticlesContainer[particleIndex].rot = randomFloat(0,360);
             
@@ -199,7 +199,7 @@ void ParticleManager::update(double delta, vec3 cameraPosition) {
                 //p.pos.y = sin(rot*3.14/180);
 
 
-                p.cameradistance = glm::length(p.pos - cameraPosition);
+                p.cameradistance = p.pos.z;
                 //ParticlesContainer[i].pos += glm::    vec3(0.0f,10.0f, 0.0f) * (float)delta;
 
 

@@ -990,6 +990,9 @@ void GameManager::drawMagnetGun(shared_ptr<MatrixStack> P,
     glUniformMatrix4fv(shader->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
     glUniform3fv(shader->getUniform("lightPos"), 1, value_ptr(vec3(lightPos)));
     glUniform1f(shader->getUniform("lightIntensity"), lightIntensity);
+    
+    
+    
     V->pushMatrix();
     V->loadIdentity();
     glUniformMatrix4fv(shader->getUniform("V"), 1, GL_FALSE, value_ptr(V->topMatrix()));
@@ -1024,7 +1027,7 @@ void GameManager::drawMagnetGun(shared_ptr<MatrixStack> P,
     }
 
     glEnable(GL_DEPTH_TEST);
-    program->unbind();
+    shader->unbind();
 }
 
 mat4 SetOrthoMatrix() {
