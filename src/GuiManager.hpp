@@ -81,6 +81,7 @@ private:
     void draw(std::string name);
     void draw(std::string name, glm::mat4 V);
     void draw(std::string name, float alpha);
+    void drawShipParts(int level);
 
     int width, height;
 };
