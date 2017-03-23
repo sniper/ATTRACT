@@ -61,7 +61,7 @@ RESOURCE_DIR(resource) {
     addTexture("quit_select", vec3(1, 0.5, 1), vec3(0, -0.8, 0));
     addTexture("pause", vec3(1, 0.5, 1), vec3(0, 0.8, 0));
     addTexture("shipparts", vec3(2, 0.5, 1), vec3(0, 0.5, 0));
-    addTexture("shipparts1", vec3(1.5, 1.5, 1), vec3(0, 0.2, 0));
+    addTexture("shipparts1", vec3(1.5, 1.5, 1), vec3(-0.2, 0.2, 0));
     addTexture("death", vec3(2, 1, 1), vec3(0, 0.6, 0));
     addTexture("caution", vec3(1, 1, 1), vec3(1, 0, 0));
     addTexture("win", vec3(4, 1, 1), vec3(0, 0.85, 0));
@@ -84,6 +84,21 @@ RESOURCE_DIR(resource) {
     addTexture("skip", vec3(1, 1, 1), vec3(0, -1.1, 0));
 
     addTexture("end", vec3(7, 0.75, 1), vec3(0, 0, 0));
+    
+    vec3 charScale = vec3(0.25, 0.25, 1);
+    vec3 charTrans = vec3(0.2, 0.2, 0);
+    addTexture("x", charScale, vec3(0, 0.2, 0));
+    addTexture("0", charScale, charTrans);
+    addTexture("1", charScale, charTrans);
+    addTexture("2", charScale, charTrans);
+    addTexture("3", charScale, charTrans);
+    addTexture("4", charScale, charTrans);
+    addTexture("5", charScale, charTrans);
+    addTexture("6", charScale, charTrans);
+    addTexture("7", charScale, charTrans);
+    addTexture("8", charScale, charTrans);
+    addTexture("9", charScale, charTrans);
+
 
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
@@ -258,26 +273,26 @@ void GuiManager::drawHUD(int level, bool lookingAtMagnet, bool leftClick,
     glDepthMask(GL_TRUE);
 }
 
+void GuiManager::drawShipParts(int level) {
+    draw("shipparts");
+    draw("shipparts1");
+    draw("x");
+    if (level <= 10) {
+        string num = to_string(level - 1);
+        draw(num);
+    }
+}
+
 void GuiManager::drawPause(int level) {
     glDepthMask(GL_FALSE);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     draw("pause");
     draw("quit_select");
-    draw("shipparts");
+    
+    drawShipParts(level);
 
     selectedName = "quit";
-    switch (level) {
-        case 1:
-            break;
-
-        case 2:
-            draw("shipparts1");
-            break;
-        case 3:
-            draw("shipparts1");
-            break;
-    }
 
     glDisable(GL_BLEND);
     glDepthMask(GL_TRUE);
@@ -322,12 +337,7 @@ void GuiManager::drawWin(int level) {
         draw("nextlevel_select");
     }
 
-    draw("shipparts");
-    switch (level) {
-        case 1:
-            draw("shipparts1");
-            break;
-    }
+    drawShipParts(level + 1);
 
     glDisable(GL_BLEND);
     glDepthMask(GL_TRUE);
