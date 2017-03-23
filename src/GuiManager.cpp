@@ -155,9 +155,11 @@ State GuiManager::interpretMenuPressedKeys(vector<char> pressedKeys) {
 State GuiManager::interpretPausePressedKeys(std::vector<char> pressedKeys) {
     if (find(pressedKeys.begin(), pressedKeys.end(), '<') != pressedKeys.end()) {
         return GAME;
-    } else if (find(pressedKeys.begin(), pressedKeys.end(), '\n') != pressedKeys.end()) {
-        if (selectedName == "quit")
-            exit(0);
+    }
+    else if (find(pressedKeys.begin(), pressedKeys.end(), '\n') != pressedKeys.end()) {
+        if (selectedName == "quit") {
+            return MENU;
+        }
     }
 
     return PAUSE;
@@ -172,7 +174,7 @@ State GuiManager::interpretDeathPressedKeys(std::vector<char> pressedKeys) {
         selectedName = "tryagain";
     } else if (find(pressedKeys.begin(), pressedKeys.end(), '\n') != pressedKeys.end()) {
         if (selectedName == "quit")
-            exit(0);
+            return MENU;
         else if (selectedName == "tryagain")
             return GAME;
     }
@@ -188,7 +190,7 @@ State GuiManager::interpretWinPressedKeys(std::vector<char> pressedKeys) {
         selectedName = "nextlevel";
     } else if (find(pressedKeys.begin(), pressedKeys.end(), '\n') != pressedKeys.end()) {
         if (selectedName == "quit")
-            exit(0);
+            return MENU;
         else if (selectedName == "nextlevel" || selectedName == "play")
             return GAME;
     }
@@ -217,7 +219,7 @@ void GuiManager::drawMenu() {
 }
 
 void GuiManager::resetMenu() {
-    translates.at("AT") = vec3(-2.1, 0.5, 0);
+    translates.at("AT") = vec3(-2.5, 0.5, 0);
     translates.at("TRACT") = vec3(2.0, 0.5, 0);
     selectedName = "play";
 }

@@ -163,8 +163,6 @@ State InputManager::processDeathInputs(shared_ptr<GuiManager> &gui,
         if (!fmod->isPlaying("select")) {
             fmod->playSound("select", false, 0.7);
         }
-
-
     }
     if (Keyboard::isPressed(GLFW_KEY_S) || Keyboard::isPressed(GLFW_KEY_DOWN)) {
         pressedKeys.push_back('s');

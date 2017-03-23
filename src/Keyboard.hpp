@@ -16,6 +16,7 @@ class Keyboard
 public:
     static void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods);
     static bool isPressed(unsigned int key);
+    static bool setKey(unsigned int key, bool b) {keyToggles[key] = b;}
 private:
     static bool keyToggles[349];
 };

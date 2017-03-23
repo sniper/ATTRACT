@@ -59,7 +59,7 @@ void Texture::init() {
         //cerr << ncomps << endl;
     }
     if ((w & (w - 1)) != 0 || (h & (h - 1)) != 0) {
-        cerr << filename << " must be a power of 2" << endl;
+        //cerr << filename << " must be a power of 2" << endl;
     }
     width = w;
     height = h;

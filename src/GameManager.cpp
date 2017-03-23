@@ -587,6 +587,12 @@ State GameManager::processInputs() {
         if (gameState == GAME) {
             Mouse::resetMouse(window, pausedXMouse, pausedYMouse);
         }
+        if (gameState == MENU) {
+            Keyboard::setKey(GLFW_KEY_ESCAPE, false);
+            Keyboard::setKey(GLFW_KEY_ENTER, false);
+            level = 0;
+            gui->resetMenu();
+        }
     } else if (gameState == MENU) {
         gameState = inputManager->processMenuInputs(gui, fmod);
         if (fmod->isPlaying("game"))
@@ -617,6 +623,12 @@ State GameManager::processInputs() {
         gameState = inputManager->processDeathInputs(gui, fmod);
         if (gameState == GAME) {
             importLevel(to_string(level));
+        }
+        if (gameState == MENU) {
+            Keyboard::setKey(GLFW_KEY_ESCAPE, false);
+            Keyboard::setKey(GLFW_KEY_ENTER, false);
+            level = 0;
+            gui->resetMenu();
         }
     } else if (gameState == WIN) {
         gameState = inputManager->processWinInputs(gui, fmod);
@@ -653,8 +665,12 @@ State GameManager::processInputs() {
                     break;
 
             }
-        } else if (gameState == MENU) {
-            fmod->stopSound("menu");
+        }
+        else if (gameState == MENU) {
+            Keyboard::setKey(GLFW_KEY_ESCAPE, false);
+            Keyboard::setKey(GLFW_KEY_ENTER, false);
+            level = 0;
+            gui->resetMenu();
         }
     } else if (gameState == CUTSCENE_START || gameState == CUTSCENE_END) {
         gameState = inputManager->processCutsceneInputs(bullet, fmod, spaceship, gameState, gui);
@@ -691,15 +707,6 @@ State GameManager::processInputs() {
         }
 
     }
-
-
-    if ((gameState == GAME)) {
-        // Set cursor position callback.
-        glfwSetCursorPosCallback(window, Mouse::cursor_position_callback);
-    } else {
-        glfwSetCursorPosCallback(window, NULL);
-    }
-
 
     return gameState;
 }
@@ -1015,9 +1022,6 @@ void GameManager::drawMagnetGun(shared_ptr<MatrixStack> P,
     glUniformMatrix4fv(shader->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
     glUniform3fv(shader->getUniform("lightPos"), 1, value_ptr(vec3(lightPos)));
     glUniform1f(shader->getUniform("lightIntensity"), lightIntensity);
-
-
-
     V->pushMatrix();
     V->loadIdentity();
     glUniformMatrix4fv(shader->getUniform("V"), 1, GL_FALSE, value_ptr(V->topMatrix()));
