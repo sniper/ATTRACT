@@ -69,7 +69,7 @@ RESOURCE_DIR(resource) {
     addTexture("tryagain_select", vec3(1, 0.5, 1), vec3(0, -0.2, 0));
     addTexture("emergency", vec3(5.2, 1.5, 2), vec3(0.5, 0.5, 0.5));
     addTexture("black", vec3(10, 10, 1), vec3(0, 0, 0));
-    addTexture("instructions", vec3(0.8, 0.8, 0.8), vec3(-1, 0.7, 0));
+    addTexture("instructions", vec3(2, 2, 1), vec3(0, 0, 0));
     vec3 retScale = vec3(0.25, 0.25, 1);
     vec3 retTrans = vec3(0, 0, 0);
     addTexture("reticle_center_off", retScale, retTrans);
@@ -223,15 +223,14 @@ void GuiManager::update() {
 }
 
 void GuiManager::drawHUD(int level, bool lookingAtMagnet, bool leftClick,
-                         bool rightClick, int width, int height) {
+                         bool rightClick) {
     glDepthMask(GL_FALSE);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     if (level == 1) {
-        auto V = make_shared<MatrixStack>();
-        V->loadIdentity();
-        translates.at("instructions") = vec3(0, 0, 0);
-        draw("instructions", V->topMatrix());
+        glViewport(0, 2*height/3, width/3, height/3);
+        draw("instructions");
+        glViewport(0, 0, width, height);
     }
     
     if (lookingAtMagnet) {
@@ -471,7 +470,7 @@ void GuiManager::draw(string name, glm::mat4 V) {
     M->scale(scales[name]);
 
     //auto P = make_shared<MatrixStack>();
-    //P->ortho(0.0f, (float) width, 0.0f, (float) height, 0.0f, 10.0f);
+    //P->ortho(0.0f, (float)width, 0.0f, (float)height, 0.0f, 10.0f);
     float aspect = (float) width / (float) height;
     mat4 P = glm::perspective(80.0f, aspect, 0.0f, 1.0f);
 
@@ -489,7 +488,7 @@ void GuiManager::draw(string name, glm::mat4 V) {
 
     glUniformMatrix4fv(guiShader->getUniform("M"), 1, GL_FALSE, value_ptr(M->topMatrix()));
     glUniformMatrix4fv(guiShader->getUniform("V"), 1, GL_FALSE, value_ptr(V));
-    glUniform1f(guiShader->getUniform("F"), 0);
+    glUniform1f(guiShader->getUniform("F"), 1);
     glUniformMatrix4fv(guiShader->getUniform("P"), 1, GL_FALSE, value_ptr(P));
     glUniform1f(guiShader->getUniform("alpha"), -1);
     int pos = guiShader->getAttribute("pos");

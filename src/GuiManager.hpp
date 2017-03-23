@@ -54,8 +54,7 @@ public:
     void drawPause(int level);
     void drawDeath();
     void drawWin(int level);
-    void drawHUD(int level, bool lookingAtMagnet, bool leftClick, bool rightClick,
-                 int width, int height);
+    void drawHUD(int level, bool lookingAtMagnet, bool leftClick, bool rightClick);
     void setWindowSize(float w, float h) {width = w; height = h;}
     State interpretMenuPressedKeys(std::vector<char> pressedKeys);
     State interpretPausePressedKeys(std::vector<char> pressedKeys);

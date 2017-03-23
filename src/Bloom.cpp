@@ -10,7 +10,7 @@
 
 #include <iostream>
 
-#define BLUR_AMOUNT 3
+#define BLUR_AMOUNT 2
 
 using namespace std;
 
