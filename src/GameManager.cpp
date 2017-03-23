@@ -521,7 +521,7 @@ void GameManager::importLevel(string level) {
         spaceship->setPosition(vec3(6.06999, 2.4, 3.7));
 
     if (level == "1")
-        bullet->createMagneticBox(to_string(-1), spaceship->getPosition(), CUBE_HALF_EXTENTS, vec3(2, 2, 2), 0);
+        bullet->createMagneticBox(to_string(-1), spaceship->getPosition(), CUBE_HALF_EXTENTS, vec3(2, 2, 5), 0);
 
     file.open(RESOURCE_DIR + "levels/" + level);
 
@@ -691,7 +691,7 @@ State GameManager::processInputs() {
             importLevel(to_string(level));
             camera->setPitch(0.00168004);
             camera->setYaw(-7.31953);
-            bullet->createMagneticBox(to_string(-1), spaceship->getPosition(), CUBE_HALF_EXTENTS, vec3(2, 2, 5), 0);
+            //bullet->createMagneticBox(to_string(-1), spaceship->getPosition(), CUBE_HALF_EXTENTS, vec3(2, 2, 5), 0);
         } else if (gameState == MENU) {
             if (fmod->isPlaying("flying"))
                 fmod->stopSound("flying");
@@ -888,7 +888,7 @@ void GameManager::updateGame(double dt) {
                 spaceship->setPosition(old);
                 level++;
                 importLevel(to_string(level));
-                bullet->createMagneticBox(to_string(-1), spaceship->getPosition(), CUBE_HALF_EXTENTS, vec3(2, 2, 2), 0);
+                //bullet->createMagneticBox(to_string(-1), spaceship->getPosition(), CUBE_HALF_EXTENTS, vec3(2, 2, 5), 0);
                 gameState = GAME;
             }
 
