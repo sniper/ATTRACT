@@ -62,11 +62,12 @@ RESOURCE_DIR(resource) {
     addTexture("shipparts", vec3(2, 0.5, 1), vec3(0, 0.5, 0));
     addTexture("shipparts1", vec3(1.5, 1.5, 1), vec3(0, 0.2, 0));
     addTexture("death", vec3(2, 1, 1), vec3(0, 0.6, 0));
+    addTexture("caution", vec3(1, 1, 1), vec3(1, 0, 0));
     addTexture("win", vec3(4, 1, 1), vec3(0, 0.85, 0));
     addTexture("nextlevel_select", vec3(1, 0.5, 1), vec3(0, -0.4, 0));
     addTexture("nextlevel", vec3(1, 0.5, 1), vec3(0, -0.4, 0));
-    addTexture("tryagain", vec3(1, 0.5, 1), vec3(0, -0.2, 0));
-    addTexture("tryagain_select", vec3(1, 0.5, 1), vec3(0, -0.2, 0));
+    addTexture("tryagain", vec3(1, 0.5, 1), vec3(0, -0.4, 0));
+    addTexture("tryagain_select", vec3(1, 0.5, 1), vec3(0, -0.4, 0));
     addTexture("emergency", vec3(5.2, 1.5, 2), vec3(0.5, 0.5, 0.5));
     addTexture("black", vec3(10, 10, 1), vec3(0, 0, 0));
     vec3 retScale = vec3(0.25, 0.25, 1);
@@ -80,7 +81,7 @@ RESOURCE_DIR(resource) {
 
     addTexture("skip", vec3(1, 1, 1), vec3(0, -1.1, 0));
 
-    addTexture("end", vec3(0.7, 0.7, 1), vec3(0, 0, 0));
+    addTexture("end", vec3(7, 0.75, 1), vec3(0, 0, 0));
 
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
@@ -181,6 +182,7 @@ void GuiManager::drawMenu() {
     glDepthMask(GL_FALSE);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glClearColor(0.6f, 0.6f, 0.8f, 1.0f);
 
     draw("AT");
     draw("TRACT");
@@ -276,7 +278,12 @@ void GuiManager::drawDeath() {
     glDepthMask(GL_FALSE);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glClearColor(0.0, 0.0, 0.0, 1.0);
 
+    translates.at("caution") *= -1;
+    draw("caution");
+    translates.at("caution") *= -1;
+    draw("caution");
     draw("death");
 
     if (selectedName == "quit") {
@@ -295,6 +302,7 @@ void GuiManager::drawWin(int level) {
     glDepthMask(GL_FALSE);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glClearColor(0.6f, 0.6f, 0.8f, 1.0f);
 
     draw("win");
 
