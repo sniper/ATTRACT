@@ -578,7 +578,7 @@ State GameManager::processInputs() {
 
         if (Keyboard::isPressed(']')) {
             //fmod->playSound("win",false);
-            fmod->playSound("cheater",false);
+            fmod->playSound("cheater", false);
             gui->resetWin();
             gameState = WIN;
         }
@@ -597,6 +597,7 @@ State GameManager::processInputs() {
             fmod->stopSound("menu");
 
             importLevel(to_string(level));
+
         }
         if (gameState == CUTSCENE_START || gameState == CUTSCENE_END) {
             spaceShipPart1->setPosition(vec3(6, 5.4, 4.0));
@@ -629,6 +630,29 @@ State GameManager::processInputs() {
             }
 
             importLevel(to_string(level));
+            switch (level) {
+                case 2:
+                    camera->setYaw(-6.23281);
+                    camera->setPitch(0.0231814);
+                    break;
+                case 3:
+                    camera->setYaw(-11.5195);
+                    camera->setPitch(0.117305);
+                    break;
+                case 4:
+                    camera->setYaw(-11.0227);
+                    camera->setPitch(0.257876);
+                    break;
+                case 5:
+                    camera->setYaw(-10.9641);
+                    camera->setPitch(0.036055);
+                    break;
+                case 6:
+                    camera->setYaw(-10.9125);
+                    camera->setPitch(0.24543);
+                    break;
+
+            }
         } else if (gameState == MENU) {
             fmod->stopSound("menu");
         }
@@ -649,6 +673,8 @@ State GameManager::processInputs() {
             old.y += 2.0f;
             spaceship->setPosition(old);
             importLevel(to_string(level));
+            camera->setPitch(0.00168004);
+            camera->setYaw(-7.31953);
             bullet->createMagneticBox(to_string(-1), spaceship->getPosition(), CUBE_HALF_EXTENTS, vec3(2, 2, 5), 0);
         } else if (gameState == MENU) {
             if (fmod->isPlaying("flying"))
@@ -765,8 +791,7 @@ void GameManager::updateGame(double dt) {
                 old2.x = randFloat(-35.0f, 25.0f);
                 a1 = true;
                 a2 = false;
-            }
-            else if (old2.z >= -60.0f && !a2) {
+            } else if (old2.z >= -60.0f && !a2) {
                 old1.z = -200.0f;
                 old1.y = randFloat(6.0f, 8.0f);
                 old1.x = randFloat(-35.0f, 25.0f);
@@ -990,9 +1015,9 @@ void GameManager::drawMagnetGun(shared_ptr<MatrixStack> P,
     glUniformMatrix4fv(shader->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
     glUniform3fv(shader->getUniform("lightPos"), 1, value_ptr(vec3(lightPos)));
     glUniform1f(shader->getUniform("lightIntensity"), lightIntensity);
-    
-    
-    
+
+
+
     V->pushMatrix();
     V->loadIdentity();
     glUniformMatrix4fv(shader->getUniform("V"), 1, GL_FALSE, value_ptr(V->topMatrix()));
