@@ -66,17 +66,17 @@ void FmodManager::createStream(string name, string path, bool loop) {
         result = fmodSystem->createSound((RESOURCE_DIR + path).c_str(), (FMOD_MODE) FMOD_LOOP_NORMAL, NULL, &sound);
     else
         result = fmodSystem->createSound((RESOURCE_DIR + path).c_str(), (FMOD_MODE) FMOD_LOOP_OFF, NULL, &sound);
-    //ERRCHECK(result);
+    ERRCHECK(result);
     sounds.insert(make_pair(name, sound));
     
-    channels.insert(make_pair(name,channel));
+    //channels.insert(make_pair(name,channel));
     
 }
 
 /*bool checks whether its a looping sound*/
 void FmodManager::playSound(string name, bool loop) {
     result = fmodSystem->playSound(sounds[name], 0, false, &channels[name]);
-    //ERRCHECK(result);
+    ERRCHECK(result);
     if(loop)
         curSound = name;
 }
@@ -85,16 +85,17 @@ void FmodManager::playSound(string name, bool loop, float volume) {
     
     
     result = fmodSystem->playSound(sounds[name], 0, false, &channels[name]);
-    //ERRCHECK(result);
+    ERRCHECK(result);
     result = channels[name]->setVolume(volume);
-    //ERRCHECK(result);
+    ERRCHECK(result);
     if(loop)
         curSound = name;
 }
 
 void FmodManager::stopSound(string name) {
     result = channels[name]->stop();
-    //ERRCHECK(result);
+    channels.erase(name);
+    ERRCHECK(result);
 }
 
 string FmodManager::getCurSound() {
@@ -107,14 +108,14 @@ bool FmodManager::isPlaying(string name) {
     if(channels[name] == 0)
         return false;
     result = channels[name]->isPlaying(&ret);
-    //ERRCHECK(result);
+    ERRCHECK(result);
     return ret;
     
 }
 
 void FmodManager::setPaused(string name, bool state) {
     result = channels[name]->setPaused(state);
-    //ERRCHECK(result);
+    ERRCHECK(result);
     
 }
 

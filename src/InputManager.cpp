@@ -61,7 +61,7 @@ State InputManager::processGameInputs(shared_ptr<BulletManager> &bullet,
     }
     if (Keyboard::isPressed(GLFW_KEY_ESCAPE)) {
         if (!fmod->isPlaying("select")) {
-            fmod->playSound("select", false, 1);
+            fmod->playSound("select", false, 0.7);
         }
         return PAUSE;
     }
@@ -114,14 +114,14 @@ State InputManager::processMenuInputs(shared_ptr<GuiManager> &gui,
     if (Keyboard::isPressed(GLFW_KEY_W) || Keyboard::isPressed(GLFW_KEY_UP)) {
         pressedKeys.push_back('w');
         if (!fmod->isPlaying("select")) {
-            fmod->playSound("select", false, 1);
+            fmod->playSound("select", false, 0.7);
         }
 
     }
     if (Keyboard::isPressed(GLFW_KEY_S) || Keyboard::isPressed(GLFW_KEY_DOWN)) {
         pressedKeys.push_back('s');
         if (!fmod->isPlaying("select")) {
-            fmod->playSound("select", false, 1);
+            fmod->playSound("select", false, 0.7);
         }
     }
 
@@ -161,7 +161,7 @@ State InputManager::processDeathInputs(shared_ptr<GuiManager> &gui,
     if (Keyboard::isPressed(GLFW_KEY_W) || Keyboard::isPressed(GLFW_KEY_UP)) {
         pressedKeys.push_back('w');
         if (!fmod->isPlaying("select")) {
-            fmod->playSound("select", false, 1);
+            fmod->playSound("select", false, 0.7);
         }
 
 
@@ -169,7 +169,7 @@ State InputManager::processDeathInputs(shared_ptr<GuiManager> &gui,
     if (Keyboard::isPressed(GLFW_KEY_S) || Keyboard::isPressed(GLFW_KEY_DOWN)) {
         pressedKeys.push_back('s');
         if (!fmod->isPlaying("select")) {
-            fmod->playSound("select", false, 1);
+            fmod->playSound("select", false, 0.7);
         }
     }
 
@@ -191,21 +191,21 @@ State InputManager::processWinInputs(shared_ptr<GuiManager> &gui,
     if (Keyboard::isPressed(GLFW_KEY_W) || Keyboard::isPressed(GLFW_KEY_UP)) {
         pressedKeys.push_back('w');
         if (!fmod->isPlaying("select")) {
-            fmod->playSound("select", false, 1);
+            fmod->playSound("select", false, 0.7);
         }
 
     }
     if (Keyboard::isPressed(GLFW_KEY_S) || Keyboard::isPressed(GLFW_KEY_DOWN)) {
         pressedKeys.push_back('s');
         if (!fmod->isPlaying("select")) {
-            fmod->playSound("select", false, 1);
+            fmod->playSound("select", false, 0.7);
         }
     }
 
     if (Keyboard::isPressed(GLFW_KEY_ENTER)) {
         pressedKeys.push_back('\n');
         if (!fmod->isPlaying("choose")) {
-            fmod->playSound("choose", false, 1);
+            fmod->playSound("choose", false, 0.7);
         }
     }
     return gui->interpretWinPressedKeys(pressedKeys);

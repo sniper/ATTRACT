@@ -156,7 +156,7 @@ void Camera::interpretPressedKeys(const vector<char> &pressedKeys,
         if (RayCB.hasHit()) {
             movement += btVector3(0, JUMP_VELOCITY, 0);
             if (!fmod->isPlaying("jump")) {
-                fmod->playSound("jump", false, 2.2);
+                fmod->playSound("jump", false, 1.0);
             }
         }
     }
@@ -181,14 +181,14 @@ void Camera::interpretPressedKeys(const vector<char> &pressedKeys,
     if (RayCB.hasHit()) {
         if (jumping) {
             if (!fmod->isPlaying("jump_land")) {
-                fmod->playSound("jump_land", false, 1);
+                fmod->playSound("jump_land", false, 0.7);
             }
         }
 
         jumping = false;
         bulletCamObj->getRigidBody()->setFriction(0.9f);
         if (moving == true && !fmod->isPlaying("walking")) {
-            fmod->playSound("walking", false, 0.6);
+            fmod->playSound("walking", false, 0.3);
         }
 
     } else {

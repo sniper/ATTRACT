@@ -569,7 +569,7 @@ void GameManager::importLevel(string level) {
 State GameManager::processInputs() {
     if (gameState == GAME) {
         if (!fmod->isPlaying("game"))
-            fmod->playSound("game", true, 0.4f);
+            fmod->playSound("game", true, 0.9f);
         gameState = inputManager->processGameInputs(bullet, fmod);
         if (gameState == PAUSE) {
             pausedXMouse = Mouse::getMouseX();
@@ -717,7 +717,7 @@ void GameManager::updateGame(double dt) {
             if (camera->checkForCollision(spaceShipPart)) {
                 spaceShipPart->startWin();
                 if (!fmod->isPlaying("collecting")) {
-                    fmod->playSound("collecting", true, 4.5);
+                    fmod->playSound("collecting", true, 1.5);
                 }
             }
             if (spaceShipPart->doneWinning()) {
@@ -728,7 +728,7 @@ void GameManager::updateGame(double dt) {
                 if (fmod->isPlaying("collecting")) {
                     fmod->stopSound("collecting");
                 }
-                fmod->playSound("win", false);
+                fmod->playSound("win", false, 0.7f);
                 gui->resetWin();
                 gameState = WIN;
             }
@@ -1336,7 +1336,7 @@ void GameManager::resolveMagneticInteractions() {
         camera->setLookingAtMagnet(true);
         if (Mouse::isLeftMouseButtonPressed()) {
             if (!fmod->isPlaying("magnet")) {
-                fmod->playSound("magnet", false, 1);
+                fmod->playSound("magnet", false, 0.4);
             }
             vec3 dir = normalize(endLoc - startLoc);
             btVector3 bulletDir = btVector3(dir.x, dir.y, dir.z);
@@ -1345,7 +1345,7 @@ void GameManager::resolveMagneticInteractions() {
             colorBeam = ORANGE;
         } else if (Mouse::isRightMouseButtonPressed()) {
             if (!fmod->isPlaying("magnet")) {
-                fmod->playSound("magnet", false, 1);
+                fmod->playSound("magnet", false, 0.4);
             }
             vec3 dir = normalize(startLoc - endLoc);
             btVector3 bulletDir = btVector3(dir.x, dir.y, dir.z);
@@ -1359,7 +1359,7 @@ void GameManager::resolveMagneticInteractions() {
         drawBeam = false;
         if (Mouse::isLeftMouseButtonPressed() || Mouse::isRightMouseButtonPressed()) {
             if (!fmod->isPlaying("click"))
-                fmod->playSound("click", false, 1);
+                fmod->playSound("click", false, 0.5);
         }
     }
 }
