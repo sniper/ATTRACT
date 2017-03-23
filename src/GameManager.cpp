@@ -649,7 +649,7 @@ State GameManager::processInputs() {
             old.y += 2.0f;
             spaceship->setPosition(old);
             importLevel(to_string(level));
-            bullet->createMagneticBox(to_string(-1), spaceship->getPosition(), CUBE_HALF_EXTENTS, vec3(2, 2, 2), 0);
+            bullet->createMagneticBox(to_string(-1), spaceship->getPosition(), CUBE_HALF_EXTENTS, vec3(2, 2, 5), 0);
         } else if (gameState == MENU) {
             if (fmod->isPlaying("flying"))
                 fmod->stopSound("flying");
