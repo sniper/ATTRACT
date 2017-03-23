@@ -80,6 +80,12 @@ void Camera::mouseMoved(double x, double y, bool constrainYaw) {
 
     if (dv[1] > 0.0f && pitch >= -PITCH_CUTOFF || dv[1] < 0.0f && pitch <= PITCH_CUTOFF) {
         pitch -= (dv[1] / height) * MOUSE_SENSITIVITY;
+        if (pitch < -PITCH_CUTOFF) {
+            pitch = -PITCH_CUTOFF;
+        } else if (pitch > PITCH_CUTOFF) {
+            pitch = PITCH_CUTOFF;
+        }
+        
     }
     //cout << pitch << " " << yaw << endl;
     mousePrev = mouseCurr;
