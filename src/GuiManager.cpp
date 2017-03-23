@@ -69,6 +69,7 @@ RESOURCE_DIR(resource) {
     addTexture("tryagain_select", vec3(1, 0.5, 1), vec3(0, -0.2, 0));
     addTexture("emergency", vec3(5.2, 1.5, 2), vec3(0.5, 0.5, 0.5));
     addTexture("black", vec3(10, 10, 1), vec3(0, 0, 0));
+    addTexture("instructions", vec3(0.8, 0.8, 0.8), vec3(-1, 0.7, 0));
     vec3 retScale = vec3(0.25, 0.25, 1);
     vec3 retTrans = vec3(0, 0, 0);
     addTexture("reticle_center_off", retScale, retTrans);
@@ -221,10 +222,18 @@ void GuiManager::update() {
     }
 }
 
-void GuiManager::drawHUD(bool lookingAtMagnet, bool leftClick, bool rightClick) {
+void GuiManager::drawHUD(int level, bool lookingAtMagnet, bool leftClick,
+                         bool rightClick, int width, int height) {
     glDepthMask(GL_FALSE);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    if (level == 1) {
+        auto V = make_shared<MatrixStack>();
+        V->loadIdentity();
+        translates.at("instructions") = vec3(0, 0, 0);
+        draw("instructions", V->topMatrix());
+    }
+    
     if (lookingAtMagnet) {
         draw("reticle_center_on");
         if (leftClick) {
