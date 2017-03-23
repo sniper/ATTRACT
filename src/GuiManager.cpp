@@ -61,7 +61,7 @@ RESOURCE_DIR(resource) {
     addTexture("quit_select", vec3(1, 0.5, 1), vec3(0, -0.8, 0));
     addTexture("pause", vec3(1, 0.5, 1), vec3(0, 0.8, 0));
     addTexture("shipparts", vec3(2, 0.5, 1), vec3(0, 0.5, 0));
-    addTexture("shipparts1", vec3(1.5, 1.5, 1), vec3(-0.2, 0.2, 0));
+    addTexture("shipparts1", vec3(0.5, 0.5, 1), vec3(-0.3, 0.2, 0));
     addTexture("death", vec3(2, 1, 1), vec3(0, 0.6, 0));
     addTexture("caution", vec3(1, 1, 1), vec3(1, 0, 0));
     addTexture("win", vec3(4, 1, 1), vec3(0, 0.85, 0));
