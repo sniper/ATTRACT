@@ -52,6 +52,7 @@ RESOURCE_DIR(resource) {
 
     GLSL::checkError(GET_FILE_LINE);
 
+    addTexture("bg", vec3(4.5, 3, 1), vec3(0, 0, 0));
     addTexture("play_select", vec3(1, 0.5, 1), vec3(0, -0.4, 0));
     addTexture("play", vec3(1, 0.5, 1), vec3(0, -0.4, 0));
     addTexture("AT", vec3(1, 1, 1), vec3(-2.5, 0.5, 0));
@@ -182,8 +183,8 @@ void GuiManager::drawMenu() {
     glDepthMask(GL_FALSE);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glClearColor(0.6f, 0.6f, 0.8f, 1.0f);
 
+    draw("bg");
     draw("AT");
     draw("TRACT");
 
@@ -278,7 +279,6 @@ void GuiManager::drawDeath() {
     glDepthMask(GL_FALSE);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glClearColor(0.0, 0.0, 0.0, 1.0);
 
     translates.at("caution") *= -1;
     draw("caution");
@@ -302,8 +302,8 @@ void GuiManager::drawWin(int level) {
     glDepthMask(GL_FALSE);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glClearColor(0.6f, 0.6f, 0.8f, 1.0f);
 
+    draw("bg");
     draw("win");
 
     if (selectedName == "quit") {

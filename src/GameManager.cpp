@@ -122,7 +122,7 @@ void GameManager::initScene() {
     glfwSetTime(0.0);
 
     // Set background color.
-    glClearColor(0.6f, 0.6f, 0.8f, 1.0f);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     // Enable z-buffer test.
     glEnable(GL_DEPTH_TEST);
 
