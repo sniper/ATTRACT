@@ -623,6 +623,29 @@ State GameManager::processInputs() {
         gameState = inputManager->processDeathInputs(gui, fmod);
         if (gameState == GAME) {
             importLevel(to_string(level));
+            switch (level) {
+                case 2:
+                    camera->setYaw(-6.23281);
+                    camera->setPitch(0.0231814);
+                    break;
+                case 3:
+                    camera->setYaw(-11.5195);
+                    camera->setPitch(0.117305);
+                    break;
+                case 4:
+                    camera->setYaw(-11.0227);
+                    camera->setPitch(0.257876);
+                    break;
+                case 5:
+                    camera->setYaw(-10.9641);
+                    camera->setPitch(0.036055);
+                    break;
+                case 6:
+                    camera->setYaw(-10.9125);
+                    camera->setPitch(0.24543);
+                    break;
+
+            }
         }
         if (gameState == MENU) {
             Keyboard::setKey(GLFW_KEY_ESCAPE, false);
@@ -665,8 +688,7 @@ State GameManager::processInputs() {
                     break;
 
             }
-        }
-        else if (gameState == MENU) {
+        } else if (gameState == MENU) {
             Keyboard::setKey(GLFW_KEY_ESCAPE, false);
             Keyboard::setKey(GLFW_KEY_ENTER, false);
             level = 0;
