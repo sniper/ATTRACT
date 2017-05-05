@@ -7,6 +7,7 @@
 //
 
 #include "ShadowManager.hpp"
+#include "GLSL.h"
 
 ShadowManager::ShadowManager()
 {
@@ -39,30 +40,44 @@ void ShadowManager::init()
     
     //generate the FBO for the shadow depth
     glGenFramebuffers(1, &depthMapFBO);
+    GLSL::checkError();
     
     //generate the texture
-    glGenTextures(1, &depthMap);
-    glBindTexture(GL_TEXTURE_2D, depthMap);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH, SHADOW_HEIGHT,
-                 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+    glGenTextures(sizeof(depthMap)/sizeof(*depthMap), depthMap);
+    GLSL::checkError();
     
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    //generate a depth map for every cascade
+    for (unsigned int i = 0; i < sizeof(depthMap)/sizeof(*depthMap); i++) {
+        glBindTexture(GL_TEXTURE_2D, depthMap[i]);
+        GLSL::checkError();
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH, SHADOW_HEIGHT,
+                     0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+        GLSL::checkError();
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        GLSL::checkError();
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        GLSL::checkError();
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        GLSL::checkError();
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        GLSL::checkError();
+    }
+    GLSL::checkError();
     
     //bind with framebuffer's depth buffer
     glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap[0], 0);
     glDrawBuffer(GL_NONE);
     glReadBuffer(GL_NONE);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    GLSL::checkError();
 }
 
-void ShadowManager::bindFramebuffer()
+void ShadowManager::bindFramebuffer(unsigned int cascadeIndex)
 {
     glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
     glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap[cascadeIndex], 0);
     glClear(GL_DEPTH_BUFFER_BIT);
 }
 
@@ -71,16 +86,30 @@ void ShadowManager::unbindFramebuffer()
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void ShadowManager::bind(GLint handle)
+void ShadowManager::bind(GLint handle[])
 {
     glActiveTexture(GL_TEXTURE0 + unit);
-    glBindTexture(GL_TEXTURE_2D, depthMap);
-    glUniform1i(handle, unit);
+    glBindTexture(GL_TEXTURE_2D, depthMap[0]);
+    glUniform1i(handle[0], unit);
+    
+    glActiveTexture(GL_TEXTURE0 + unit + 1);
+    glBindTexture(GL_TEXTURE_2D, depthMap[1]);
+    glUniform1i(handle[1], unit + 1);
+    
+    glActiveTexture(GL_TEXTURE0 + unit + 2);
+    glBindTexture(GL_TEXTURE_2D, depthMap[2]);
+    glUniform1i(handle[2], unit + 2);
 }
 
 void ShadowManager::unbind()
 {
     glActiveTexture(GL_TEXTURE0 + unit);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    
+    glActiveTexture(GL_TEXTURE0 + unit + 1);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    
+    glActiveTexture(GL_TEXTURE0 + unit + 2);
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 

@@ -37,6 +37,7 @@ public:
     void resolveCollision();
     
     void setAspect(float a) {aspect = a;}
+    float getAspect() const {return aspect;}
     void setBoundingBox(const std::shared_ptr<AABoundingBox> &box) {boundingBox = box;}
     
     void setPosition(glm::vec3 inPos);
@@ -50,6 +51,9 @@ public:
     void setPitch(float in){pitch = in;}
     void setYaw(float in){yaw = in;}
     
+    float getFOV() const {return fovy;}
+    float getNear() const {return znear;}
+    float getFar() const {return zfar;}
 private:
     glm::vec3 position;
     glm::vec3 oldPosition;

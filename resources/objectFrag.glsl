@@ -1,6 +1,6 @@
 #version 330 core
 
-uniform sampler2D shadowDepth;
+uniform sampler2D shadowDepth0;
 
 uniform float lightIntensity;
 uniform vec3 lightPos;
@@ -29,7 +29,7 @@ float TestShadow(vec4 LSfPos) {
     vec3 shift = projCoords * 0.5 + 0.5;
     //2: read off the stored depth (.r) from the ShadowDepth, using the shifted.xy
     float curD = shift.z;
-    float lightD = texture(shadowDepth, shift.xy).r;
+    float lightD = texture(shadowDepth0, shift.xy).r;
     
     if (shift.x > 1.0 || shift.y > 1.0 || shift.x < 0.0 || shift.y < 0.0) {
         return -1.0;
@@ -55,29 +55,4 @@ void main()
     vec3 cs = ks * pow(max(0, dot(h, n)), s);
     
     FragColor = vec4(lightIntensity * (ka + cd + cs), 0.5);
-
-//    vec3 color = kd;
-//    vec3 normal = normalize(fragNor);
-//
-//    vec3 lightColor = vec3(1.0);
-//    vec3 ambient = ka;
-//    vec3 lightDir = normalize(lightPos - fragPos);
-//    float diff = max(dot(lightDir, normal), 0.0);
-//    vec3 diffuse = diff * lightColor;
-//
-//    vec3 viewDir = normalize(viewPos - fragPos);
-//    vec3 halfwayDir = normalize(lightDir + viewDir);
-//    float spec = pow(max(dot(normal, halfwayDir), 0.0), s);
-//    vec3 specular = ks * spec;
-//
-//    float shadow = TestShadow(fragPosLS);
-//
-//    if (shadow < -0.5) {
-//        FragColor = vec4(0.0, 1.0, 0.0, 1.0);
-//    }
-//    else {
-//        vec3 lighting = ambient + ((1.0 - shadow) * (diffuse + specular)) * color;
-//        
-//        FragColor = vec4(lighting, 0.5f);
-//    }
 }

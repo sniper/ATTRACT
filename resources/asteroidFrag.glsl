@@ -3,7 +3,7 @@
 uniform sampler2D diffuseTex;
 uniform sampler2D specularTex;
 uniform sampler2D normalTex;
-uniform sampler2D shadowDepth;
+uniform sampler2D shadowDepth0;
 uniform vec3 lightPos;
 uniform vec3 viewPos;
 

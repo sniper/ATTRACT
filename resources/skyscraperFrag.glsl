@@ -3,7 +3,7 @@
 uniform sampler2D diffuseTex;
 uniform sampler2D specularTex;
 uniform sampler2D normalTex;
-uniform sampler2D shadowDepth;
+uniform sampler2D shadowDepth0;
 uniform vec3 lightPos;
 uniform vec3 viewPos;
 
@@ -30,7 +30,7 @@ float TestShadow(vec4 LSfPos) {
     vec3 shift = projCoords * 0.5 + 0.5;
     //2: read off the stored depth (.r) from the ShadowDepth, using the shifted.xy
     float curD = shift.z;
-    float lightD = texture(shadowDepth, shift.xy).r;
+    float lightD = texture(shadowDepth0, shift.xy).r;
     
     if (shift.x > 1.0 || shift.y > 1.0 || shift.x < 0.0 || shift.y < 0.0) {
         return -1.0;

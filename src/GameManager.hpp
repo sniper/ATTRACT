@@ -18,7 +18,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include "GameObject.hpp"
 
-
+#define NUM_SHADOW_CASCADES 3
 #define NUMLEVELS 7
 
 class InputManager;
@@ -75,6 +75,7 @@ private:
     void resolveMagneticInteractions();
     void printStringToScreen(float x, float y, const std::string &text, float r, float g, float b);
     float randFloat(float l, float h);
+    void calcOrthoProjs(const glm::mat4 &viewMat);
     void importLevel(std::string level);
     void parseLight(std::string level);
     void parseCamera(std::string level);
@@ -140,7 +141,8 @@ private:
     bool playBoom;
     bool endFade;
 
-
+    float shadowOrthoInfo[NUM_SHADOW_CASCADES][6];
+    float cascadeEnd[4];
     std::shared_ptr<Camera> camera;
 
     std::shared_ptr<Program> program, shipPartProgram, skyscraperProgram,
