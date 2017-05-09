@@ -113,8 +113,8 @@ endFade(false) {
     // have more cascades, increase the size of cascadeEnd and have more
     // subdivisions.
     cascadeEnd[0] = camera->getNear();
-    cascadeEnd[1] = 25.0f;
-    cascadeEnd[2] = 90.0f;
+    cascadeEnd[1] = 10.0f;
+    cascadeEnd[2] = 80.0f;
     cascadeEnd[3] = camera->getFar();
     
     GLSL::checkError();
@@ -351,7 +351,8 @@ void GameManager::initScene() {
     skybox = make_shared<Skybox>(RESOURCE_DIR, shapes["sphere"], 1);
     spacebox = make_shared<Skybox>(RESOURCE_DIR, shapes["sphere"], 0);
 
-    lightPos = vec4(4.0f, 15.0f, 4.0f, 0.0f);
+    //lightPos = vec4(4.0f, 15.0f, 4.0f, 0.0f);
+    lightPos = vec4(1.0f, 1.0f, 1.0f, 0.0f);
     lightIntensity = 0.6f;
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -1116,17 +1117,17 @@ void GameManager::drawMagnetGun(shared_ptr<MatrixStack> P,
 }
 
 mat4 SetOrthoMatrix() {
-    mat4 OP = glm::ortho(-30.0, 30.0, -30.0, 30.0, 0.1, 80.0);
+    mat4 OP = glm::ortho(-30.0, 30.0, -30.0, 30.0, 0.1, 100.0);
     return OP;
 }
 
 mat4 SetOrthoMatrix(float *vals) {
-    printf("left: %.3f\n", vals[0]);
-    printf("right: %.3f\n", vals[1]);
-    printf("bottom: %.3f\n", vals[2]);
-    printf("top: %.3f\n", vals[3]);
-    printf("near: %.3f\n", vals[4]);
-    printf("far: %.3f\n", vals[5]);
+//    printf("left: %.3f\n", vals[0]);
+//    printf("right: %.3f\n", vals[1]);
+//    printf("bottom: %.3f\n", vals[2]);
+//    printf("top: %.3f\n", vals[3]);
+//    printf("near: %.3f\n", vals[4]);
+//    printf("far: %.3f\n", vals[5]);
     mat4 OP = glm::ortho(vals[0], vals[1], vals[2], vals[3], vals[4], vals[5]);
     return OP;
 }
@@ -1178,15 +1179,18 @@ void GameManager::renderGame(int fps) {
         camera->applyViewMatrix(V);
 
         if (gameState != CUTSCENE_START && gameState != CUTSCENE_END) {
-            //calcOrthoProjs(V->topMatrix());
+            calcOrthoProjs(V->topMatrix());
+//            auto temp = P->topMatrix() * V->topMatrix();
+//            calcOrthoProjs(temp);
             
             /* BEGIN DEPTH MAP */
             shadowManager->bindFramebuffer(0);
             //set up shadow shader
             depthProg->bind();
-            //mat4 LO = SetOrthoMatrix(shadowOrthoInfo[0]);
-            mat4 LO = SetOrthoMatrix();
-            mat4 LV = SetLightView(vec3(lightPos), vec3(0), vec3(0, 1, 0));
+            mat4 LO = SetOrthoMatrix(shadowOrthoInfo[0]);
+            //mat4 LO = SetOrthoMatrix();
+            //printf("LightPos: %.3g, %.3g, %.3g\n", lightPos.x, lightPos.y, lightPos.z);
+            mat4 LV = SetLightView(vec3(lightPos), vec3(0, 0, 0), vec3(0, 1, 0));
             LSpace = LO*LV;
             glUniformMatrix4fv(depthProg->getUniform("LS"), 1, GL_FALSE, value_ptr(LSpace));
             drawScene(P, V, true);
@@ -1470,12 +1474,33 @@ float GameManager::randFloat(float l, float h) {
     return (1.0f - r) * l + r * h;
 }
 
+//void GameManager::calcOrthoProjs(const mat4 &viewMat) {
+//    mat4 inverseView = glm::inverse(viewMat);
+//    mat4 lightMat = SetLightView(vec3(lightPos), vec3(0), vec3(0, 1, 0));
+//    
+//    vec3 frustumCornersWS[8] = {
+//        vec3(-1.0f, 1.0f, -1.0f),
+//        vec3(1.0f, 1.0f, -1.0f),
+//        vec3(1.0f, -1.0f, -1.0f),
+//        vec3(-1.0f, -1.0f, -1.0f),
+//        vec3(-1.0f, 1.0f, 1.0f),
+//        vec3(1.0f, 1.0f, 1.0f),
+//        vec3(1.0f, -1.0f, 1.0f),
+//        vec3(-1.0f, -1.0f, 1.0f)
+//    };
+//    
+//    
+//}
+
 void GameManager::calcOrthoProjs(const mat4 &viewMat) {
     mat4 inverseView = glm::inverse(viewMat);
-    mat4 lightMat = glm::lookAt(vec3(0, 0, 0), -vec3(lightPos), vec3(0, 1, 0));
+    //mat4 lightMat = SetLightView(vec3(lightPos), vec3(0), vec3(0, 1, 0));
+    mat4 lightMat = SetLightView(vec3(0), -vec3(lightPos), vec3(0, 1, 0));
     float aspect = camera->getAspect();
-    float tanHalfVFOV = tanf((camera->getFOV()/2.0f) * (M_PI/180.0f));
-    float tanHalfHFOV = tanf(((camera->getFOV() * aspect)/2.0f) * (M_PI/180.0f));
+    float tanHalfVFOV = tanf(glm::radians(camera->getFOV()/2.0f));
+    float tanHalfHFOV = tanf(glm::radians((camera->getFOV() * aspect)/2.0f));
+    
+    //printf("ar %.3g HFOV %.3g VFOV %.3g\n", aspect, tanHalfHFOV, tanHalfVFOV);
     
     for (unsigned int i = 0; i < NUM_SHADOW_CASCADES; i++) {
         //printf("Cascade %d:\n", i);
@@ -1483,6 +1508,10 @@ void GameManager::calcOrthoProjs(const mat4 &viewMat) {
         float xf = cascadeEnd[i + 1] * tanHalfHFOV;
         float yn = cascadeEnd[i] * tanHalfVFOV;
         float yf = cascadeEnd[i + 1] * tanHalfVFOV;
+        if (i == 0) {
+            printf("xn %.3g xf %.3g\n", xn, xf);
+            printf("yn %.3g yf %.3g\n", yn, yf);
+        }
         
         vec4 frustumCorners[8] = {
             // near face
@@ -1509,6 +1538,16 @@ void GameManager::calcOrthoProjs(const mat4 &viewMat) {
         
         for (unsigned int j = 0; j < 8; j++) {
             vec4 vW = inverseView * frustumCorners[j];
+            if (i == 0 && j == 0) {
+                printf("X near (world): %.3g\n", vW.x);
+                printf("Y near (world): %.3g\n", vW.y);
+                printf("Z near (world): %.3g\n", vW.z);
+            }
+            else if (i == 0 && j == 4) {
+                printf("X far (world): %.3g\n", vW.x);
+                printf("Y far (world): %.3g\n", vW.y);
+                printf("Z far (world): %.3g\n", vW.z);
+            }
             
             frustumCornersL[j] = lightMat * vW;
             
@@ -1518,6 +1557,15 @@ void GameManager::calcOrthoProjs(const mat4 &viewMat) {
             maxY = std::max(maxY, frustumCornersL[j].y);
             minZ = std::min(minZ, frustumCornersL[j].z);
             maxZ = std::max(maxZ, frustumCornersL[j].z);
+        }
+        
+        if (i == 0) {
+            printf("left: %.3f\n", minX);
+            printf("right: %.3f\n", maxX);
+            printf("bottom: %.3f\n", minY);
+            printf("top: %.3f\n", maxY);
+            printf("near: %.3f\n", minZ);
+            printf("far: %.3f\n", maxZ);
         }
 
         shadowOrthoInfo[i][0] = minX;

@@ -92,13 +92,13 @@ void ShadowManager::bind(GLint handle[])
     glBindTexture(GL_TEXTURE_2D, depthMap[0]);
     glUniform1i(handle[0], unit);
     
-    glActiveTexture(GL_TEXTURE0 + unit + 1);
-    glBindTexture(GL_TEXTURE_2D, depthMap[1]);
-    glUniform1i(handle[1], unit + 1);
-    
-    glActiveTexture(GL_TEXTURE0 + unit + 2);
-    glBindTexture(GL_TEXTURE_2D, depthMap[2]);
-    glUniform1i(handle[2], unit + 2);
+//    glActiveTexture(GL_TEXTURE0 + unit + 1);
+//    glBindTexture(GL_TEXTURE_2D, depthMap[1]);
+//    glUniform1i(handle[1], unit + 1);
+//    
+//    glActiveTexture(GL_TEXTURE0 + unit + 2);
+//    glBindTexture(GL_TEXTURE_2D, depthMap[2]);
+//    glUniform1i(handle[2], unit + 2);
 }
 
 void ShadowManager::unbind()
@@ -106,11 +106,11 @@ void ShadowManager::unbind()
     glActiveTexture(GL_TEXTURE0 + unit);
     glBindTexture(GL_TEXTURE_2D, 0);
     
-    glActiveTexture(GL_TEXTURE0 + unit + 1);
-    glBindTexture(GL_TEXTURE_2D, 0);
-    
-    glActiveTexture(GL_TEXTURE0 + unit + 2);
-    glBindTexture(GL_TEXTURE_2D, 0);
+//    glActiveTexture(GL_TEXTURE0 + unit + 1);
+//    glBindTexture(GL_TEXTURE_2D, 0);
+//    
+//    glActiveTexture(GL_TEXTURE0 + unit + 2);
+//    glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 void ShadowManager::drawDebug()
