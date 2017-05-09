@@ -18,3 +18,8 @@ float Calculations::findDistance(const vec3 &p1, const vec3 &p2)
     
     return sqrt((diffX * diffX) + (diffY * diffY) + (diffZ * diffZ));
 }
+
+float Calculations::randFloat(const float l, const float h) {
+    float r = rand() / (float) RAND_MAX;
+    return (1.0f - r) * l + r * h;
+}
