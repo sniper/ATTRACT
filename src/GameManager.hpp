@@ -81,6 +81,7 @@ private:
     void parseObject(std::string level, std::shared_ptr<Material> greyBox,
             std::shared_ptr<Material> magnetSurface,
             std::shared_ptr<Material> spacePart);
+    void createEnvironment();
 
     bool toBool(std::string s);
     void drawScene(std::shared_ptr<MatrixStack> P,
