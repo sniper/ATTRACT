@@ -96,12 +96,9 @@ void main()
             break;
         }
     }
-    
-    if (shadow < -4.5) {
-        FragColor = vec4(1.0, 0.0, 1.0, 1.0);
-    }
+
     if (shadow < -0.5) {
-        FragColor = vec4(0.0, 1.0, 0.0, 1.0);
+        shadow = 0;
     }
     else {
         vec3 lighting = ambient + ((1.0 - shadow) * (diffuse + specular)) * color;

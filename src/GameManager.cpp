@@ -77,7 +77,7 @@ fromBlackAlpha(1.0f),
 playGunGet(false),
 playBoom(false),
 endFade(false),
-cascaded(false),
+cascaded(true),
 skyCam(false),
 viewFrustum(false),
 lightFrustum(false),
@@ -125,9 +125,9 @@ shadowDebugBox(false)
     // have more cascades, increase the size of cascadeEnd and have more
     // subdivisions.
     cascadeEnd[0] = -camera->getNear();
-    cascadeEnd[1] = -15.0f;
-    cascadeEnd[2] = -80.0f;
-    cascadeEnd[3] = -camera->getFar();
+    cascadeEnd[1] = -10.0f;
+    cascadeEnd[2] = -30.0f;//-80.0f;
+    cascadeEnd[3] = -100.0f;//camera->getFar();
     
     GLSL::checkError();
     bloom = make_shared<Bloom>();
@@ -255,7 +255,8 @@ void GameManager::initScene() {
     shipPartProgram->addUniform("LS0");
     shipPartProgram->addUniform("LS1");
     shipPartProgram->addUniform("LS2");
-    //shipPartProgram->addUniform("cascadeEndClipSpace");
+    shipPartProgram->addUniform("cascadeEndClipSpace");
+    GLSL::checkError();
 
     shipPartColorTexture = make_shared<Texture>();
     shipPartColorTexture->setFilename(RESOURCE_DIR + "shipPartColor.jpg");
@@ -1134,15 +1135,23 @@ void GameManager::drawShipPart(shared_ptr<MatrixStack> P,
     shader->bind();
     nearShadowManager->setUnit(3);
     midShadowManager->setUnit(4);
-    //    shadowManager->setFarUnit(5);
+    farShadowManager->setUnit(5);
     // bind shadow cascades
     nearShadowManager->bind(shader->getUniform("shadowDepth0"));
     midShadowManager->bind(shader->getUniform("shadowDepth1"));
-//    shadowManager->bindFar(shader->getUniform("shadowDepth2"));
-
+    farShadowManager->bind(shader->getUniform("shadowDepth2"));
     if (!depthBufferPass) {
-        glUniformMatrix4fv(shader->getUniform("LS0"), 1, GL_FALSE, value_ptr(LSpace[0]));
-        glUniformMatrix4fv(shader->getUniform("LS1"), 1, GL_FALSE, value_ptr(LSpace[1]));
+        GLSL::checkError();
+        glUniform3f(shader->getUniform("cascadeEndClipSpace"),
+                    cascadeEndClipSpace[0], cascadeEndClipSpace[1],
+                    cascadeEndClipSpace[2]);
+        GLSL::checkError();
+        glUniformMatrix4fv(shader->getUniform("LS0"), 1, GL_FALSE,
+                           value_ptr(LSpace[0]));
+        glUniformMatrix4fv(shader->getUniform("LS1"), 1, GL_FALSE,
+                           value_ptr(LSpace[1]));
+        glUniformMatrix4fv(shader->getUniform("LS2"), 1, GL_FALSE,
+                           value_ptr(LSpace[2]));
     }
     shipPartColorTexture->bind(shader->getUniform("diffuseTex"));
     shipPartSpecularTexture->bind(shader->getUniform("specularTex"));
@@ -1553,8 +1562,7 @@ void GameManager::renderGame(int fps) {
                     }
                 }
                 
-                minZ -= ORTHO_ADJUST;
-                maxZ += ORTHO_ADJUST;
+                // Need to include min and max adjusts
                 
                 if (lightFrustum) {
                     debug.drawPoint(vec3(glm::inverse(lightMat) * vec4(minX, minY, minZ, 1.0)), vec3(1, 0, 0.5), vec3(0.3));
@@ -1794,12 +1802,12 @@ void GameManager::calcOrthoProjs(const mat4 &viewMat) {
         // This artificially increases the dimensions of the ortho box because
         // the calculated box typically isn't big enough. It is increased relative
         // to how high the light position is (higher means bigger levels)
-        minX -= lightPos.y;
-        maxX += lightPos.y;
-        minY -= lightPos.y;
-        maxY += lightPos.y;
-        minZ -= lightPos.y;
-        maxZ += lightPos.y;
+        minX -= 2;
+        maxX += 2;
+        minY -= 2;
+        maxY += 2;
+        minZ -= lightPos.y * 2;
+        maxZ += lightPos.y * 2;
 
         shadowOrthoInfo[i][0] = minX;
         shadowOrthoInfo[i][1] = maxX;

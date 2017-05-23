@@ -51,7 +51,6 @@ void main()
     fragPosLS[0] = LS0 * vec4(fragPos, 1.0);
     fragPosLS[1] = LS1 * vec4(fragPos, 1.0);
     fragPosLS[2] = LS2 * vec4(fragPos, 1.0);
-    //fragPosLS[2] = LS2 * vec4(fragPos, 1.0);
     clipSpacePosZ = gl_Position.z;
     /* frag position in view */
     fragPos = vec3(V * M * aPos);
