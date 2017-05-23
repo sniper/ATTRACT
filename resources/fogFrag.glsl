@@ -69,10 +69,10 @@ void main()
         dist = 5.0;
     }
     vec3 fogColor = vec3(0.5, 0.5, 0.55);
-    float f = 1 / exp(dist * 0.10);
+    float f = 1 / exp(dist * 0.15);
     // make sure there's always a little opacity
-    if (1 - f > 0.9) {
-        f = 0.1;
+    if (1 - f > 0.95) {
+        f = 0.05;
     }
 
     FragColor = vec4(fogColor, 1 - f);
