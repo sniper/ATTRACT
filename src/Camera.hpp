@@ -33,6 +33,7 @@ public:
     void interpretPressedKeys(const std::vector<char> &pressedKeys, std::shared_ptr<BulletManager> bullet, std::shared_ptr<FmodManager> fmod);
     void applyProjectionMatrix(std::shared_ptr<MatrixStack> P) const;
     void applyViewMatrix(std::shared_ptr<MatrixStack> MV) const;
+    void applyViewMatrixSky(std::shared_ptr<MatrixStack> V) const;
     bool checkForCollision(const std::shared_ptr<GameObject> &otherObj);
     void resolveCollision();
     

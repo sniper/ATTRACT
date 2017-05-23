@@ -1,6 +1,8 @@
 #version 330 core
 
 uniform sampler2D shadowDepth0;
+uniform sampler2D shadowDepth1;
+uniform sampler2D shadowDepth2;
 
 uniform float lightIntensity;
 uniform vec3 lightPos;

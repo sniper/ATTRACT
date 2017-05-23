@@ -51,7 +51,7 @@
 #include "KDTree.hpp"
 #include "BVH.hpp"
 
-#define SHADOW_DEBUG 1
+#define ORTHO_ADJUST 15
 #define BLOOM_DEBUG 0
 #define MAGNET_RANGE 13.0f
 #define MAGNET_STRENGTH 7.0f
@@ -76,11 +76,18 @@ playStartSound(false),
 fromBlackAlpha(1.0f),
 playGunGet(false),
 playBoom(false),
-endFade(false) {
+endFade(false),
+cascaded(false),
+skyCam(false),
+viewFrustum(false),
+lightFrustum(false),
+shadowDebugBox(false)
+{
     objIntervalCounter = 0.0f;
     numObjCollected = 0;
     gameWon = false;
     camera = make_shared<Camera>();
+    skyCamera = make_shared<Camera>(vec3(0, 35, 0), window);
 
     GLSL::checkError();
     // Set vsync.
@@ -106,16 +113,21 @@ endFade(false) {
     psystem = make_shared<ParticleManager>(RESOURCE_DIR);
     GLSL::checkError();
 
-    shadowManager = make_shared<ShadowManager>();
-    shadowManager->init();
+    nearShadowManager = make_shared<ShadowManager>();
+    nearShadowManager->init();
+    midShadowManager = make_shared<ShadowManager>();
+    midShadowManager->init();
+    farShadowManager = make_shared<ShadowManager>();
+    farShadowManager->init();
+
     GLSL::checkError();
     // For cascaded shadow mapping: indicates the divisions in the cascades. To
     // have more cascades, increase the size of cascadeEnd and have more
     // subdivisions.
-    cascadeEnd[0] = camera->getNear();
-    cascadeEnd[1] = 10.0f;
-    cascadeEnd[2] = 80.0f;
-    cascadeEnd[3] = camera->getFar();
+    cascadeEnd[0] = -camera->getNear();
+    cascadeEnd[1] = -15.0f;
+    cascadeEnd[2] = -80.0f;
+    cascadeEnd[3] = -camera->getFar();
     
     GLSL::checkError();
     bloom = make_shared<Bloom>();
@@ -159,7 +171,12 @@ void GameManager::initScene() {
     program->addUniform("s");
     program->addUniform("viewPos");
     program->addUniform("shadowDepth0");
-    program->addUniform("LS");
+    program->addUniform("shadowDepth1");
+    program->addUniform("shadowDepth2");
+    program->addUniform("LS0");
+    program->addUniform("LS1");
+    program->addUniform("LS2");
+    //program->addUniform("cascadeEndClipSpace");
 
     //
     // Skyscrapers
@@ -184,8 +201,14 @@ void GameManager::initScene() {
     skyscraperProgram->addUniform("lightIntensity");
     skyscraperProgram->addUniform("scalingFactor");
     skyscraperProgram->addUniform("shadowDepth0");
-    skyscraperProgram->addUniform("LS");
-
+    skyscraperProgram->addUniform("shadowDepth1");
+    skyscraperProgram->addUniform("shadowDepth2");
+    skyscraperProgram->addUniform("LS0");
+    skyscraperProgram->addUniform("LS1");
+    skyscraperProgram->addUniform("LS2");
+    skyscraperProgram->addUniform("cascadeEndClipSpace");
+    GLSL::checkError();
+    
     //
     // Asteroids
     //
@@ -227,7 +250,12 @@ void GameManager::initScene() {
     shipPartProgram->addUniform("lightPos");
     shipPartProgram->addUniform("viewPos");
     shipPartProgram->addUniform("shadowDepth0");
-    shipPartProgram->addUniform("LS");
+    shipPartProgram->addUniform("shadowDepth1");
+    shipPartProgram->addUniform("shadowDepth2");
+    shipPartProgram->addUniform("LS0");
+    shipPartProgram->addUniform("LS1");
+    shipPartProgram->addUniform("LS2");
+    //shipPartProgram->addUniform("cascadeEndClipSpace");
 
     shipPartColorTexture = make_shared<Texture>();
     shipPartColorTexture->setFilename(RESOURCE_DIR + "shipPartColor.jpg");
@@ -314,29 +342,47 @@ void GameManager::initScene() {
     depthProg->setShaderNames(RESOURCE_DIR + "depthVert.glsl", RESOURCE_DIR + "depthFrag.glsl");
     depthProg->init();
 
+    depthProg->addUniform("shadowDepth0");
+    depthProg->addUniform("shadowDepth1");
+    depthProg->addUniform("shadowDepth2");
     depthProg->addUniform("LS");
     depthProg->addUniform("M");
     depthProg->addAttribute("aPos");
     //un-needed, but easier then modifying shape
     depthProg->addAttribute("aNor");
     depthProg->addAttribute("aTex");
+    
+    //
+    // Debug for DebugDraw class
+    //
+    simpleDebugProg = make_shared<Program>();
+    simpleDebugProg->setShaderNames(RESOURCE_DIR + "simple_vert.glsl", RESOURCE_DIR + "simple_frag.glsl");
+    simpleDebugProg->setVerbose(false);
+    simpleDebugProg->init();
+    simpleDebugProg->addAttribute("aPos");
+    simpleDebugProg->addUniform("M");
+    simpleDebugProg->addUniform("V");
+    simpleDebugProg->addUniform("P");
+    simpleDebugProg->addUniform("ka");
+    debug = DebugDraw(simpleDebugProg, shapes["sphere"]);
 
-    if (SHADOW_DEBUG) {
-        debugProg = make_shared<Program>();
-        debugProg->setVerbose(false);
-        debugProg->setShaderNames(RESOURCE_DIR + "debugVert.glsl", RESOURCE_DIR + "depthDebugFrag.glsl");
-        debugProg->init();
+    // Debug for shadow maps
+    shadowDebugProg = make_shared<Program>();
+    shadowDebugProg->setVerbose(false);
+    shadowDebugProg->setShaderNames(RESOURCE_DIR + "debugVert.glsl", RESOURCE_DIR + "depthDebugFrag.glsl");
+    shadowDebugProg->init();
 
-        debugProg->addUniform("texBuf");
-        debugProg->addAttribute("aPos");
-    } else if (BLOOM_DEBUG) {
-        debugProg = make_shared<Program>();
-        debugProg->setVerbose(false);
-        debugProg->setShaderNames(RESOURCE_DIR + "debugVert.glsl", RESOURCE_DIR + "debugFrag.glsl");
-        debugProg->init();
+    shadowDebugProg->addUniform("texBuf");
+    shadowDebugProg->addAttribute("aPos");
+    
+    if (BLOOM_DEBUG) {
+        shadowDebugProg = make_shared<Program>();
+        shadowDebugProg->setVerbose(false);
+        shadowDebugProg->setShaderNames(RESOURCE_DIR + "debugVert.glsl", RESOURCE_DIR + "debugFrag.glsl");
+        shadowDebugProg->init();
 
-        debugProg->addUniform("texBuf");
-        debugProg->addAttribute("aPos");
+        shadowDebugProg->addUniform("texBuf");
+        shadowDebugProg->addAttribute("aPos");
     }
 
     temp = make_shared<Shape>();
@@ -584,6 +630,28 @@ State GameManager::processInputs() {
     if (gameState == GAME) {
         if (!fmod->isPlaying("game"))
             fmod->playSound("game", true, 0.9f);
+        
+        if (Keyboard::isPressed(GLFW_KEY_LEFT_SHIFT)) {
+            skyCam = !skyCam;
+        }
+        Keyboard::setKey(GLFW_KEY_LEFT_SHIFT, false);
+        if (Keyboard::isPressed(GLFW_KEY_V)) {
+            viewFrustum = !viewFrustum;
+        }
+        Keyboard::setKey(GLFW_KEY_V, false);
+        if (Keyboard::isPressed(GLFW_KEY_L)) {
+            lightFrustum = !lightFrustum;
+        }
+        Keyboard::setKey(GLFW_KEY_L, false);
+        if (Keyboard::isPressed(GLFW_KEY_C)) {
+            cascaded = !cascaded;
+        }
+        Keyboard::setKey(GLFW_KEY_C, false);
+        if (Keyboard::isPressed(GLFW_KEY_B)) {
+            shadowDebugBox = !shadowDebugBox;
+        }
+        Keyboard::setKey(GLFW_KEY_B, false);
+        
         gameState = inputManager->processGameInputs(bullet, fmod);
         if (gameState == PAUSE) {
             pausedXMouse = Mouse::getMouseX();
@@ -961,7 +1029,6 @@ void GameManager::updateGame(double dt) {
 void GameManager::drawScene(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> V,
         bool depthBufferPass) {
     shared_ptr<Program> shaderMagnet, shaderBuilding;
-    GLint handles[NUM_SHADOW_CASCADES];
     
     if (depthBufferPass) {
         shaderMagnet = depthProg;
@@ -981,39 +1048,68 @@ void GameManager::drawScene(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> V
             if (!vfc->viewFrustCull(temp) || depthBufferPass) {
                 if (cub->isMagnetic()) {
                     shaderMagnet->bind();
-                    shadowManager->setUnit(3);
-                    // Create handles for the shadow cascades
-                    handles[0] = shaderMagnet->getUniform("shadowDepth0");
-                    handles[1] = shaderMagnet->getUniform("shadowDepth1");
-                    handles[2] = shaderMagnet->getUniform("shadowDepth2");
-                    shadowManager->bind(handles);
-                    glUniformMatrix4fv(shaderMagnet->getUniform("LS"), 1, GL_FALSE, value_ptr(LSpace));
-                    glUniformMatrix4fv(shaderMagnet->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
-                    glUniformMatrix4fv(shaderMagnet->getUniform("V"), 1, GL_FALSE, value_ptr(V->topMatrix()));
+                    nearShadowManager->setUnit(3);
+                    midShadowManager->setUnit(4);
+//                    shadowManager->setFarUnit(5);
+                    // bind shadow cascades
+                    nearShadowManager->bind(shaderMagnet->getUniform("shadowDepth0"));
+                    midShadowManager->bind(shaderMagnet->getUniform("shadowDepth1"));
+//                    shadowManager->bindFar(shaderMagnet->getUniform("shadowDepth2"));
+
+                    if (!depthBufferPass) {
+                        glUniformMatrix4fv(shaderMagnet->getUniform("LS0"), 1, GL_FALSE,
+                                           value_ptr(LSpace[0]));
+                        glUniformMatrix4fv(shaderMagnet->getUniform("LS1"), 1, GL_FALSE,
+                                           value_ptr(LSpace[1]));
+                    }
+                    glUniformMatrix4fv(shaderMagnet->getUniform("P"), 1, GL_FALSE,
+                                       value_ptr(P->topMatrix()));
+                    glUniformMatrix4fv(shaderMagnet->getUniform("V"), 1, GL_FALSE,
+                                       value_ptr(V->topMatrix()));
                     glUniform3fv(shaderMagnet->getUniform("lightPos"), 1, value_ptr(vec3(lightPos)));
-                    glUniform3fv(shaderMagnet->getUniform("viewPos"), 1, value_ptr(camera->getPosition()));
+                    glUniform3fv(shaderMagnet->getUniform("viewPos"), 1,
+                                 value_ptr(camera->getPosition()));
                     glUniform1f(shaderMagnet->getUniform("lightIntensity"), lightIntensity);
                     cub->draw(shaderMagnet);
-                    shadowManager->unbind();
+                    nearShadowManager->unbind();
                     shaderMagnet->unbind();
                 } else {
                     shaderBuilding->bind();
-                    shadowManager->setUnit(3);
-                    // Create handles for the shadow cascades
-                    handles[0] = shaderBuilding->getUniform("shadowDepth0");
-                    handles[1] = shaderBuilding->getUniform("shadowDepth1");
-                    handles[2] = shaderBuilding->getUniform("shadowDepth2");
-                    shadowManager->bind(handles);
-                    glUniformMatrix4fv(shaderBuilding->getUniform("LS"), 1, GL_FALSE, value_ptr(LSpace));
-                    glUniformMatrix4fv(shaderBuilding->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
-                    glUniformMatrix4fv(shaderBuilding->getUniform("V"), 1, GL_FALSE, value_ptr(V->topMatrix()));
+                    nearShadowManager->setUnit(3);
+                    midShadowManager->setUnit(4);
+                    farShadowManager->setUnit(5);
+                    // bind shadow cascades
+                    nearShadowManager->bind(shaderBuilding->getUniform("shadowDepth0"));
+                    midShadowManager->bind(shaderBuilding->getUniform("shadowDepth1"));
+                    farShadowManager->bind(shaderBuilding->getUniform("shadowDepth2"));
+                    if (!depthBufferPass) {
+                        GLSL::checkError();
+                        glUniform3f(shaderBuilding->getUniform("cascadeEndClipSpace"),
+                                    cascadeEndClipSpace[0], cascadeEndClipSpace[1],
+                                    cascadeEndClipSpace[2]);
+                        GLSL::checkError();
+                        glUniformMatrix4fv(shaderBuilding->getUniform("LS0"), 1, GL_FALSE,
+                                           value_ptr(LSpace[0]));
+                        glUniformMatrix4fv(shaderBuilding->getUniform("LS1"), 1, GL_FALSE,
+                                           value_ptr(LSpace[1]));
+                        glUniformMatrix4fv(shaderBuilding->getUniform("LS2"), 1, GL_FALSE,
+                                           value_ptr(LSpace[2]));
+                    }
+                    glUniformMatrix4fv(shaderBuilding->getUniform("P"), 1, GL_FALSE,
+                                       value_ptr(P->topMatrix()));
+                    glUniformMatrix4fv(shaderBuilding->getUniform("V"), 1, GL_FALSE,
+                                       value_ptr(V->topMatrix()));
                     glUniform3fv(shaderBuilding->getUniform("lightPos"), 1, value_ptr(vec3(lightPos)));
-                    glUniform3fv(shaderBuilding->getUniform("viewPos"), 1, value_ptr(camera->getPosition()));
+                    glUniform3fv(shaderBuilding->getUniform("viewPos"), 1,
+                                 value_ptr(camera->getPosition()));
                     glUniform1f(shaderBuilding->getUniform("lightIntensity"), lightIntensity);
-                    glUniform3fv(shaderBuilding->getUniform("scalingFactor"), 1, value_ptr(cub->getScale()));
+                    glUniform3fv(shaderBuilding->getUniform("scalingFactor"), 1,
+                                 value_ptr(cub->getScale()));
                     GLSL::checkError();
                     cub->draw(shaderBuilding);
-                    shadowManager->unbind();
+                    nearShadowManager->unbind();
+                    midShadowManager->unbind();
+                    farShadowManager->unbind();
                     shaderBuilding->unbind();
                 }
             }
@@ -1027,7 +1123,6 @@ void GameManager::drawShipPart(shared_ptr<MatrixStack> P,
         shared_ptr<MatrixStack> V,
         bool depthBufferPass) {
     std::shared_ptr<Program> shader;
-    GLint handles[NUM_SHADOW_CASCADES];
     
     if (depthBufferPass) {
         shader = depthProg;
@@ -1037,13 +1132,18 @@ void GameManager::drawShipPart(shared_ptr<MatrixStack> P,
 
     // Draw ship part
     shader->bind();
-    shadowManager->setUnit(3);
-    // Create handles for the shadow cascades
-    handles[0] = shader->getUniform("shadowDepth0");
-    handles[1] = shader->getUniform("shadowDepth1");
-    handles[2] = shader->getUniform("shadowDepth2");
-    shadowManager->bind(handles);
-    glUniformMatrix4fv(shader->getUniform("LS"), 1, GL_FALSE, value_ptr(LSpace));
+    nearShadowManager->setUnit(3);
+    midShadowManager->setUnit(4);
+    //    shadowManager->setFarUnit(5);
+    // bind shadow cascades
+    nearShadowManager->bind(shader->getUniform("shadowDepth0"));
+    midShadowManager->bind(shader->getUniform("shadowDepth1"));
+//    shadowManager->bindFar(shader->getUniform("shadowDepth2"));
+
+    if (!depthBufferPass) {
+        glUniformMatrix4fv(shader->getUniform("LS0"), 1, GL_FALSE, value_ptr(LSpace[0]));
+        glUniformMatrix4fv(shader->getUniform("LS1"), 1, GL_FALSE, value_ptr(LSpace[1]));
+    }
     shipPartColorTexture->bind(shader->getUniform("diffuseTex"));
     shipPartSpecularTexture->bind(shader->getUniform("specularTex"));
     glUniformMatrix4fv(shader->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
@@ -1060,7 +1160,6 @@ void GameManager::drawMagnetGun(shared_ptr<MatrixStack> P,
         shared_ptr<MatrixStack> V,
         bool depthBufferPass) {
     shared_ptr<Program> shader;
-    GLint handles[NUM_SHADOW_CASCADES];
     
     if (depthBufferPass) {
         shader = depthProg;
@@ -1070,24 +1169,31 @@ void GameManager::drawMagnetGun(shared_ptr<MatrixStack> P,
 
     // Render magnet gun
     shader->bind();
-    shadowManager->setUnit(3);
-    // Create handles for the shadow cascades
-    handles[0] = shader->getUniform("shadowDepth0");
-    handles[1] = shader->getUniform("shadowDepth1");
-    handles[2] = shader->getUniform("shadowDepth2");
-    shadowManager->bind(handles);
+    nearShadowManager->setUnit(3);
+    midShadowManager->setUnit(4);
+//    shadowManager->setFarUnit(5);
+    // bind shadow cascades
+    nearShadowManager->bind(shader->getUniform("shadowDepth0"));
+    midShadowManager->bind(shader->getUniform("shadowDepth1"));
+//    shadowManager->bindFar(shader->getUniform("shadowDepth2"));
+
     glUniformMatrix4fv(shader->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
     glUniform3fv(shader->getUniform("lightPos"), 1, value_ptr(vec3(lightPos)));
     glUniform1f(shader->getUniform("lightIntensity"), lightIntensity);
     V->pushMatrix();
-    V->loadIdentity();
+    if (skyCam) {
+        V->translate(camera->getPosition());
+    }
+    else {
+        V->loadIdentity();
+    }
     glUniformMatrix4fv(shader->getUniform("V"), 1, GL_FALSE, value_ptr(V->topMatrix()));
     if (!depthBufferPass) {
         glClear(GL_DEPTH_BUFFER_BIT);
     }
     GLSL::checkError();
     magnetGun->draw(shader);
-    shadowManager->unbind();
+    nearShadowManager->unbind();
     V->popMatrix();
 
     if (drawBeam) {
@@ -1141,17 +1247,17 @@ void GameManager::renderGame(int fps) {
     // Clear framebuffer.
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    if (Keyboard::isPressed(GLFW_KEY_C)) {
-        glEnable(GL_CULL_FACE);
-    } else {
-        glDisable(GL_CULL_FACE);
-    }
-
-    if (Keyboard::isPressed(GLFW_KEY_L)) {
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    } else {
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    }
+//    if (Keyboard::isPressed(GLFW_KEY_C)) {
+//        glEnable(GL_CULL_FACE);
+//    } else {
+//        glDisable(GL_CULL_FACE);
+//    }
+//
+//    if (Keyboard::isPressed(GLFW_KEY_L)) {
+//        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+//    } else {
+//        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+//    }
 
     // Get current frame buffer size.
     int width, height;
@@ -1162,6 +1268,7 @@ void GameManager::renderGame(int fps) {
     // Matrix stacks
     auto P = make_shared<MatrixStack>();
     auto V = make_shared<MatrixStack>();
+    auto camV = make_shared<MatrixStack>();
 
     /*if in gamestate menu render menu*/
     if (gameState == MENU) {
@@ -1176,27 +1283,88 @@ void GameManager::renderGame(int fps) {
         P->pushMatrix();
         camera->applyProjectionMatrix(P);
         V->pushMatrix();
-        camera->applyViewMatrix(V);
+        if (skyCam) {
+            skyCamera->applyViewMatrixSky(V);
+        }
+        else {
+            camera->applyViewMatrix(V);
+        }
+        camV->pushMatrix();
+        camera->applyViewMatrix(camV);
 
         if (gameState != CUTSCENE_START && gameState != CUTSCENE_END) {
-            calcOrthoProjs(V->topMatrix());
-//            auto temp = P->topMatrix() * V->topMatrix();
-//            calcOrthoProjs(temp);
+            // finding the end of every cascade in clip space.
+            for (uint i = 0 ; i < NUM_SHADOW_CASCADES ; i++) {
+                mat4 proj = P->topMatrix();
+                vec4 vView = vec4(0.0f, 0.0f, cascadeEnd[i + 1], 1.0f);
+                vec4 vClip = proj * vView;
+                cascadeEndClipSpace[i] = vClip.z;
+            }
+            
+            mat4 LO, LV;
+            calcOrthoProjs(camV->topMatrix());
             
             /* BEGIN DEPTH MAP */
-            shadowManager->bindFramebuffer(0);
+            nearShadowManager->bindFramebuffer();
+            GLSL::checkError();
             //set up shadow shader
             depthProg->bind();
-            mat4 LO = SetOrthoMatrix(shadowOrthoInfo[0]);
-            //mat4 LO = SetOrthoMatrix();
-            //printf("LightPos: %.3g, %.3g, %.3g\n", lightPos.x, lightPos.y, lightPos.z);
-            mat4 LV = SetLightView(vec3(lightPos), vec3(0, 0, 0), vec3(0, 1, 0));
-            LSpace = LO*LV;
-            glUniformMatrix4fv(depthProg->getUniform("LS"), 1, GL_FALSE, value_ptr(LSpace));
-            drawScene(P, V, true);
-            drawShipPart(P, V, true);
+            GLSL::checkError();
+            if (cascaded) {
+                LO = SetOrthoMatrix(shadowOrthoInfo[0]);
+            }
+            else {
+                LO = SetOrthoMatrix();
+            }
+            GLSL::checkError();
+            LV = SetLightView(vec3(lightPos), vec3(0, 0, 0), vec3(0, 1, 0));
+            LSpace[0] = LO*LV;
+            glUniformMatrix4fv(depthProg->getUniform("LS"), 1, GL_FALSE, value_ptr(LSpace[0]));
+            GLSL::checkError();
+            drawScene(P, camV, true);
+            drawShipPart(P, camV, true);
             depthProg->unbind();
-            shadowManager->unbindFramebuffer();
+            nearShadowManager->unbindFramebuffer();
+            GLSL::checkError();
+            
+            midShadowManager->bindFramebuffer();
+            GLSL::checkError();
+            //set up shadow shader
+            depthProg->bind();
+            if (cascaded) {
+                LO = SetOrthoMatrix(shadowOrthoInfo[1]);
+            }
+            else {
+                LO = SetOrthoMatrix();
+            }
+            LV = SetLightView(vec3(lightPos), vec3(0, 0, 0), vec3(0, 1, 0));
+            LSpace[1] = LO*LV;
+            glUniformMatrix4fv(depthProg->getUniform("LS"), 1, GL_FALSE, value_ptr(LSpace[1]));
+            drawScene(P, camV, true);
+            drawShipPart(P, camV, true);
+            depthProg->unbind();
+            midShadowManager->unbindFramebuffer();
+            GLSL::checkError();
+
+            farShadowManager->bindFramebuffer();
+            GLSL::checkError();
+            //set up shadow shader
+            depthProg->bind();
+            if (cascaded) {
+                LO = SetOrthoMatrix(shadowOrthoInfo[2]);
+            }
+            else {
+                LO = SetOrthoMatrix();
+            }
+            LV = SetLightView(vec3(lightPos), vec3(0, 0, 0), vec3(0, 1, 0));
+            LSpace[2] = LO*LV;
+            glUniformMatrix4fv(depthProg->getUniform("LS"), 1, GL_FALSE, value_ptr(LSpace[2]));
+            drawScene(P, camV, true);
+            drawShipPart(P, camV, true);
+            depthProg->unbind();
+            farShadowManager->unbindFramebuffer();
+            GLSL::checkError();
+
             /* END DEPTH MAP */
             
             /* Rendering scene for bloom effects */
@@ -1204,7 +1372,7 @@ void GameManager::renderGame(int fps) {
             skybox->render(P, V, 0);
             drawScene(P, V, false);
             drawShipPart(P, V, false);
-
+            
 
             if (gameState == DEATHANIMATION) {
                 toBlackAlpha += 0.04f;
@@ -1257,6 +1425,7 @@ void GameManager::renderGame(int fps) {
 
             GLSL::checkError();
 
+            
             if (!fmod->isPlaying("start"))
                 drawMagnetGun(P, V, false);
             if (gameState != PAUSE && !fmod->isPlaying("start")) {
@@ -1283,29 +1452,123 @@ void GameManager::renderGame(int fps) {
                 }
             }
 
-            if (SHADOW_DEBUG) {
-                GLint handles[NUM_SHADOW_CASCADES];
+            if (shadowDebugBox) {
                 glClear(GL_DEPTH_BUFFER_BIT);
-                glViewport(0, 0, 500, 500);
-                debugProg->bind();
-                shadowManager->setUnit(3);
-                handles[0] = debugProg->getUniform("texBuf");
-                handles[1] = 0;
-                handles[2] = 0;
-                shadowManager->bind(handles);
-                shadowManager->drawDebug();
-                debugProg->unbind();
+                glViewport(0, 0, 300, 300);
+                shadowDebugProg->bind();
+                nearShadowManager->setUnit(0);
+                nearShadowManager->bind(shadowDebugProg->getUniform("texBuf"));
+                nearShadowManager->drawDebug();
+                shadowDebugProg->unbind();
+                glViewport(0, 0, width, height);
+                
+                glClear(GL_DEPTH_BUFFER_BIT);
+                glViewport(width-300, 0, 300, 300);
+                shadowDebugProg->bind();
+                midShadowManager->setUnit(0);
+                midShadowManager->bind(shadowDebugProg->getUniform("texBuf"));
+                midShadowManager->drawDebug();
+                shadowDebugProg->unbind();
+                glViewport(0, 0, width, height);
+                
+                glClear(GL_DEPTH_BUFFER_BIT);
+                glViewport(0, height-300, 300, 300);
+                shadowDebugProg->bind();
+                farShadowManager->setUnit(0);
+                farShadowManager->bind(shadowDebugProg->getUniform("texBuf"));
+                farShadowManager->drawDebug();
+                shadowDebugProg->unbind();
                 glViewport(0, 0, width, height);
             } else if (BLOOM_DEBUG) {
                 glClear(GL_DEPTH_BUFFER_BIT);
                 glViewport(0, 0, 500, 500);
-                debugProg->bind();
+                shadowDebugProg->bind();
                 bloom->setUnit(0);
-                bloom->bindColor(debugProg->getUniform("texBuf"));
+                bloom->bindColor(shadowDebugProg->getUniform("texBuf"));
                 bloom->renderQuad();
-                debugProg->unbind();
+                shadowDebugProg->unbind();
                 glViewport(0, 0, width, height);
             }
+            
+            if (viewFrustum || lightFrustum) {
+                /** DEBUGGING: DRAWING SPHERES AT FRUSTUM COORDS **/
+                mat4 inverseView = glm::inverse(camV->topMatrix());
+                //mat4 lightMat = SetLightView(vec3(lightPos), vec3(0), vec3(0, 1, 0));
+                mat4 lightMat = SetLightView(vec3(0), vec3(-lightPos), vec3(0, 1, 0));
+                float aspect = camera->getAspect();
+                float tanHalfVFOV = tanf(glm::radians(camera->getFOV()/2.0f));
+                float tanHalfHFOV = tanf(glm::radians(camera->getFOV()/2.0f) * aspect);
+                
+                float xn = cascadeEnd[0] * tanHalfHFOV;
+                float xf = cascadeEnd[1] * tanHalfHFOV;
+                float yn = cascadeEnd[0] * tanHalfVFOV;
+                float yf = cascadeEnd[1] * tanHalfVFOV;
+                
+                vec4 frustumCorners[8] = {
+                    // near face
+                    vec4(xn, yn, cascadeEnd[0], 1.0),
+                    vec4(-xn, yn, cascadeEnd[0], 1.0),
+                    vec4(xn, -yn, cascadeEnd[0], 1.0),
+                    vec4(-xn, -yn, cascadeEnd[0], 1.0),
+                    
+                    // far face
+                    vec4(xf, yf, cascadeEnd[1], 1.0),
+                    vec4(-xf, yf, cascadeEnd[1], 1.0),
+                    vec4(xf, -yf, cascadeEnd[1], 1.0),
+                    vec4(-xf, -yf, cascadeEnd[1], 1.0)
+                };
+                
+                vec4 frustumCornersL[8];
+                
+                float minX = std::numeric_limits<float>::max();
+                float maxX = -std::numeric_limits<float>::max();
+                float minY = std::numeric_limits<float>::max();
+                float maxY = -std::numeric_limits<float>::max();
+                float minZ = std::numeric_limits<float>::max();
+                float maxZ = -std::numeric_limits<float>::max();
+                
+                for (unsigned int j = 0; j < 8; j++) {
+                    vec4 vW = inverseView * frustumCorners[j];
+                    
+                    frustumCornersL[j] = lightMat * vW;
+                    
+                    minX = std::min(minX, frustumCornersL[j].x);
+                    maxX = std::max(maxX, frustumCornersL[j].x);
+                    minY = std::min(minY, frustumCornersL[j].y);
+                    maxY = std::max(maxY, frustumCornersL[j].y);
+                    minZ = std::min(minZ, frustumCornersL[j].z);
+                    maxZ = std::max(maxZ, frustumCornersL[j].z);
+                }
+
+                debug.setPV(P->topMatrix(), V->topMatrix());
+                
+                for (int i = 0; i < 4; i++) {
+                    if (viewFrustum) {
+                        debug.drawPoint(vec3(inverseView * frustumCorners[i]), vec3(1, 0, 0), vec3(0.05));
+                    }
+                }
+                for (int i = 4; i < 8; i++) {
+                    if (viewFrustum) {
+                        debug.drawPoint(vec3(inverseView * frustumCorners[i]), vec3(1, 0.5, 0), vec3(0.3));
+                    }
+                }
+                
+                minZ -= ORTHO_ADJUST;
+                maxZ += ORTHO_ADJUST;
+                
+                if (lightFrustum) {
+                    debug.drawPoint(vec3(glm::inverse(lightMat) * vec4(minX, minY, minZ, 1.0)), vec3(1, 0, 0.5), vec3(0.3));
+                    debug.drawPoint(vec3(glm::inverse(lightMat) * vec4(maxX, minY, minZ, 1.0)), vec3(1, 0, 0.5), vec3(0.3));
+                    debug.drawPoint(vec3(glm::inverse(lightMat) * vec4(minX, maxY, minZ, 1.0)), vec3(1, 0, 0.5), vec3(0.3));
+                    debug.drawPoint(vec3(glm::inverse(lightMat) * vec4(maxX, maxY, minZ, 1.0)), vec3(1, 0, 0.5), vec3(0.3));
+                    debug.drawPoint(vec3(glm::inverse(lightMat) * vec4(minX, minY, maxZ, 1.0)), vec3(1, 0, 0.5), vec3(0.3));
+                    debug.drawPoint(vec3(glm::inverse(lightMat) * vec4(maxX, minY, maxZ, 1.0)), vec3(1, 0, 0.5), vec3(0.3));
+                    debug.drawPoint(vec3(glm::inverse(lightMat) * vec4(minX, maxY, maxZ, 1.0)), vec3(1, 0, 0.5), vec3(0.3));
+                    debug.drawPoint(vec3(glm::inverse(lightMat) * vec4(maxX, maxY, maxZ, 1.0)), vec3(1, 0, 0.5), vec3(0.3));
+                }
+                /** END OF DEBUGGING SECTION **/
+            }
+            
         }/*draw cutscene only stuff here*/
         else {
             if (level == 0)
@@ -1411,6 +1674,7 @@ void GameManager::renderGame(int fps) {
             gui->drawSkip(cutsceneTime);
         }
 
+        camV->popMatrix();
         V->popMatrix();
         P->popMatrix();
 
@@ -1474,44 +1738,19 @@ float GameManager::randFloat(float l, float h) {
     return (1.0f - r) * l + r * h;
 }
 
-//void GameManager::calcOrthoProjs(const mat4 &viewMat) {
-//    mat4 inverseView = glm::inverse(viewMat);
-//    mat4 lightMat = SetLightView(vec3(lightPos), vec3(0), vec3(0, 1, 0));
-//    
-//    vec3 frustumCornersWS[8] = {
-//        vec3(-1.0f, 1.0f, -1.0f),
-//        vec3(1.0f, 1.0f, -1.0f),
-//        vec3(1.0f, -1.0f, -1.0f),
-//        vec3(-1.0f, -1.0f, -1.0f),
-//        vec3(-1.0f, 1.0f, 1.0f),
-//        vec3(1.0f, 1.0f, 1.0f),
-//        vec3(1.0f, -1.0f, 1.0f),
-//        vec3(-1.0f, -1.0f, 1.0f)
-//    };
-//    
-//    
-//}
-
 void GameManager::calcOrthoProjs(const mat4 &viewMat) {
     mat4 inverseView = glm::inverse(viewMat);
     //mat4 lightMat = SetLightView(vec3(lightPos), vec3(0), vec3(0, 1, 0));
-    mat4 lightMat = SetLightView(vec3(0), -vec3(lightPos), vec3(0, 1, 0));
+    mat4 lightMat = SetLightView(vec3(0), normalize(vec3(-lightPos)), vec3(0, 1, 0));
     float aspect = camera->getAspect();
     float tanHalfVFOV = tanf(glm::radians(camera->getFOV()/2.0f));
-    float tanHalfHFOV = tanf(glm::radians((camera->getFOV() * aspect)/2.0f));
-    
-    //printf("ar %.3g HFOV %.3g VFOV %.3g\n", aspect, tanHalfHFOV, tanHalfVFOV);
+    float tanHalfHFOV = tanf(glm::radians(camera->getFOV()/2.0f) * aspect);
     
     for (unsigned int i = 0; i < NUM_SHADOW_CASCADES; i++) {
-        //printf("Cascade %d:\n", i);
         float xn = cascadeEnd[i] * tanHalfHFOV;
         float xf = cascadeEnd[i + 1] * tanHalfHFOV;
         float yn = cascadeEnd[i] * tanHalfVFOV;
         float yf = cascadeEnd[i + 1] * tanHalfVFOV;
-        if (i == 0) {
-            printf("xn %.3g xf %.3g\n", xn, xf);
-            printf("yn %.3g yf %.3g\n", yn, yf);
-        }
         
         vec4 frustumCorners[8] = {
             // near face
@@ -1531,23 +1770,16 @@ void GameManager::calcOrthoProjs(const mat4 &viewMat) {
         
         float minX = std::numeric_limits<float>::max();
         float maxX = -std::numeric_limits<float>::max();
+        //float maxX = std::numeric_limits<float>::min();
         float minY = std::numeric_limits<float>::max();
         float maxY = -std::numeric_limits<float>::max();
+        //float maxY = std::numeric_limits<float>::min();
         float minZ = std::numeric_limits<float>::max();
         float maxZ = -std::numeric_limits<float>::max();
+        //float maxZ = std::numeric_limits<float>::min();
         
         for (unsigned int j = 0; j < 8; j++) {
             vec4 vW = inverseView * frustumCorners[j];
-            if (i == 0 && j == 0) {
-                printf("X near (world): %.3g\n", vW.x);
-                printf("Y near (world): %.3g\n", vW.y);
-                printf("Z near (world): %.3g\n", vW.z);
-            }
-            else if (i == 0 && j == 4) {
-                printf("X far (world): %.3g\n", vW.x);
-                printf("Y far (world): %.3g\n", vW.y);
-                printf("Z far (world): %.3g\n", vW.z);
-            }
             
             frustumCornersL[j] = lightMat * vW;
             
@@ -1559,14 +1791,15 @@ void GameManager::calcOrthoProjs(const mat4 &viewMat) {
             maxZ = std::max(maxZ, frustumCornersL[j].z);
         }
         
-        if (i == 0) {
-            printf("left: %.3f\n", minX);
-            printf("right: %.3f\n", maxX);
-            printf("bottom: %.3f\n", minY);
-            printf("top: %.3f\n", maxY);
-            printf("near: %.3f\n", minZ);
-            printf("far: %.3f\n", maxZ);
-        }
+        // This artificially increases the dimensions of the ortho box because
+        // the calculated box typically isn't big enough. It is increased relative
+        // to how high the light position is (higher means bigger levels)
+        minX -= lightPos.y;
+        maxX += lightPos.y;
+        minY -= lightPos.y;
+        maxY += lightPos.y;
+        minZ -= lightPos.y;
+        maxZ += lightPos.y;
 
         shadowOrthoInfo[i][0] = minX;
         shadowOrthoInfo[i][1] = maxX;

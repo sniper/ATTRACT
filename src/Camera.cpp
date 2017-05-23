@@ -215,6 +215,11 @@ void Camera::applyViewMatrix(shared_ptr<MatrixStack> MV) const {
     MV->lookAt(position, lap, up);
 }
 
+void Camera::applyViewMatrixSky(shared_ptr<MatrixStack> V) const
+{
+    V->lookAt(position, position + vec3(0.2, -1, 0), vec3(0, 1, 0));
+}
+
 bool Camera::checkForCollision(const std::shared_ptr<GameObject> &otherObj)
 {
     return otherObj->isCollidingWithBoundingBox(boundingBox);

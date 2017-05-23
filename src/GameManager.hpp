@@ -17,6 +17,7 @@
 #include <GLFW/glfw3.h>
 #include <glm/gtc/type_ptr.hpp>
 #include "GameObject.hpp"
+#include "DebugDraw.hpp"
 
 #define NUM_SHADOW_CASCADES 3
 #define NUMLEVELS 7
@@ -102,9 +103,10 @@ private:
     std::shared_ptr<BulletManager> bullet;
     std::shared_ptr<VfcManager> vfc;
     std::shared_ptr<FmodManager> fmod;
-    std::shared_ptr<ShadowManager> shadowManager;
     std::shared_ptr<InputManager> inputManager;
     std::shared_ptr<Bloom> bloom;
+    
+    std::shared_ptr<ShadowManager> nearShadowManager, midShadowManager, farShadowManager;
 
     std::shared_ptr<GuiManager> gui;
     std::shared_ptr<ParticleManager> psystem;
@@ -143,10 +145,10 @@ private:
 
     float shadowOrthoInfo[NUM_SHADOW_CASCADES][6];
     float cascadeEnd[4];
-    std::shared_ptr<Camera> camera;
+    std::shared_ptr<Camera> camera, skyCamera;
 
     std::shared_ptr<Program> program, shipPartProgram, skyscraperProgram,
-    depthProg, debugProg, asteroidProgram, gaussianProg, bloomProg;
+    depthProg, shadowDebugProg, asteroidProgram, gaussianProg, bloomProg, simpleDebugProg;
     std::shared_ptr<Texture> shipPartColorTexture, shipPartSpecularTexture,
     skyscraperColorTexture, skyscraperSpecularTexture;
     std::map<std::string, std::shared_ptr<Shape>> shapes;
@@ -162,9 +164,13 @@ private:
 
     glm::vec4 lightPos;
     float lightIntensity;
-    glm::mat4 LSpace;
+    glm::mat4 LSpace[NUM_SHADOW_CASCADES];
+    float cascadeEndClipSpace[NUM_SHADOW_CASCADES];
     
     double pausedXMouse, pausedYMouse;
+    
+    DebugDraw debug;
+    bool cascaded, skyCam, viewFrustum, lightFrustum, shadowDebugBox;
 };
 
 #endif /* GameManager_hpp */
