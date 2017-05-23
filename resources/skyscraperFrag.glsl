@@ -59,21 +59,27 @@ void main()
     vec3 lightDir = normalize(lightPos - fragPos);
     float diff = max(dot(lightDir, normal), 0.0);
     vec3 diffuse = diff * lightColor;
-    
+
     vec3 viewDir = normalize(viewPos - fragPos);
     float spec = 0.0;
     vec3 halfwayDir = normalize(lightDir + viewDir);
     spec = pow(max(dot(normal, halfwayDir), 0.0), 64.0);
     vec3 specular = spec * lightColor;
-    
+
     float shadow = TestShadow(fragPosLS);
-    
+
     if (shadow < -0.5) {
         FragColor = vec4(0.0, 1.0, 0.0, 1.0);
     }
     else {
         vec3 lighting = ambient + ((1.0 - shadow) * (diffuse + specular)) * color;
-        
+
+        // add fog
+        float dist = abs(distance(fragPos, viewPos));
+        float f = 1 / exp(dist * 0.10);
+        float e = 0.3;
+        lighting = (lighting * (1 - e)) + (vec3(0.5, 0.5, 0.55) * e);
+
         FragColor = vec4(lighting, 1.0f);
         BloomColor = vec4(0.0);
     }

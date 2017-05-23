@@ -145,7 +145,7 @@ private:
     std::shared_ptr<Camera> camera;
 
     std::shared_ptr<Program> program, shipPartProgram, skyscraperProgram,
-    depthProg, debugProg, asteroidProgram, gaussianProg, bloomProg;
+    depthProg, debugProg, asteroidProgram, gaussianProg, bloomProg, fogProgram;
     std::shared_ptr<Texture> shipPartColorTexture, shipPartSpecularTexture,
     skyscraperColorTexture, skyscraperSpecularTexture;
     std::map<std::string, std::shared_ptr<Shape>> shapes;

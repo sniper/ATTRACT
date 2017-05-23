@@ -9,6 +9,7 @@
 #include <iostream>
 #include <math.h>
 #include <time.h>
+#include <sys/time.h>
 
 
 #define GLEW_STATIC
@@ -172,6 +173,25 @@ void GameManager::initScene() {
     skyscraperProgram->addUniform("scalingFactor");
     skyscraperProgram->addUniform("shadowDepth");
     skyscraperProgram->addUniform("LS");
+
+    //
+    // Death Barriers
+    //
+    fogProgram = make_shared<Program>();
+    fogProgram->setShaderNames(RESOURCE_DIR + "fogVert.glsl", RESOURCE_DIR + "fogFrag.glsl");
+    fogProgram->setVerbose(false);
+    fogProgram->init();
+    fogProgram->addAttribute("aPos");
+    fogProgram->addAttribute("aNor");
+    fogProgram->addUniform("M");
+    fogProgram->addUniform("V");
+    fogProgram->addUniform("P");
+    fogProgram->addUniform("lightPos");
+    fogProgram->addUniform("lightIntensity");
+    fogProgram->addUniform("viewPos");
+    fogProgram->addUniform("shadowDepth");
+    fogProgram->addUniform("LS");
+    fogProgram->addUniform("time");
 
     //
     // Asteroids
@@ -633,21 +653,23 @@ void GameManager::createEnvironment() {
 
     float minSize = 4.0f;
     float maxSize = 15.0f;
+    float minHeight = ((maxY - minY) / 2) + 10.0f;
+    float maxHeight = (maxY - minY) + 10.0f;
 
     // minZ along X
     float spaceLeft = (maxX + gap) - (minX - gap);
     float currLoc = minX - gap;
     while (spaceLeft > minSize) {
         float x = randFloat(minSize, fmin(maxSize, spaceLeft));
-        spaceLeft -= x + 5;
-        currLoc += x + 5;
         float z = randFloat(minSize, maxSize);
-        float y = randFloat(6, maxSize);
+        float y = randFloat(minHeight, maxHeight);
         building = make_shared<Cuboid>(vec3(currLoc + (x / 2), minY + (y / 2), (minZ - gap) - (z)), vec3(0, 0, 0),
             CUBE_HALF_EXTENTS,
             vec3(x, y, z), 0, shapes["skyscraper"],
             nullptr, false);
         objects.push_back(building);
+        spaceLeft -= x + 5;
+        currLoc += x + 5;
     }
 
     // maxZ along X
@@ -655,15 +677,15 @@ void GameManager::createEnvironment() {
     currLoc = minX - gap;
     while (spaceLeft > minSize) {
         float x = randFloat(minSize, fmin(maxSize, spaceLeft));
-        spaceLeft -= x + 5;
-        currLoc += x + 5;
+        float y = randFloat(minHeight, maxHeight);
         float z = randFloat(minSize, maxSize);
-        float y = randFloat(6, maxSize);
         building = make_shared<Cuboid>(vec3(currLoc + (x / 2), minY + (y / 2), (maxZ + gap) + (z)), vec3(0, 0, 0),
             CUBE_HALF_EXTENTS,
             vec3(x, y, z), 0, shapes["skyscraper"],
             nullptr, false);
         objects.push_back(building);
+        spaceLeft -= x + 5;
+        currLoc += x + 5;
     }
 
     // minX along Z
@@ -671,15 +693,15 @@ void GameManager::createEnvironment() {
     currLoc = minZ - gap;
     while (spaceLeft > minSize) {
         float x = randFloat(minSize, maxSize);
-        float y = randFloat(6, maxSize);
+        float y = randFloat(minHeight, maxHeight);
         float z = randFloat(minSize, fmin(maxSize, spaceLeft));
-        spaceLeft -= z + 5;
-        currLoc += z + 5;
         building = make_shared<Cuboid>(vec3((minX - gap) - x, minY + (y / 2), currLoc + (z / 2)), vec3(0, 0, 0),
             CUBE_HALF_EXTENTS,
             vec3(x, y, z), 0, shapes["skyscraper"],
             nullptr, false);
         objects.push_back(building);
+        spaceLeft -= z + 5;
+        currLoc += z + 5;
     }
 
     // maxX along Z
@@ -687,15 +709,15 @@ void GameManager::createEnvironment() {
     currLoc = minZ - gap;
     while (spaceLeft > minSize) {
         float x = randFloat(minSize, maxSize);
-        float y = randFloat(6, maxSize);
+        float y = randFloat(minHeight, maxHeight);
         float z = randFloat(minSize, fmin(maxSize, spaceLeft));
-        spaceLeft -= z + 5;
-        currLoc += z + 5;
         building = make_shared<Cuboid>(vec3((maxX + gap) + x, minY + (y / 2), currLoc + (z / 2)), vec3(0, 0, 0),
             CUBE_HALF_EXTENTS,
             vec3(x, y, z), 0, shapes["skyscraper"],
             nullptr, false);
         objects.push_back(building);
+        spaceLeft -= z + 5;
+        currLoc += z + 5;
     }
 }
 
@@ -1080,13 +1102,15 @@ void GameManager::updateGame(double dt) {
 
 void GameManager::drawScene(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> V,
         bool depthBufferPass) {
-    shared_ptr<Program> shaderMagnet, shaderBuilding;
+    shared_ptr<Program> shaderMagnet, shaderBuilding, shaderDeath;
     if (depthBufferPass) {
         shaderMagnet = depthProg;
         shaderBuilding = depthProg;
+        shaderDeath = depthProg;
     } else {
         shaderMagnet = program;
         shaderBuilding = skyscraperProgram;
+        shaderDeath = fogProgram;
     }
 
     GLSL::checkError();
@@ -1131,6 +1155,40 @@ void GameManager::drawScene(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> V
             delete temp;
         }
     }
+
+    glEnable(GL_BLEND);
+    glEnable(GL_CULL_FACE);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    for (unsigned int i = 0; i < deathObjects.size(); i++) {
+        if (deathObjects.at(i)->isCuboid()) {
+            std::shared_ptr<Cuboid> cub = dynamic_pointer_cast<Cuboid>(deathObjects.at(i));
+            std::vector<vec3> *temp = cub->getAabbMinsMaxs();
+            GLSL::checkError();
+            if (true || !vfc->viewFrustCull(temp) || depthBufferPass) {
+                shaderDeath->bind();
+                shadowManager->setUnit(3);
+                shadowManager->bind(shaderDeath->getUniform("shadowDepth"));
+                glUniformMatrix4fv(shaderDeath->getUniform("LS"), 1, GL_FALSE, value_ptr(LSpace));
+                glUniformMatrix4fv(shaderDeath->getUniform("P"), 1, GL_FALSE, value_ptr(P->topMatrix()));
+                glUniformMatrix4fv(shaderDeath->getUniform("V"), 1, GL_FALSE, value_ptr(V->topMatrix()));
+                glUniform3fv(shaderDeath->getUniform("lightPos"), 1, value_ptr(vec3(lightPos)));
+                glUniform3fv(shaderDeath->getUniform("viewPos"), 1, value_ptr(camera->getPosition()));
+                glUniform1f(shaderDeath->getUniform("lightIntensity"), lightIntensity);
+                if (!depthBufferPass) {
+                    struct timeval tv;
+                    gettimeofday(&tv, NULL);
+                    //cout << tv.tv_sec << " " << tv.tv_usec << endl;
+                    glUniform1i(shaderDeath->getUniform("time"), tv.tv_usec);
+                }
+                cub->draw(shaderDeath);
+                shadowManager->unbind();
+                shaderDeath->unbind();
+            }
+            delete temp;
+        }
+    }
+    glDisable(GL_BLEND);
+    glDisable(GL_CULL_FACE);
 }
 
 void GameManager::drawShipPart(shared_ptr<MatrixStack> P,
