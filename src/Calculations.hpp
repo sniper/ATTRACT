@@ -15,6 +15,7 @@ class Calculations
 {
 public:
     static float findDistance(const glm::vec3 &p1, const glm::vec3 &p2);
+    static float randFloat(const float l, const float h);
 };
 
 #endif /* Calculations_hpp */

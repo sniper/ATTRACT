@@ -154,6 +154,7 @@ private:
     std::shared_ptr<Texture> shipPartColorTexture, shipPartSpecularTexture,
     skyscraperColorTexture, skyscraperSpecularTexture;
     std::map<std::string, std::shared_ptr<Shape>> shapes;
+    std::vector<std::shared_ptr<Shape>> shipPartPieces;
 
     std::shared_ptr<SpaceShipPart> spaceShipPart;
 

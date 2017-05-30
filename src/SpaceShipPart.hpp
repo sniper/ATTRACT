@@ -20,20 +20,24 @@ public:
     SpaceShipPart(const glm::vec3 &position, const glm::vec3 &direction,
                   const glm::vec3 &halfExtents, const glm::vec3 &scale,
                   const std::shared_ptr<Shape> &shape,
+                  const std::vector<std::shared_ptr<Shape>> &pieces,
                   const std::shared_ptr<Material> &material);
-    virtual ~SpaceShipPart();
     
     void update(float dt);
     void draw(const std::shared_ptr<Program> &prog);
-    void startWin();
+    void startWin(const glm::vec3 &camDir);
     bool doneWinning();
 
 protected:
+    std::vector<std::shared_ptr<Shape>> partPieces;
+    std::vector<float> xOffsets;
     float yOffset;
+    std::vector<float> zOffsets;
     float currTime;
     bool collected;
-    bool spinning;
-    float spinTime;
+    bool collided;
+    float collidedTime;
+    std::vector<glm::vec3> expandDirs;
 };
 
 #endif /* SpaceShipPart_hpp */
