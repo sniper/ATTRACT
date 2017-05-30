@@ -56,7 +56,7 @@
 #define MAGNET_RANGE 13.0f
 #define MAGNET_STRENGTH 7.0f
 #define CUBE_HALF_EXTENTS vec3(0.5f, 0.5f, 0.5f)
-#define NUM_SHIP_PART_SUB_PIECES 4
+#define NUM_SHIP_PART_SUB_PIECES 8
 
 using namespace std;
 using namespace glm;
@@ -298,7 +298,7 @@ void GameManager::initScene() {
     /* Ship part pieces */
     for (int i = 0; i < NUM_SHIP_PART_SUB_PIECES; i++) {
         temp = make_shared<Shape>();
-        temp->loadMesh(RESOURCE_DIR + "shipPart" + to_string(i) + ".obj", RESOURCE_DIR);
+        temp->loadMesh(RESOURCE_DIR + "/ship_parts/shipPart" + to_string(i) + ".obj", RESOURCE_DIR);
         temp->fitToUnitBox(shapes["shipPart"]->getFitToUnitBoxScaleFactor());
         temp->init();
         shipPartPieces.push_back(temp);
@@ -492,9 +492,16 @@ void GameManager::parseObject(string objectString, shared_ptr<Material> greyBox,
 
         //cout << "death box" << endl;
     } else if (collectable) {
-        spaceShipPart = make_shared<SpaceShipPart>(pos, vec3(0, 0, 0),
-                CUBE_HALF_EXTENTS, scale,
-                shipPartPieces, spacePart);
+        if (NUM_SHIP_PART_SUB_PIECES) {
+            spaceShipPart = make_shared<SpaceShipPart>(pos, vec3(0, 0, 0),
+                                                       CUBE_HALF_EXTENTS, scale,
+                                                       shipPartPieces, spacePart);
+        }
+        else {
+            spaceShipPart = make_shared<SpaceShipPart>(pos, vec3(0, 0, 0),
+                                                       CUBE_HALF_EXTENTS, scale,
+                                                       shapes["shipPart"], spacePart);
+        }
         bullet->createBox(to_string(name++), pos, CUBE_HALF_EXTENTS, scale, 0);
     } else {
         shared_ptr<Cuboid> groundPlane = make_shared<Cuboid>(pos, vec3(0, 0, 0),
@@ -780,7 +787,7 @@ void GameManager::updateGame(double dt) {
             psystem->update(dt, camera->getPosition());
 
             if (camera->checkForCollision(spaceShipPart)) {
-                spaceShipPart->startWin();
+                spaceShipPart->startWin(camera->getDirection());
                 if (!fmod->isPlaying("collecting")) {
                     fmod->playSound("collecting", true, 1.5);
                 }

@@ -28,7 +28,7 @@ public:
     
     void update(float dt);
     void draw(const std::shared_ptr<Program> &prog);
-    void startWin();
+    void startWin(const glm::vec3 &camDir);
     bool doneWinning();
 
 protected:

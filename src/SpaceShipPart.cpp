@@ -58,7 +58,8 @@ yOffset(0.0f),
 zOffsets(vector<float>()),
 currTime(0.0f),
 collected(false),
-spinning(false)
+spinning(false),
+expanding(false)
 {
     for (unsigned int i = 0; i < partPieces.size(); i++) {
         xOffsets.push_back(0);
@@ -70,7 +71,7 @@ bool SpaceShipPart::doneWinning() {
     return collected;
 }
 
-void SpaceShipPart::startWin() {
+void SpaceShipPart::startWin(const vec3 &camDir) {
     if (!spinning) {
         spinning = true;
         spinTime = 0;
@@ -79,9 +80,9 @@ void SpaceShipPart::startWin() {
         expanding = true;
         expandTime = 0;
         for (unsigned int i = 0; i < partPieces.size(); i++) {
-            expandDirs.push_back(vec3(Calculations::randFloat(-0.5f, 0.5f),
-                                      0.0f,
-                                      Calculations::randFloat(-0.5f, 0.5f)));
+            expandDirs.push_back(camDir + vec3(Calculations::randFloat(-0.5f, 0.5f),
+                                               0.0f,
+                                               Calculations::randFloat(-0.5f, 0.5f)));
         }
     }
 }
