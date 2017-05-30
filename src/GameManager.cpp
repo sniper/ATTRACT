@@ -220,9 +220,11 @@ void GameManager::initScene() {
     fogProgram->init();
     fogProgram->addAttribute("aPos");
     fogProgram->addAttribute("aNor");
+    fogProgram->addAttribute("aTex");
     fogProgram->addUniform("M");
     fogProgram->addUniform("V");
     fogProgram->addUniform("P");
+    fogProgram->addUniform("diffuseTex");
     fogProgram->addUniform("lightPos");
     fogProgram->addUniform("lightIntensity");
     fogProgram->addUniform("viewPos");
@@ -234,6 +236,12 @@ void GameManager::initScene() {
     fogProgram->addUniform("LS2");
     fogProgram->addUniform("cascadeEndClipSpace");
     fogProgram->addUniform("time");
+
+    fogTexture = make_shared<Texture>();
+    fogTexture->setFilename(RESOURCE_DIR + "fogTexture.jpg");
+    fogTexture->init();
+    fogTexture->setUnit(0);
+    fogTexture->setWrapModes(GL_REPEAT, GL_REPEAT);
 
     //
     // Asteroids
@@ -1323,6 +1331,7 @@ void GameManager::drawScene(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> V
             GLSL::checkError();
             if (true || !vfc->viewFrustCull(temp) || depthBufferPass) {
                 shaderDeath->bind();
+                fogTexture->bind(shaderDeath->getUniform("diffuseTex"));
                 nearShadowManager->setUnit(3);
                 midShadowManager->setUnit(4);
                 farShadowManager->setUnit(5);
@@ -1358,6 +1367,7 @@ void GameManager::drawScene(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> V
                 midShadowManager->unbind();
                 farShadowManager->unbind();
 
+                fogTexture->unbind();
                 shaderDeath->unbind();
             }
             delete temp;

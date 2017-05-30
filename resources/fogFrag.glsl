@@ -9,10 +9,12 @@ uniform vec3 cascadeEndClipSpace;
 uniform sampler2D shadowDepth0;
 uniform sampler2D shadowDepth1;
 uniform sampler2D shadowDepth2;
+uniform sampler2D diffuseTex;
 uniform int time;
 
 const int NUM_CASCADES = 3;
 
+in vec2 vTex;
 in vec3 fragPos; // passed from vert shader
 in vec3 fragNor; // passed from vert shader
 in vec4 fragPosLS[NUM_CASCADES];
@@ -96,11 +98,12 @@ void main()
     if (dist < 5.0) {
         dist = 5.0;
     }
-    vec3 fogColor = vec3(0.5, 0.5, 0.55);
+    //vec3 fogColor = vec3(0.5, 0.5, 0.55);
+    vec3 fogColor = texture(diffuseTex, vTex).rgb;
     float f = 1 / exp(dist * 0.15);
     // make sure there's always a little opacity
-    if (1 - f > 0.95) {
-        f = 0.05;
+    if (1 - f > 0.90) {
+        f = 0.10;
     }
 
     FragColor = vec4(fogColor, 1 - f);

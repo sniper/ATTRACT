@@ -2,6 +2,7 @@
 
 layout(location = 0) in vec4 aPos; // in object space
 layout(location = 1) in vec3 aNor; // in object space
+layout(location = 2) in vec2 aTex;
 
 uniform mat4 P;
 uniform mat4 V;
@@ -12,6 +13,7 @@ uniform mat4 LS2;
 
 const int NUM_CASCADES = 3;
 
+out vec2 vTex;
 out vec3 fragPos;
 out vec3 fragNor;
 out vec4 fragPosLS[NUM_CASCADES];
@@ -29,4 +31,6 @@ void main()
     fragPosLS[1] = LS1 * vec4(fragPos, 1.0);
     fragPosLS[2] = LS2 * vec4(fragPos, 1.0);
     clipSpacePosZ = gl_Position.z;
+
+    vTex = aTex;
 }

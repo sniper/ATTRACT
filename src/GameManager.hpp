@@ -152,7 +152,7 @@ private:
     std::shared_ptr<Program> program, shipPartProgram, skyscraperProgram,
         depthProg, shadowDebugProg, asteroidProgram, gaussianProg, bloomProg, simpleDebugProg, fogProgram;
     std::shared_ptr<Texture> shipPartColorTexture, shipPartSpecularTexture,
-    skyscraperColorTexture, skyscraperSpecularTexture;
+    skyscraperColorTexture, skyscraperSpecularTexture, fogTexture;
     std::map<std::string, std::shared_ptr<Shape>> shapes;
     std::vector<std::shared_ptr<Shape>> shipPartPieces;
 
