@@ -377,13 +377,13 @@ void GameManager::initScene() {
             200.0f);
     spaceShipPart1 = make_shared<SpaceShipPart>(vec3(6, 5.4, 4.0), vec3(0, 0, 0),
             CUBE_HALF_EXTENTS, vec3(1, 1, 1),
-            shapes["shipPart"], spacePart);
+            shapes["shipPart"], shipPartPieces, spacePart);
     spaceShipPart2 = make_shared<SpaceShipPart>(vec3(6, 5.4, 5.0), vec3(0, 0, 0),
             CUBE_HALF_EXTENTS, vec3(1, 1, 1),
-            shapes["shipPart"], spacePart);
+            shapes["shipPart"], shipPartPieces, spacePart);
     spaceShipPart3 = make_shared<SpaceShipPart>(vec3(5, 5.4, 4.3), vec3(0, 0, 0),
             CUBE_HALF_EXTENTS, vec3(1, 1, 1),
-            shapes["shipPart"], spacePart);
+            shapes["shipPart"], shipPartPieces, spacePart);
 }
 
 bool GameManager::toBool(string s) {
@@ -492,17 +492,10 @@ void GameManager::parseObject(string objectString, shared_ptr<Material> greyBox,
 
         //cout << "death box" << endl;
     } else if (collectable) {
-        if (NUM_SHIP_PART_SUB_PIECES) {
-            spaceShipPart = make_shared<SpaceShipPart>(pos, vec3(0, 0, 0),
-                                                       CUBE_HALF_EXTENTS, scale,
-                                                       shipPartPieces, spacePart);
-        }
-        else {
-            spaceShipPart = make_shared<SpaceShipPart>(pos, vec3(0, 0, 0),
-                                                       CUBE_HALF_EXTENTS, scale,
-                                                       shapes["shipPart"], spacePart);
-        }
-        bullet->createBox(to_string(name++), pos, CUBE_HALF_EXTENTS, scale, 0);
+        spaceShipPart = make_shared<SpaceShipPart>(pos, vec3(0, 0, 0),
+                                                   CUBE_HALF_EXTENTS, scale,
+                                                   shapes["shipPart"],
+                                                   shipPartPieces, spacePart);
     } else {
         shared_ptr<Cuboid> groundPlane = make_shared<Cuboid>(pos, vec3(0, 0, 0),
                 CUBE_HALF_EXTENTS,

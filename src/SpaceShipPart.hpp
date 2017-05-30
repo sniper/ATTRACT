@@ -20,9 +20,6 @@ public:
     SpaceShipPart(const glm::vec3 &position, const glm::vec3 &direction,
                   const glm::vec3 &halfExtents, const glm::vec3 &scale,
                   const std::shared_ptr<Shape> &shape,
-                  const std::shared_ptr<Material> &material);
-    SpaceShipPart(const glm::vec3 &position, const glm::vec3 &direction,
-                  const glm::vec3 &halfExtents, const glm::vec3 &scale,
                   const std::vector<std::shared_ptr<Shape>> &pieces,
                   const std::shared_ptr<Material> &material);
     
@@ -38,10 +35,8 @@ protected:
     std::vector<float> zOffsets;
     float currTime;
     bool collected;
-    bool spinning;
-    bool expanding;
-    float spinTime;
-    float expandTime;
+    bool collided;
+    float collidedTime;
     std::vector<glm::vec3> expandDirs;
 };
 
