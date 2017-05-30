@@ -17,9 +17,9 @@
 #include <GLFW/glfw3.h>
 #include <glm/gtc/type_ptr.hpp>
 #include "GameObject.hpp"
+#include "Cuboid.hpp"
 
-
-#define NUMLEVELS 7
+#define NUMLEVELS 8
 
 class InputManager;
 class Camera;
@@ -164,6 +164,8 @@ private:
     glm::mat4 LSpace;
     
     double pausedXMouse, pausedYMouse;
+
+    std::map<int, std::shared_ptr<Cuboid>> movingObjects;
 };
 
 #endif /* GameManager_hpp */

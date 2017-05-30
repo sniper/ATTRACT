@@ -12,11 +12,13 @@
 #include "GameObject.hpp"
 #include "AABoundingBox.hpp"
 
+#define WAIT_TIME (2.0f)
+
 class Cuboid : public GameObject
 {
 public:
     Cuboid();
-    Cuboid(const glm::vec3 &position, const glm::vec3 &direction,
+    Cuboid(const glm::vec3 &position, const glm::vec3 &position2, const glm::vec3 &direction,
            const glm::vec3 &halfExtents, const glm::vec3 &scale, float velocity,
            const std::shared_ptr<Shape> &shape,
            const std::shared_ptr<Material> &material, bool magnetic);
@@ -38,8 +40,10 @@ public:
     glm::vec3 getMaxes() const {return boundingBox->getMaxes();}
     std::vector<glm::vec3> *getAabbMinsMaxs();
 protected:
+    glm::vec3 position1, position2, dir;
     std::shared_ptr<AABoundingBox> boundingBox;
     bool magnetic;
+    float waiting;
 };
 
 #endif /* Cuboid_hpp */

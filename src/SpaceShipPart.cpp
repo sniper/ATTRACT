@@ -32,7 +32,7 @@ SpaceShipPart::SpaceShipPart(const vec3 &position, const vec3 &direction,
                              const vec3 &halfExtents, const vec3 &scale,
                              const shared_ptr<Shape> &shape,
                              const shared_ptr<Material> &material) :
-Cuboid(position, direction, halfExtents, scale, 0.0f, shape, material, false),
+Cuboid(position, vec3(0, 0, 0), direction, halfExtents, scale, 0.0f, shape, material, false),
 yOffset(0.0f),
 currTime(0.0f),
 collected(false),

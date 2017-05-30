@@ -16,21 +16,28 @@ using namespace glm;
 
 Cuboid::Cuboid() :
 GameObject(),
+position1(vec3(0.0f, 0.0f, 0.0f)),
+position2(vec3(0.0f, 0.0f, 0.0f)),
 boundingBox(make_shared<AABoundingBox>()),
-magnetic(false)
+magnetic(false),
+waiting(0)
 {
     
 }
 
-Cuboid::Cuboid(const vec3 &position, const vec3 &direction,
+Cuboid::Cuboid(const vec3 &position, const vec3 &position2, const vec3 &direction,
                const vec3 &halfExtents, const vec3 &scale, float velocity,
                const shared_ptr<Shape> &shape,
                const shared_ptr<Material> &material, bool magnetic) :
-GameObject(position, direction, scale, velocity, shape, material),
+GameObject(position, vec3(0, 0, 0), scale, velocity, shape, material),
+position1(position),
+position2(position2),
+dir(direction),
 boundingBox(make_shared<AABoundingBox>(position, vec3(halfExtents.x * scale.x,
                                                       halfExtents.y * scale.y,
                                                       halfExtents.z * scale.z))),
-magnetic(magnetic)
+magnetic(magnetic),
+waiting(0)
 {
     
 }
@@ -44,6 +51,30 @@ void Cuboid::update(float dt)
 {
     GameObject::update(dt);
     boundingBox->setPosition(position);
+    if (velocity == 0) {
+        return;
+    }
+    if (waiting == 0.0f) {
+        position += dir * velocity * dt;
+        boundingBox->setPosition(position);
+        float dist1 = distance(position, position1);
+        float dist2 = distance(position, position2);
+        float prevVelocity = velocity;
+        if (dist1 <= 0.1) {
+            velocity = abs(velocity);
+
+        } else if (dist2 <= 0.1) {
+            velocity = abs(velocity) * -1;
+        }
+        if (prevVelocity != velocity) {
+            waiting = WAIT_TIME;
+        }
+    } else {
+        waiting -= dt;
+        if (waiting < 0) {
+            waiting = 0;
+        }
+    }
 }
 
 bool Cuboid::isCollidingWithBoundingSphere(const std::shared_ptr<BoundingSphere> &sphere)

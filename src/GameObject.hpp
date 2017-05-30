@@ -50,6 +50,7 @@ public:
     virtual bool isMagnetic() const {return false;}
     glm::vec3 getPosition() const {return position;}
     glm::vec3 getDirection() const {return direction;}
+    float getVelocity() const {return velocity;}
     glm::vec3 getScale() const {return scale;}
     void setScale(glm::vec3 in){ scale = in;}
     

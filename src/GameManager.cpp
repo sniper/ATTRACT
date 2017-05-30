@@ -484,17 +484,20 @@ void GameManager::parseObject(string objectString, shared_ptr<Material> greyBox,
     //    cerr << "new obj" << endl;
     //    cerr << pos.x << " " << pos.y << endl;
     //    cerr << scale.x << " " << scale.y << endl;
+    bool moving = toBool(elems[14]);
+    float speed = stof(elems[15]);
+    vec3 pos2 = vec3(stof(elems[16]), stof(elems[17]), stof(elems[18]));
 
     /*TODO: MAGNETIC AND DEADLY*/
     if (magnetic) {
-        shared_ptr<Cuboid> magnet = make_shared<Cuboid>(pos, vec3(0, 0, 0),
+        shared_ptr<Cuboid> magnet = make_shared<Cuboid>(pos, pos2, normalize(pos2 - pos),
                 CUBE_HALF_EXTENTS,
-                scale, 0, shapes["plainCube"],
+                scale, speed, shapes["plainCube"],
                 magnetSurface, true);
         objects.push_back(magnet);
         bullet->createMagneticBox(to_string(name++), pos, CUBE_HALF_EXTENTS, scale, 0);
     } else if (deadly) {
-        shared_ptr<Cuboid> dobj1 = make_shared<Cuboid>(pos, vec3(0, 0, 0),
+        shared_ptr<Cuboid> dobj1 = make_shared<Cuboid>(pos, vec3(0, 0, 0), vec3(0, 0, 0),
                 CUBE_HALF_EXTENTS,
                 scale, 0, shapes["plainCube"],
                 greyBox, false);
@@ -507,12 +510,17 @@ void GameManager::parseObject(string objectString, shared_ptr<Material> greyBox,
                 shapes["shipPart"], spacePart);
         bullet->createBox(to_string(name++), pos, CUBE_HALF_EXTENTS, scale, 0);
     } else {
-        shared_ptr<Cuboid> groundPlane = make_shared<Cuboid>(pos, vec3(0, 0, 0),
+        shared_ptr<Cuboid> groundPlane = make_shared<Cuboid>(pos, pos2, normalize(pos2 - pos),
                 CUBE_HALF_EXTENTS,
-                scale, 0, shapes["skyscraper"],
+                scale, speed, shapes["skyscraper"],
                 nullptr, false);
         objects.push_back(groundPlane);
-        bullet->createBox(to_string(name++), pos, CUBE_HALF_EXTENTS, scale, 0);
+        bullet->createBox(to_string(name), pos, CUBE_HALF_EXTENTS, scale, 0);
+        if (speed != 0) {
+            movingObjects.insert(make_pair(name++, groundPlane));
+        } else {
+            name++;
+        }
     }
 }
 
@@ -523,6 +531,7 @@ void GameManager::importLevel(string level) {
     bvh = nullptr;
     objects.clear();
     deathObjects.clear();
+    movingObjects.clear();
 
     fadeToBlack = false;
     toBlackAlpha = 0.0f;
@@ -663,7 +672,7 @@ void GameManager::createEnvironment() {
         float x = randFloat(minSize, fmin(maxSize, spaceLeft));
         float z = randFloat(minSize, maxSize);
         float y = randFloat(minHeight, maxHeight);
-        building = make_shared<Cuboid>(vec3(currLoc + (x / 2), minY + (y / 2), (minZ - gap) - (z)), vec3(0, 0, 0),
+        building = make_shared<Cuboid>(vec3(currLoc + (x / 2), minY + (y / 2), (minZ - gap) - (z)), vec3(0, 0, 0), vec3(0, 0, 0),
             CUBE_HALF_EXTENTS,
             vec3(x, y, z), 0, shapes["skyscraper"],
             nullptr, false);
@@ -679,7 +688,7 @@ void GameManager::createEnvironment() {
         float x = randFloat(minSize, fmin(maxSize, spaceLeft));
         float y = randFloat(minHeight, maxHeight);
         float z = randFloat(minSize, maxSize);
-        building = make_shared<Cuboid>(vec3(currLoc + (x / 2), minY + (y / 2), (maxZ + gap) + (z)), vec3(0, 0, 0),
+        building = make_shared<Cuboid>(vec3(currLoc + (x / 2), minY + (y / 2), (maxZ + gap) + (z)), vec3(0, 0, 0), vec3(0, 0, 0),
             CUBE_HALF_EXTENTS,
             vec3(x, y, z), 0, shapes["skyscraper"],
             nullptr, false);
@@ -695,7 +704,7 @@ void GameManager::createEnvironment() {
         float x = randFloat(minSize, maxSize);
         float y = randFloat(minHeight, maxHeight);
         float z = randFloat(minSize, fmin(maxSize, spaceLeft));
-        building = make_shared<Cuboid>(vec3((minX - gap) - x, minY + (y / 2), currLoc + (z / 2)), vec3(0, 0, 0),
+        building = make_shared<Cuboid>(vec3((minX - gap) - x, minY + (y / 2), currLoc + (z / 2)), vec3(0, 0, 0), vec3(0, 0, 0),
             CUBE_HALF_EXTENTS,
             vec3(x, y, z), 0, shapes["skyscraper"],
             nullptr, false);
@@ -711,7 +720,7 @@ void GameManager::createEnvironment() {
         float x = randFloat(minSize, maxSize);
         float y = randFloat(minHeight, maxHeight);
         float z = randFloat(minSize, fmin(maxSize, spaceLeft));
-        building = make_shared<Cuboid>(vec3((maxX + gap) + x, minY + (y / 2), currLoc + (z / 2)), vec3(0, 0, 0),
+        building = make_shared<Cuboid>(vec3((maxX + gap) + x, minY + (y / 2), currLoc + (z / 2)), vec3(0, 0, 0), vec3(0, 0, 0),
             CUBE_HALF_EXTENTS,
             vec3(x, y, z), 0, shapes["skyscraper"],
             nullptr, false);
@@ -917,6 +926,18 @@ void GameManager::updateGame(double dt) {
 
             spaceShipPart->update(dt);
 
+            for (std::map<int, std::shared_ptr<Cuboid>>::iterator it = movingObjects.begin(); it != movingObjects.end(); it++) {
+                it->second->update(dt);
+                vec3 newPos = it->second->getPosition();
+                btRigidBody* body = bullet->getBulletObject(to_string(it->first))->getRigidBody();
+                btTransform transform;
+                transform.setOrigin(btVector3(newPos.x, newPos.y, newPos.z));
+                transform.setRotation(body->getWorldTransform().getRotation());
+                body->setWorldTransform(transform);
+                //body->getMotionState()->setWorldTransform(transform);
+                //body->clearForces();
+            }
+
             //step the bullet, update test obj
             bullet->step(dt);
 
@@ -935,6 +956,7 @@ void GameManager::updateGame(double dt) {
                 bvh = nullptr;
                 objects.clear();
                 deathObjects.clear();
+                movingObjects.clear();
                 if (fmod->isPlaying("collecting")) {
                     fmod->stopSound("collecting");
                 }
@@ -1354,6 +1376,7 @@ void GameManager::renderGame(int fps) {
                 if (toBlackAlpha >= 1.0f) {
                     objects.clear();
                     deathObjects.clear();
+                    movingObjects.clear();
                     toBlackAlpha = 0;
                     gameState = DEATH;
                     gui->resetDeath();
@@ -1412,6 +1435,7 @@ void GameManager::renderGame(int fps) {
                 if (toBlackAlpha >= 1.0f) {
                     objects.clear();
                     deathObjects.clear();
+                    movingObjects.clear();
                     toBlackAlpha = 0;
                     gameState = DEATH;
                     gui->resetDeath();
