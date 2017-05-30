@@ -6,6 +6,8 @@
 //
 //
 
+#include <stdio.h>
+
 #include "ShadowManager.hpp"
 
 ShadowManager::ShadowManager()

@@ -114,11 +114,6 @@ void Camera::interpretPressedKeys(const vector<char> &pressedKeys,
     oldPosition = position;
 
     /*debug stuff*/
-    if (find(pressedKeys.begin(), pressedKeys.end(), 'p') != pressedKeys.end()) {
-        //bullet->setDebugFlag(!bullet->getDebugFlag());
-
-    }
-
     if (find(pressedKeys.begin(), pressedKeys.end(), 'i') != pressedKeys.end()) {
         bullet->setDebugMode(btIDebugDraw::DBG_DrawWireframe);
     }
@@ -146,11 +141,7 @@ void Camera::interpretPressedKeys(const vector<char> &pressedKeys,
         moving = true;
     }
 
-
-
     if (find(pressedKeys.begin(), pressedKeys.end(), ' ') != pressedKeys.end()) {
-
-
         vec3 startV = bullet->getBulletObjectState("cam");
         btVector3 start = btVector3(startV.x, startV.y, startV.z);
         btVector3 end = btVector3(startV.x, startV.y - JUMP_CUTOFF, startV.z);
@@ -198,7 +189,6 @@ void Camera::interpretPressedKeys(const vector<char> &pressedKeys,
         }
 
     } else {
-        //cout << "zeroing out friciton" << endl;
         jumping = true;
         bulletCamObj->getRigidBody()->setFriction(0.0f);
     }
@@ -214,7 +204,6 @@ void Camera::applyProjectionMatrix(shared_ptr<MatrixStack> P) const {
 }
 
 void Camera::applyViewMatrix(shared_ptr<MatrixStack> MV) const {
-    //cout << yaw << " " << pitch << endl;
     vec3 rot = vec3(cos(pitch) * cos(yaw), sin(pitch), cos(pitch) * cos((3.14 / 2) - yaw));
     vec3 lap = position + rot;
     vec3 up;
@@ -224,6 +213,11 @@ void Camera::applyViewMatrix(shared_ptr<MatrixStack> MV) const {
         up = vec3(0.0, 1.0, 0.0);
     }
     MV->lookAt(position, lap, up);
+}
+
+void Camera::applyViewMatrixSky(shared_ptr<MatrixStack> V) const
+{
+    V->lookAt(position, position + vec3(0.2, -1, 0), vec3(0, 1, 0));
 }
 
 bool Camera::checkForCollision(const std::shared_ptr<GameObject> &otherObj)

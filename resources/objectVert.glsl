@@ -6,7 +6,7 @@ layout(location = 1) in vec3 aNor; // in object space
 uniform mat4 P;
 uniform mat4 V;
 uniform mat4 M;
-uniform mat4 LS;
+uniform mat4 LS0;
 
 out vec3 fragPos;
 out vec3 fragNor;
@@ -20,5 +20,5 @@ void main()
     /* frag normal in world */
     fragNor = vec3(M * vec4(aNor, 0.0));
     /* frag pos in light space */
-    fragPosLS = LS * vec4(fragPos, 1.0);
+    fragPosLS = LS0 * vec4(fragPos, 1.0);
 }

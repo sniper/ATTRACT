@@ -5,28 +5,45 @@ uniform sampler2D shadowDepth;
 uniform float lightIntensity;
 uniform vec3 lightPos;
 uniform vec3 viewPos;
+uniform vec3 cascadeEndClipSpace;
+uniform sampler2D shadowDepth0;
+uniform sampler2D shadowDepth1;
+uniform sampler2D shadowDepth2;
 uniform int time;
+
+const int NUM_CASCADES = 3;
 
 in vec3 fragPos; // passed from vert shader
 in vec3 fragNor; // passed from vert shader
-in vec4 fragPosLS;
+in vec4 fragPosLS[NUM_CASCADES];
+in float clipSpacePosZ;
 
 out vec4 FragColor;
 
 /* returns 1 if shadowed */
 /* called with the point projected into the light's coordinate space */
-float TestShadow(vec4 LSfPos) {
-    float bias = 0.02;
+float TestShadow(int cascadeIndex, vec4 LSfPos) {
+    //float bias = 0.004;
+    float bias = 0.003;
     
     // perspective divide isn't needed since we're using ortho projection, but
-    // just in case it changes to persepective.
+    // doesn't hurt.
     vec3 projCoords = LSfPos.xyz / LSfPos.w;
     
     //1: shift the coordinates from -1, 1 to 0 ,1
     vec3 shift = projCoords * 0.5 + 0.5;
     //2: read off the stored depth (.r) from the ShadowDepth, using the shifted.xy
     float curD = shift.z;
-    float lightD = texture(shadowDepth, shift.xy).r;
+    float lightD;
+    if (cascadeIndex == 0) {
+        lightD = texture(shadowDepth0, shift.xy).r;
+    }
+    else if (cascadeIndex == 1) {
+        lightD = texture(shadowDepth1, shift.xy).r;
+    }
+    else if (cascadeIndex == 2) {
+        lightD = texture(shadowDepth2, shift.xy).r;
+    }
     
     if (shift.x > 1.0 || shift.y > 1.0 || shift.x < 0.0 || shift.y < 0.0) {
         return -1.0;
@@ -54,10 +71,21 @@ void main()
     //    color = 0.5;
     //}
 
-    //float shadow = TestShadow(fragPosLS);
-    //if (shadow < -0.5) {
-    //    color -= 0.3;
-    //}
+    /*float shadow;
+    for (int i = 0; i < NUM_CASCADES; i++) {
+        if (clipSpacePosZ <= cascadeEndClipSpace[i]) {
+            if (i == 0) {
+                shadow = TestShadow(0, fragPosLS[0]);
+            }
+            else if (i == 1) {
+                shadow = TestShadow(1, fragPosLS[1]);
+            }
+            else if (i == 2) {
+                shadow = TestShadow(2, fragPosLS[2]);
+            }
+            break;
+        }
+    }*/
 
     //FragColor = vec4(vec3(color / 2, color, color / 2), (dist / 30) + color);
     //FragColor = vec4(vec3(color, color, color), (dist / 30) + color);

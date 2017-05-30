@@ -6,11 +6,16 @@ layout(location = 1) in vec3 aNor; // in object space
 uniform mat4 P;
 uniform mat4 V;
 uniform mat4 M;
-uniform mat4 LS;
+uniform mat4 LS0;
+uniform mat4 LS1;
+uniform mat4 LS2;
+
+const int NUM_CASCADES = 3;
 
 out vec3 fragPos;
 out vec3 fragNor;
-out vec4 fragPosLS;
+out vec4 fragPosLS[NUM_CASCADES];
+out float clipSpacePosZ;
 
 void main()
 {
@@ -20,5 +25,8 @@ void main()
     /* frag normal in world */
     fragNor = vec3(M * vec4(aNor, 0.0));
     /* frag pos in light space */
-    fragPosLS = LS * vec4(fragPos, 1.0);
+    fragPosLS[0] = LS0 * vec4(fragPos, 1.0);
+    fragPosLS[1] = LS1 * vec4(fragPos, 1.0);
+    fragPosLS[2] = LS2 * vec4(fragPos, 1.0);
+    clipSpacePosZ = gl_Position.z;
 }
