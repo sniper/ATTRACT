@@ -57,6 +57,7 @@
 #define MAGNET_RANGE 13.0f
 #define MAGNET_STRENGTH 7.0f
 #define CUBE_HALF_EXTENTS vec3(0.5f, 0.5f, 0.5f)
+#define NUM_SHIP_PART_SUB_PIECES 8
 
 using namespace std;
 using namespace glm;
@@ -313,6 +314,15 @@ void GameManager::initScene() {
     temp->fitToUnitBox();
     temp->init();
     shapes.insert(make_pair("asteroid", temp));
+    
+    /* Ship part pieces */
+    for (int i = 0; i < NUM_SHIP_PART_SUB_PIECES; i++) {
+        temp = make_shared<Shape>();
+        temp->loadMesh(RESOURCE_DIR + "/ship_parts/shipPart" + to_string(i) + ".obj", RESOURCE_DIR);
+        temp->fitToUnitBox(shapes["shipPart"]->getFitToUnitBoxScaleFactor());
+        temp->init();
+        shipPartPieces.push_back(temp);
+    }
 
     /* Shadow stuff */
     // Initialize the GLSL programs
@@ -387,13 +397,13 @@ void GameManager::initScene() {
             200.0f);
     spaceShipPart1 = make_shared<SpaceShipPart>(vec3(6, 5.4, 4.0), vec3(0, 0, 0),
             CUBE_HALF_EXTENTS, vec3(1, 1, 1),
-            shapes["shipPart"], spacePart);
+            shapes["shipPart"], shipPartPieces, spacePart);
     spaceShipPart2 = make_shared<SpaceShipPart>(vec3(6, 5.4, 5.0), vec3(0, 0, 0),
             CUBE_HALF_EXTENTS, vec3(1, 1, 1),
-            shapes["shipPart"], spacePart);
+            shapes["shipPart"], shipPartPieces, spacePart);
     spaceShipPart3 = make_shared<SpaceShipPart>(vec3(5, 5.4, 4.3), vec3(0, 0, 0),
             CUBE_HALF_EXTENTS, vec3(1, 1, 1),
-            shapes["shipPart"], spacePart);
+            shapes["shipPart"], shipPartPieces, spacePart);
 }
 
 bool GameManager::toBool(string s) {
@@ -506,9 +516,9 @@ void GameManager::parseObject(string objectString, shared_ptr<Material> greyBox,
         //cout << "death box" << endl;
     } else if (collectable) {
         spaceShipPart = make_shared<SpaceShipPart>(pos, vec3(0, 0, 0),
-                CUBE_HALF_EXTENTS, scale,
-                shapes["shipPart"], spacePart);
-        bullet->createBox(to_string(name++), pos, CUBE_HALF_EXTENTS, scale, 0);
+                                                   CUBE_HALF_EXTENTS, scale,
+                                                   shapes["shipPart"],
+                                                   shipPartPieces, spacePart);
     } else {
         shared_ptr<Cuboid> groundPlane = make_shared<Cuboid>(pos, pos2, normalize(pos2 - pos),
                 CUBE_HALF_EXTENTS,
@@ -946,7 +956,7 @@ void GameManager::updateGame(double dt) {
             psystem->update(dt, camera->getPosition());
 
             if (camera->checkForCollision(spaceShipPart)) {
-                spaceShipPart->startWin();
+                spaceShipPart->startWin(camera->getDirection());
                 if (!fmod->isPlaying("collecting")) {
                     fmod->playSound("collecting", true, 1.5);
                 }
@@ -1368,7 +1378,6 @@ void GameManager::renderGame(int fps) {
             skybox->render(P, V, 0);
             drawScene(P, V, false);
             drawShipPart(P, V, false);
-
 
             if (gameState == DEATHANIMATION) {
                 toBlackAlpha += 0.04f;

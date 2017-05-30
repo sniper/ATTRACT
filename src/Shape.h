@@ -17,11 +17,15 @@ public:
 	virtual ~Shape();
     void loadMesh(const std::string &meshName, const std::string &resourceDir);
 	void fitToUnitBox();
+    void fitToUnitBox(const float scale);
 	void init();
 	void draw(const std::shared_ptr<Program> prog) const;
+    
+    float getFitToUnitBoxScaleFactor() const {return fitToUnitBoxScaleFactor;}
 	
 private:
     std::string RESOURCE_DIR;
+    float fitToUnitBoxScaleFactor;
     
     std::vector<std::vector<unsigned int>> eleBufs;
 	std::vector<float> posBuf;

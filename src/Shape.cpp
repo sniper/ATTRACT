@@ -15,6 +15,7 @@ using namespace std;
 using namespace glm;
 
 Shape::Shape() :
+fitToUnitBoxScaleFactor(1),
 eleBufID(0),
 posBufID(0),
 norBufID(0),
@@ -111,11 +112,20 @@ void Shape::fitToUnitBox() {
     float diffmax = diff[0];
     diffmax = std::max(diffmax, diff[1]);
     diffmax = std::max(diffmax, diff[2]);
-    float scale = 1.0f / diffmax;
+    fitToUnitBoxScaleFactor = 1.0f / diffmax;
     for (int i = 0; i < (int) posBuf.size(); i += 3) {
-        posBuf[i ] = (posBuf[i ] - center[0]) * scale;
-        posBuf[i + 1] = (posBuf[i + 1] - center[1]) * scale;
-        posBuf[i + 2] = (posBuf[i + 2] - center[2]) * scale;
+        posBuf[i ] = (posBuf[i ] - center[0]) * fitToUnitBoxScaleFactor;
+        posBuf[i + 1] = (posBuf[i + 1] - center[1]) * fitToUnitBoxScaleFactor;
+        posBuf[i + 2] = (posBuf[i + 2] - center[2]) * fitToUnitBoxScaleFactor;
+    }
+}
+
+void Shape::fitToUnitBox(const float scale) {
+    // Scale the vertex positions so that they fit within [-1, +1] in all three dimensions.
+    for (int i = 0; i < (int) posBuf.size(); i += 3) {
+        posBuf[i ] = posBuf[i ] * scale;
+        posBuf[i + 1] = posBuf[i + 1] * scale;
+        posBuf[i + 2] = posBuf[i + 2] * scale;
     }
 }
 
