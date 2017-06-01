@@ -579,7 +579,12 @@ void GameManager::parseObject(string objectString, shared_ptr<Material> greyBox,
                 scale, speed, shapes["plainCube"],
                 magnetSurface, true);
         objects.push_back(magnet);
-        bullet->createMagneticBox(to_string(name++), pos, CUBE_HALF_EXTENTS, scale, 0);
+        bullet->createMagneticBox(to_string(name), pos, CUBE_HALF_EXTENTS, scale, 0);
+        if (speed != 0) {
+            movingObjects.insert(make_pair(name++, magnet));
+        } else {
+            name++;
+        }
     } else if (deadly) {
         shared_ptr<Cuboid> dobj1 = make_shared<Cuboid>(pos, vec3(0, 0, 0), vec3(0, 0, 0),
                 CUBE_HALF_EXTENTS,
@@ -616,6 +621,7 @@ void GameManager::importLevel(string level) {
     objects.clear();
     deathObjects.clear();
     movingObjects.clear();
+    fakeBuildings.clear();
 
     fadeToBlack = false;
     toBlackAlpha = 0.0f;
@@ -735,7 +741,7 @@ void GameManager::createEnvironment() {
                 CUBE_HALF_EXTENTS,
                 vec3(x, y, z), 0, shapes["skyscraper"],
                 nullptr, false);
-            objects.push_back(building);
+            fakeBuildings.push_back(building);
             spaceLeft -= x + 5;
             currLoc += x + 5;
         }
@@ -751,7 +757,7 @@ void GameManager::createEnvironment() {
                 CUBE_HALF_EXTENTS,
                 vec3(x, y, z), 0, shapes["skyscraper"],
                 nullptr, false);
-            objects.push_back(building);
+            fakeBuildings.push_back(building);
             spaceLeft -= x + 5;
             currLoc += x + 5;
         }
@@ -767,7 +773,7 @@ void GameManager::createEnvironment() {
                 CUBE_HALF_EXTENTS,
                 vec3(x, y, z), 0, shapes["skyscraper"],
                 nullptr, false);
-            objects.push_back(building);
+            fakeBuildings.push_back(building);
             spaceLeft -= z + 5;
             currLoc += z + 5;
         }
@@ -783,7 +789,7 @@ void GameManager::createEnvironment() {
                 CUBE_HALF_EXTENTS,
                 vec3(x, y, z), 0, shapes["skyscraper"],
                 nullptr, false);
-            objects.push_back(building);
+            fakeBuildings.push_back(building);
             spaceLeft -= z + 5;
             currLoc += z + 5;
         }
@@ -1017,6 +1023,9 @@ void GameManager::updateGame(double dt) {
                 //body->getMotionState()->setWorldTransform(transform);
                 //body->clearForces();
             }
+            if (movingObjects.size() > 0) {
+                bvh = make_shared<BVH>(objects);
+            }
 
             //step the bullet, update test obj
             bullet->step(dt);
@@ -1039,6 +1048,7 @@ void GameManager::updateGame(double dt) {
                 objects.clear();
                 deathObjects.clear();
                 movingObjects.clear();
+                fakeBuildings.clear();
                 if (fmod->isPlaying("collecting")) {
                     fmod->stopSound("collecting");
                 }
@@ -1204,7 +1214,7 @@ void GameManager::updateGame(double dt) {
 }
 
 void GameManager::drawScene(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> V,
-        bool depthBufferPass) {
+        bool depthBufferPass, vector<shared_ptr<GameObject>> objs) {
     shared_ptr<Program> shaderMagnet, shaderBuilding, shaderDeath;
 
     if (depthBufferPass) {
@@ -1219,9 +1229,9 @@ void GameManager::drawScene(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> V
 
     GLSL::checkError();
     vfc->extractVFPlanes(P->topMatrix(), V->topMatrix());
-    for (unsigned int i = 0; i < objects.size(); i++) {
-        if (objects.at(i)->isCuboid()) {
-            std::shared_ptr<Cuboid> cub = dynamic_pointer_cast<Cuboid>(objects.at(i));
+    for (unsigned int i = 0; i < objs.size(); i++) {
+        if (objs.at(i)->isCuboid()) {
+            std::shared_ptr<Cuboid> cub = dynamic_pointer_cast<Cuboid>(objs.at(i));
             std::vector<vec3> *temp = cub->getAabbMinsMaxs();
             GLSL::checkError();
             if (!vfc->viewFrustCull(temp) || depthBufferPass) {
@@ -1563,7 +1573,8 @@ void GameManager::renderGame(int fps) {
             LSpace[0] = LO*LV;
             glUniformMatrix4fv(depthProg->getUniform("LS"), 1, GL_FALSE, value_ptr(LSpace[0]));
             GLSL::checkError();
-            drawScene(P, camV, true);
+            drawScene(P, camV, true, objects);
+            drawScene(P, camV, true, fakeBuildings);
             drawShipPart(P, camV, true);
             depthProg->unbind();
             nearShadowManager->unbindFramebuffer();
@@ -1582,7 +1593,8 @@ void GameManager::renderGame(int fps) {
             LV = SetLightView(vec3(lightPos), vec3(0, 0, 0), vec3(0, 1, 0));
             LSpace[1] = LO*LV;
             glUniformMatrix4fv(depthProg->getUniform("LS"), 1, GL_FALSE, value_ptr(LSpace[1]));
-            drawScene(P, camV, true);
+            drawScene(P, camV, true, objects);
+            drawScene(P, camV, true, fakeBuildings);
             drawShipPart(P, camV, true);
             depthProg->unbind();
             midShadowManager->unbindFramebuffer();
@@ -1601,7 +1613,8 @@ void GameManager::renderGame(int fps) {
             LV = SetLightView(vec3(lightPos), vec3(0, 0, 0), vec3(0, 1, 0));
             LSpace[2] = LO*LV;
             glUniformMatrix4fv(depthProg->getUniform("LS"), 1, GL_FALSE, value_ptr(LSpace[2]));
-            drawScene(P, camV, true);
+            drawScene(P, camV, true, objects);
+            drawScene(P, camV, true, fakeBuildings);
             drawShipPart(P, camV, true);
             depthProg->unbind();
             farShadowManager->unbindFramebuffer();
@@ -1612,7 +1625,8 @@ void GameManager::renderGame(int fps) {
             /* Rendering scene for bloom effects */
             bloom->bindFramebuffer();
             skybox->render(P, V, 0);
-            drawScene(P, V, false);
+            drawScene(P, V, false, objects);
+            drawScene(P, V, false, fakeBuildings);
             drawShipPart(P, V, false);
 
             if (gameState == DEATHANIMATION) {
@@ -1622,6 +1636,7 @@ void GameManager::renderGame(int fps) {
                     objects.clear();
                     deathObjects.clear();
                     movingObjects.clear();
+                    fakeBuildings.clear();
                     toBlackAlpha = 0;
                     gameState = DEATH;
                     gui->resetDeath();
@@ -1681,6 +1696,7 @@ void GameManager::renderGame(int fps) {
                     objects.clear();
                     deathObjects.clear();
                     movingObjects.clear();
+                    fakeBuildings.clear();
                     toBlackAlpha = 0;
                     gameState = DEATH;
                     gui->resetDeath();

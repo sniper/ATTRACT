@@ -89,7 +89,7 @@ private:
     bool toBool(std::string s);
     void drawScene(std::shared_ptr<MatrixStack> P,
             std::shared_ptr<MatrixStack> V,
-            bool depthBufferPass);
+            bool depthBufferPass, std::vector<std::shared_ptr<GameObject>> objs);
     void drawShipPart(std::shared_ptr<MatrixStack> P,
             std::shared_ptr<MatrixStack> V,
             bool depthBufferPass);
@@ -116,7 +116,7 @@ private:
     std::shared_ptr<KDTree> kdtree;
     std::shared_ptr<BVH> bvh;
 
-    std::vector<std::shared_ptr<GameObject>> objects;
+    std::vector<std::shared_ptr<GameObject>> objects, fakeBuildings;
 
     std::shared_ptr<GameObject> magnetGun;
     std::shared_ptr<GameObject> magnetBeamOrange;
