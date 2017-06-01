@@ -718,99 +718,75 @@ void GameManager::createEnvironment() {
 
     float gap = 10.0f;
     shared_ptr<Cuboid> building;
+    for (; gap <= 45.0f; gap += 10.0f) {
+        float minSize = 4.0f;
+        float maxSize = 15.0f;
+        float minHeight = ((maxY - minY) / 2) + 10.0f;
+        float maxHeight = (maxY - minY) + 10.0f;
 
-    // testing min/max extents
-    /**building = make_shared<Cuboid>(vec3(minX - gap, 0, minZ - gap), vec3(0, 0, 0),
-            CUBE_HALF_EXTENTS,
-            vec3(1, 6, 1), 0, shapes["skyscraper"],
-            nullptr, false);
-    objects.push_back(building);
+        // minZ along X
+        float spaceLeft = (maxX + gap) - (minX - gap);
+        float currLoc = minX - gap;
+        while (spaceLeft > minSize) {
+            float x = randFloat(minSize, fmin(maxSize, spaceLeft));
+            float z = randFloat(minSize, maxSize);
+            float y = randFloat(minHeight, maxHeight);
+            building = make_shared<Cuboid>(vec3(currLoc + (x / 2), minY + (y / 2), (minZ - gap) - (z)), vec3(0, 0, 0), vec3(0, 0, 0),
+                CUBE_HALF_EXTENTS,
+                vec3(x, y, z), 0, shapes["skyscraper"],
+                nullptr, false);
+            objects.push_back(building);
+            spaceLeft -= x + 5;
+            currLoc += x + 5;
+        }
 
-    building = make_shared<Cuboid>(vec3(minX - gap, 0, maxZ + gap), vec3(0, 0, 0),
-            CUBE_HALF_EXTENTS,
-            vec3(1, 6, 1), 0, shapes["skyscraper"],
-            nullptr, false);
-    objects.push_back(building);
+        // maxZ along X
+        spaceLeft = (maxX + gap) - (minX - gap);
+        currLoc = minX - gap;
+        while (spaceLeft > minSize) {
+            float x = randFloat(minSize, fmin(maxSize, spaceLeft));
+            float y = randFloat(minHeight, maxHeight);
+            float z = randFloat(minSize, maxSize);
+            building = make_shared<Cuboid>(vec3(currLoc + (x / 2), minY + (y / 2), (maxZ + gap) + (z)), vec3(0, 0, 0), vec3(0, 0, 0),
+                CUBE_HALF_EXTENTS,
+                vec3(x, y, z), 0, shapes["skyscraper"],
+                nullptr, false);
+            objects.push_back(building);
+            spaceLeft -= x + 5;
+            currLoc += x + 5;
+        }
 
-    building = make_shared<Cuboid>(vec3(maxX + gap, 0, minZ - gap), vec3(0, 0, 0),
-            CUBE_HALF_EXTENTS,
-            vec3(1, 6, 1), 0, shapes["skyscraper"],
-            nullptr, false);
-    objects.push_back(building);
+        // minX along Z
+        spaceLeft = (maxZ + gap) - (minZ - gap);
+        currLoc = minZ - gap;
+        while (spaceLeft > minSize) {
+            float x = randFloat(minSize, maxSize);
+            float y = randFloat(minHeight, maxHeight);
+            float z = randFloat(minSize, fmin(maxSize, spaceLeft));
+            building = make_shared<Cuboid>(vec3((minX - gap) - x, minY + (y / 2), currLoc + (z / 2)), vec3(0, 0, 0), vec3(0, 0, 0),
+                CUBE_HALF_EXTENTS,
+                vec3(x, y, z), 0, shapes["skyscraper"],
+                nullptr, false);
+            objects.push_back(building);
+            spaceLeft -= z + 5;
+            currLoc += z + 5;
+        }
 
-    building = make_shared<Cuboid>(vec3(maxX + gap, 0, maxZ + gap), vec3(0, 0, 0),
-            CUBE_HALF_EXTENTS,
-            vec3(1, 6, 1), 0, shapes["skyscraper"],
-            nullptr, false);
-    objects.push_back(building);*/
-
-    float minSize = 4.0f;
-    float maxSize = 15.0f;
-    float minHeight = ((maxY - minY) / 2) + 10.0f;
-    float maxHeight = (maxY - minY) + 10.0f;
-
-    // minZ along X
-    float spaceLeft = (maxX + gap) - (minX - gap);
-    float currLoc = minX - gap;
-    while (spaceLeft > minSize) {
-        float x = randFloat(minSize, fmin(maxSize, spaceLeft));
-        float z = randFloat(minSize, maxSize);
-        float y = randFloat(minHeight, maxHeight);
-        building = make_shared<Cuboid>(vec3(currLoc + (x / 2), minY + (y / 2), (minZ - gap) - (z)), vec3(0, 0, 0), vec3(0, 0, 0),
-            CUBE_HALF_EXTENTS,
-            vec3(x, y, z), 0, shapes["skyscraper"],
-            nullptr, false);
-        objects.push_back(building);
-        spaceLeft -= x + 5;
-        currLoc += x + 5;
-    }
-
-    // maxZ along X
-    spaceLeft = (maxX + gap) - (minX - gap);
-    currLoc = minX - gap;
-    while (spaceLeft > minSize) {
-        float x = randFloat(minSize, fmin(maxSize, spaceLeft));
-        float y = randFloat(minHeight, maxHeight);
-        float z = randFloat(minSize, maxSize);
-        building = make_shared<Cuboid>(vec3(currLoc + (x / 2), minY + (y / 2), (maxZ + gap) + (z)), vec3(0, 0, 0), vec3(0, 0, 0),
-            CUBE_HALF_EXTENTS,
-            vec3(x, y, z), 0, shapes["skyscraper"],
-            nullptr, false);
-        objects.push_back(building);
-        spaceLeft -= x + 5;
-        currLoc += x + 5;
-    }
-
-    // minX along Z
-    spaceLeft = (maxZ + gap) - (minZ - gap);
-    currLoc = minZ - gap;
-    while (spaceLeft > minSize) {
-        float x = randFloat(minSize, maxSize);
-        float y = randFloat(minHeight, maxHeight);
-        float z = randFloat(minSize, fmin(maxSize, spaceLeft));
-        building = make_shared<Cuboid>(vec3((minX - gap) - x, minY + (y / 2), currLoc + (z / 2)), vec3(0, 0, 0), vec3(0, 0, 0),
-            CUBE_HALF_EXTENTS,
-            vec3(x, y, z), 0, shapes["skyscraper"],
-            nullptr, false);
-        objects.push_back(building);
-        spaceLeft -= z + 5;
-        currLoc += z + 5;
-    }
-
-    // maxX along Z
-    spaceLeft = (maxZ + gap) - (minZ - gap);
-    currLoc = minZ - gap;
-    while (spaceLeft > minSize) {
-        float x = randFloat(minSize, maxSize);
-        float y = randFloat(minHeight, maxHeight);
-        float z = randFloat(minSize, fmin(maxSize, spaceLeft));
-        building = make_shared<Cuboid>(vec3((maxX + gap) + x, minY + (y / 2), currLoc + (z / 2)), vec3(0, 0, 0), vec3(0, 0, 0),
-            CUBE_HALF_EXTENTS,
-            vec3(x, y, z), 0, shapes["skyscraper"],
-            nullptr, false);
-        objects.push_back(building);
-        spaceLeft -= z + 5;
-        currLoc += z + 5;
+        // maxX along Z
+        spaceLeft = (maxZ + gap) - (minZ - gap);
+        currLoc = minZ - gap;
+        while (spaceLeft > minSize) {
+            float x = randFloat(minSize, maxSize);
+            float y = randFloat(minHeight, maxHeight);
+            float z = randFloat(minSize, fmin(maxSize, spaceLeft));
+            building = make_shared<Cuboid>(vec3((maxX + gap) + x, minY + (y / 2), currLoc + (z / 2)), vec3(0, 0, 0), vec3(0, 0, 0),
+                CUBE_HALF_EXTENTS,
+                vec3(x, y, z), 0, shapes["skyscraper"],
+                nullptr, false);
+            objects.push_back(building);
+            spaceLeft -= z + 5;
+            currLoc += z + 5;
+        }
     }
 }
 
