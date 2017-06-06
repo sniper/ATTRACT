@@ -90,6 +90,9 @@ private:
     void drawScene(std::shared_ptr<MatrixStack> P,
             std::shared_ptr<MatrixStack> V,
             bool depthBufferPass, std::vector<std::shared_ptr<GameObject>> objs);
+    void drawFog(std::shared_ptr<MatrixStack> P,
+            std::shared_ptr<MatrixStack> V,
+            bool depthBufferPass);
     void drawShipPart(std::shared_ptr<MatrixStack> P,
             std::shared_ptr<MatrixStack> V,
             bool depthBufferPass);

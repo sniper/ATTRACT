@@ -1215,16 +1215,14 @@ void GameManager::updateGame(double dt) {
 
 void GameManager::drawScene(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> V,
         bool depthBufferPass, vector<shared_ptr<GameObject>> objs) {
-    shared_ptr<Program> shaderMagnet, shaderBuilding, shaderDeath;
+    shared_ptr<Program> shaderMagnet, shaderBuilding;
 
     if (depthBufferPass) {
         shaderMagnet = depthProg;
         shaderBuilding = depthProg;
-        shaderDeath = depthProg;
     } else {
         shaderMagnet = program;
         shaderBuilding = skyscraperProgram;
-        shaderDeath = fogProgram;
     }
 
     GLSL::checkError();
@@ -1307,6 +1305,21 @@ void GameManager::drawScene(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> V
         }
     }
 
+}
+
+void GameManager::drawFog(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> V,
+        bool depthBufferPass) {
+    shared_ptr<Program> shaderDeath;
+
+    if (depthBufferPass) {
+        shaderDeath = depthProg;
+    } else {
+        shaderDeath = fogProgram;
+    }
+
+    GLSL::checkError();
+    vfc->extractVFPlanes(P->topMatrix(), V->topMatrix());
+
     glEnable(GL_BLEND);
     glEnable(GL_CULL_FACE);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -1315,7 +1328,7 @@ void GameManager::drawScene(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> V
             std::shared_ptr<Cuboid> cub = dynamic_pointer_cast<Cuboid>(deathObjects.at(i));
             std::vector<vec3> *temp = cub->getAabbMinsMaxs();
             GLSL::checkError();
-            if (true || !vfc->viewFrustCull(temp) || depthBufferPass) {
+            if (!vfc->viewFrustCull(temp) || depthBufferPass) {
                 shaderDeath->bind();
                 fogTexture->bind(shaderDeath->getUniform("diffuseTex"));
                 nearShadowManager->setUnit(3);
@@ -1576,6 +1589,7 @@ void GameManager::renderGame(int fps) {
             drawScene(P, camV, true, objects);
             drawScene(P, camV, true, fakeBuildings);
             drawShipPart(P, camV, true);
+            drawFog(P, camV, true);
             depthProg->unbind();
             nearShadowManager->unbindFramebuffer();
             GLSL::checkError();
@@ -1596,6 +1610,7 @@ void GameManager::renderGame(int fps) {
             drawScene(P, camV, true, objects);
             drawScene(P, camV, true, fakeBuildings);
             drawShipPart(P, camV, true);
+            drawFog(P, camV, true);
             depthProg->unbind();
             midShadowManager->unbindFramebuffer();
             GLSL::checkError();
@@ -1616,6 +1631,7 @@ void GameManager::renderGame(int fps) {
             drawScene(P, camV, true, objects);
             drawScene(P, camV, true, fakeBuildings);
             drawShipPart(P, camV, true);
+            drawFog(P, camV, true);
             depthProg->unbind();
             farShadowManager->unbindFramebuffer();
             GLSL::checkError();
@@ -1628,6 +1644,7 @@ void GameManager::renderGame(int fps) {
             drawScene(P, V, false, objects);
             drawScene(P, V, false, fakeBuildings);
             drawShipPart(P, V, false);
+            drawFog(P, camV, false);
 
             if (gameState == DEATHANIMATION) {
                 toBlackAlpha += 0.04f;
