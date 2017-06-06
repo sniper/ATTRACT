@@ -127,9 +127,9 @@ shadowDebugBox(false)
     // have more cascades, increase the size of cascadeEnd and have more
     // subdivisions.
     cascadeEnd[0] = -camera->getNear();
-    cascadeEnd[1] = -10.0f;
-    cascadeEnd[2] = -30.0f;//-80.0f;
-    cascadeEnd[3] = -100.0f;//camera->getFar();
+    cascadeEnd[1] = -15.0f;
+    cascadeEnd[2] = -100.0f;
+    cascadeEnd[3] = -camera->getFar();
     
     GLSL::checkError();
     bloom = make_shared<Bloom>();
@@ -1798,6 +1798,13 @@ void GameManager::renderGame(int fps) {
                     minZ = std::min(minZ, frustumCornersL[j].z);
                     maxZ = std::max(maxZ, frustumCornersL[j].z);
                 }
+                
+                minX -= 2;
+                maxX += 2;
+                minY -= 2;
+                maxY += 2;
+                minZ -= lightPos.y * 3;
+                maxZ += lightPos.y * 3;
 
                 debug.setPV(P->topMatrix(), V->topMatrix());
                 
@@ -2003,6 +2010,7 @@ void GameManager::calcOrthoProjs(const mat4 &viewMat) {
     float aspect = camera->getAspect();
     float tanHalfVFOV = tanf(glm::radians(camera->getFOV()/2.0f));
     float tanHalfHFOV = tanf(glm::radians(camera->getFOV()/2.0f) * aspect);
+    int orthoBoxAlterFactor = 0;
     
     for (unsigned int i = 0; i < NUM_SHADOW_CASCADES; i++) {
         float xn = cascadeEnd[i] * tanHalfHFOV;
@@ -2028,13 +2036,10 @@ void GameManager::calcOrthoProjs(const mat4 &viewMat) {
         
         float minX = std::numeric_limits<float>::max();
         float maxX = -std::numeric_limits<float>::max();
-        //float maxX = std::numeric_limits<float>::min();
         float minY = std::numeric_limits<float>::max();
         float maxY = -std::numeric_limits<float>::max();
-        //float maxY = std::numeric_limits<float>::min();
         float minZ = std::numeric_limits<float>::max();
         float maxZ = -std::numeric_limits<float>::max();
-        //float maxZ = std::numeric_limits<float>::min();
         
         for (unsigned int j = 0; j < 8; j++) {
             vec4 vW = inverseView * frustumCorners[j];
@@ -2050,14 +2055,15 @@ void GameManager::calcOrthoProjs(const mat4 &viewMat) {
         }
         
         // This artificially increases the dimensions of the ortho box because
-        // the calculated box typically isn't big enough. It is increased relative
-        // to how high the light position is (higher means bigger levels)
-        minX -= 2;
-        maxX += 2;
-        minY -= 2;
-        maxY += 2;
-        minZ -= lightPos.y * 2;
-        maxZ += lightPos.y * 2;
+        // the calculated box typically isn't big enough.
+        minX -= 3 * (i + 1);
+        maxX += 3 * (i + 1);
+        minY -= 3 * (i + 1);
+        maxY += 3 * (i + 1);
+        // For the z axis, it is increased relative to how high the light position
+        // is (higher usually means bigger levels, so you need deeper ortho boxes)
+        minZ -= 3 * lightPos.y * (i + 1);
+        maxZ += 3 * lightPos.y * (i + 1);
 
         shadowOrthoInfo[i][0] = minX;
         shadowOrthoInfo[i][1] = maxX;

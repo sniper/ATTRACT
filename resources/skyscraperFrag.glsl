@@ -25,8 +25,7 @@ layout (location = 1) out vec4 BloomColor;
 /* returns 1 if shadowed */
 /* called with the point projected into the light's coordinate space */
 float TestShadow(int cascadeIndex, vec4 LSfPos) {
-    //float bias = 0.004;
-    float bias = 0.003;
+    float bias = 0.0012;
     
     // perspective divide isn't needed since we're using ortho projection, but
     // doesn't hurt.
@@ -98,18 +97,17 @@ void main()
     }
 
     if (shadow < -0.5) {
-        shadow = 0;
+        shadow = 0.0f;
     }
-    else {
-        vec3 lighting = ambient + ((1.0 - shadow) * (diffuse + specular)) * color;
+    
+    vec3 lighting = ambient + ((1.0 - shadow) * (diffuse + specular)) * color;
 
-        // add fog
-        float dist = abs(distance(fragPos, viewPos));
-        float f = 1 / exp(dist * 0.10);
-        float e = 0.3;
-        lighting = (lighting * (1 - e)) + (vec3(0.5, 0.5, 0.55) * e);
+    // add fog
+    float dist = abs(distance(fragPos, viewPos));
+    float f = 1 / exp(dist * 0.10);
+    float e = 0.3;
+    lighting = (lighting * (1 - e)) + (vec3(0.5, 0.5, 0.55) * e);
 
-        FragColor = vec4(lighting, 1.0f);
-        BloomColor = vec4(0.0);
-    }
+    FragColor = vec4(lighting, 1.0f);
+    BloomColor = vec4(0.0);
 }
