@@ -130,7 +130,7 @@ night(false)
     // subdivisions.
     cascadeEnd[0] = -camera->getNear();
     cascadeEnd[1] = -15.0f;
-    cascadeEnd[2] = -100.0f;
+    cascadeEnd[2] = -80.0f;
     cascadeEnd[3] = -camera->getFar();
     
     GLSL::checkError();
@@ -2035,12 +2035,10 @@ float GameManager::randFloat(float l, float h) {
 
 void GameManager::calcOrthoProjs(const mat4 &viewMat) {
     mat4 inverseView = glm::inverse(viewMat);
-    //mat4 lightMat = SetLightView(vec3(lightPos), vec3(0), vec3(0, 1, 0));
     mat4 lightMat = SetLightView(vec3(0), normalize(vec3(-lightPos)), vec3(0, 1, 0));
     float aspect = camera->getAspect();
     float tanHalfVFOV = tanf(glm::radians(camera->getFOV()/2.0f));
     float tanHalfHFOV = tanf(glm::radians(camera->getFOV()/2.0f) * aspect);
-    int orthoBoxAlterFactor = 0;
     
     for (unsigned int i = 0; i < NUM_SHADOW_CASCADES; i++) {
         float xn = cascadeEnd[i] * tanHalfHFOV;
