@@ -84,7 +84,8 @@ skyCam(false),
 viewFrustum(false),
 lightFrustum(false),
 shadowDebugBox(false),
-fogShift(0)
+fogShift(0),
+night(false)
 {
     objIntervalCounter = 0.0f;
     numObjCollected = 0;
@@ -210,6 +211,7 @@ void GameManager::initScene() {
     skyscraperProgram->addUniform("LS1");
     skyscraperProgram->addUniform("LS2");
     skyscraperProgram->addUniform("cascadeEndClipSpace");
+    skyscraperProgram->addUniform("night");
     GLSL::checkError();
     
     //
@@ -441,6 +443,7 @@ void GameManager::initScene() {
     //
     skybox = make_shared<Skybox>(RESOURCE_DIR, shapes["sphere"], 1);
     spacebox = make_shared<Skybox>(RESOURCE_DIR, shapes["sphere"], 0);
+    nightbox = make_shared<Skybox>(RESOURCE_DIR, shapes["sphere"], 2);
 
     //lightPos = vec4(4.0f, 15.0f, 4.0f, 0.0f);
     lightPos = vec4(1.0f, 1.0f, 1.0f, 0.0f);
@@ -659,6 +662,9 @@ void GameManager::importLevel(string level) {
             200.0f);
 
     if (file.is_open()) {
+        if (getline(file, line)) {
+            night = toBool(line);
+        }
         if (getline(file, line)) {
             parseLight(line);
         }
@@ -1282,6 +1288,7 @@ void GameManager::drawScene(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> V
                                            value_ptr(LSpace[1]));
                         glUniformMatrix4fv(shaderBuilding->getUniform("LS2"), 1, GL_FALSE,
                                            value_ptr(LSpace[2]));
+                        glUniform1i(shaderBuilding->getUniform("night"), night);
                     }
                     glUniformMatrix4fv(shaderBuilding->getUniform("P"), 1, GL_FALSE,
                                        value_ptr(P->topMatrix()));
@@ -1642,7 +1649,11 @@ void GameManager::renderGame(int fps) {
             
             /* Rendering scene for bloom effects */
             bloom->bindFramebuffer();
-            skybox->render(P, V, 0);
+            if (night) {
+                nightbox->render(P, V, 0);
+            } else {
+                skybox->render(P, V, 0);
+            }
             drawScene(P, V, false, objects);
             drawScene(P, V, false, fakeBuildings);
             drawShipPart(P, V, false);

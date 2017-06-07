@@ -56,6 +56,13 @@ Skybox::Skybox(const string &resourceDir, const shared_ptr<Shape> &skyShape, int
                 resourceDir + "skybox_posy.jpg", // posy
                 resourceDir + "skybox_negz.jpg", // negz
                 resourceDir + "skybox_posz.jpg"); // posz
+    } else if (flag == 2) {
+        tc->setFilenames(resourceDir + "lagoon_west.jpg", // negx
+                resourceDir + "lagoon_east.jpg", // posx
+                resourceDir + "lagoon_down.jpg", // negy
+                resourceDir + "lagoon_up.jpg", // posy
+                resourceDir + "lagoon_south.jpg", // negz
+                resourceDir + "lagoon_north.jpg"); // posz
     }
 
     GLSL::checkError();

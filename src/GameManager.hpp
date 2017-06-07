@@ -165,8 +165,7 @@ private:
     std::shared_ptr<SpaceShipPart> spaceShipPart2;
     std::shared_ptr<SpaceShipPart> spaceShipPart3;
 
-    std::shared_ptr<Skybox> skybox;
-    std::shared_ptr<Skybox> spacebox;
+    std::shared_ptr<Skybox> skybox, spacebox, nightbox;
 
     glm::vec4 lightPos;
     float lightIntensity;
@@ -180,6 +179,7 @@ private:
     DebugDraw debug;
     bool cascaded, skyCam, viewFrustum, lightFrustum, shadowDebugBox;
     int fogShift;
+    bool night;
 };
 
 #endif /* GameManager_hpp */

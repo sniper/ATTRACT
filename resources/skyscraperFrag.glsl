@@ -11,6 +11,7 @@ uniform sampler2D shadowDepth2;
 uniform vec3 lightPos;
 uniform vec3 viewPos;
 uniform vec3 cascadeEndClipSpace;
+uniform int night;
 
 in vec2 vTex;
 in vec3 fragPos;
@@ -68,7 +69,12 @@ void main()
     normal = normalize(normal * 2.0 - 1.0);
     normal = normalize(TBN * normal);
 
-    vec3 lightColor = vec3(1.0);
+    vec3 lightColor;
+    if (night == 1) {
+        lightColor = vec3(0.1, 0.1, 0.2);
+    } else {
+        lightColor = vec3(1.0);
+    }
     vec3 ambient = 0.3 * color;
     vec3 lightDir = normalize(lightPos - fragPos);
     float diff = max(dot(lightDir, normal), 0.0);
