@@ -179,6 +179,7 @@ private:
 
     DebugDraw debug;
     bool cascaded, skyCam, viewFrustum, lightFrustum, shadowDebugBox;
+    int fogShift;
 };
 
 #endif /* GameManager_hpp */

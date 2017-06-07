@@ -83,7 +83,8 @@ cascaded(true),
 skyCam(false),
 viewFrustum(false),
 lightFrustum(false),
-shadowDebugBox(false)
+shadowDebugBox(false),
+fogShift(0)
 {
     objIntervalCounter = 0.0f;
     numObjCollected = 0;
@@ -1357,7 +1358,8 @@ void GameManager::drawFog(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> V,
                     struct timeval tv;
                     gettimeofday(&tv, NULL);
                     //cout << tv.tv_sec << " " << tv.tv_usec << endl;
-                    glUniform1i(shaderDeath->getUniform("time"), tv.tv_usec);
+                    //glUniform1i(shaderDeath->getUniform("time"), tv.tv_usec);
+                    glUniform1i(shaderDeath->getUniform("time"), fogShift++);
                 }
 
                 GLSL::checkError();

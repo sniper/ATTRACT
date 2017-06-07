@@ -99,7 +99,11 @@ void main()
         dist = 5.0;
     }
     //vec3 fogColor = vec3(0.5, 0.5, 0.55);
-    vec3 fogColor = texture(diffuseTex, vTex).rgb;
+    vec2 coords = vTex;
+    float t = time / 2000.0f;
+    coords.x += t;
+    coords.y += t;
+    vec3 fogColor = texture(diffuseTex, coords).rgb;
     float f = 1 / exp(dist * 0.15);
     // make sure there's always a little opacity
     if (1 - f > 0.90) {
