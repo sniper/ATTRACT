@@ -20,7 +20,9 @@ position1(vec3(0.0f, 0.0f, 0.0f)),
 position2(vec3(0.0f, 0.0f, 0.0f)),
 boundingBox(make_shared<AABoundingBox>()),
 magnetic(false),
-waiting(0)
+door(false),
+waiting(0),
+canMove(false)
 {
     
 }
@@ -28,7 +30,7 @@ waiting(0)
 Cuboid::Cuboid(const vec3 &position, const vec3 &position2, const vec3 &direction,
                const vec3 &halfExtents, const vec3 &scale, float velocity,
                const shared_ptr<Shape> &shape,
-               const shared_ptr<Material> &material, bool magnetic) :
+               const shared_ptr<Material> &material, bool magnetic, bool door) :
 GameObject(position, vec3(0, 0, 0), scale, velocity, shape, material),
 position1(position),
 position2(position2),
@@ -37,7 +39,9 @@ boundingBox(make_shared<AABoundingBox>(position, vec3(halfExtents.x * scale.x,
                                                       halfExtents.y * scale.y,
                                                       halfExtents.z * scale.z))),
 magnetic(magnetic),
-waiting(0)
+door(door),
+waiting(0),
+canMove(false)
 {
     
 }
@@ -51,7 +55,7 @@ void Cuboid::update(float dt)
 {
     GameObject::update(dt);
     boundingBox->setPosition(position);
-    if (velocity == 0) {
+    if (velocity == 0 || (door && !canMove)) {
         return;
     }
     if (waiting == 0.0f) {
@@ -68,6 +72,7 @@ void Cuboid::update(float dt)
         }
         if (prevVelocity != velocity) {
             waiting = WAIT_TIME;
+            canMove = false;
         }
     } else {
         waiting -= dt;

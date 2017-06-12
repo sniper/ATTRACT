@@ -547,6 +547,7 @@ void GameManager::parseCamera(string objectString) {
 
 void GameManager::parseObject(string objectString, shared_ptr<Material> greyBox,
         shared_ptr<Material> magnetSurface,
+        shared_ptr<Material> doorSurface,
         shared_ptr<Material> spacePart) {
     static int name = 0;
 
@@ -575,13 +576,26 @@ void GameManager::parseObject(string objectString, shared_ptr<Material> greyBox,
     bool moving = toBool(elems[14]);
     float speed = stof(elems[15]);
     vec3 pos2 = vec3(stof(elems[16]), stof(elems[17]), stof(elems[18]));
+    bool door = toBool(elems[19]);
 
     /*TODO: MAGNETIC AND DEADLY*/
-    if (magnetic) {
+    if (door) {
+        shared_ptr<Cuboid> d = make_shared<Cuboid>(pos, pos2, normalize(pos2 - pos),
+                CUBE_HALF_EXTENTS,
+                scale, speed, shapes["plainCube"],
+                doorSurface, true, true);
+        objects.push_back(d);
+        bullet->createBox(to_string(name), pos, CUBE_HALF_EXTENTS, scale, 0);
+        if (speed != 0) {
+            movingObjects.insert(make_pair(name++, d));
+        } else {
+            name++;
+        }
+    } else if (magnetic) {
         shared_ptr<Cuboid> magnet = make_shared<Cuboid>(pos, pos2, normalize(pos2 - pos),
                 CUBE_HALF_EXTENTS,
                 scale, speed, shapes["plainCube"],
-                magnetSurface, true);
+                magnetSurface, true, false);
         objects.push_back(magnet);
         bullet->createMagneticBox(to_string(name), pos, CUBE_HALF_EXTENTS, scale, 0);
         if (speed != 0) {
@@ -593,7 +607,7 @@ void GameManager::parseObject(string objectString, shared_ptr<Material> greyBox,
         shared_ptr<Cuboid> dobj1 = make_shared<Cuboid>(pos, vec3(0, 0, 0), vec3(0, 0, 0),
                 CUBE_HALF_EXTENTS,
                 scale, 0, shapes["plainCube"],
-                greyBox, false);
+                greyBox, false, false);
         deathObjects.push_back(dobj1);
 
         //cout << "death box" << endl;
@@ -606,7 +620,7 @@ void GameManager::parseObject(string objectString, shared_ptr<Material> greyBox,
         shared_ptr<Cuboid> groundPlane = make_shared<Cuboid>(pos, pos2, normalize(pos2 - pos),
                 CUBE_HALF_EXTENTS,
                 scale, speed, shapes["skyscraper"],
-                nullptr, false);
+                nullptr, false, false);
         objects.push_back(groundPlane);
         bullet->createBox(to_string(name), pos, CUBE_HALF_EXTENTS, scale, 0);
         if (speed != 0) {
@@ -656,6 +670,10 @@ void GameManager::importLevel(string level) {
             vec3(1.0f, 0.0f, 0.0f),
             vec3(1.0f, 0.9f, 0.8f),
             200.0f);
+    shared_ptr<Material> doorSurface = make_shared<Material>(vec3(0.0f, 1.0f, 1.0f),
+            vec3(0.0f, 1.0f, 1.0f),
+            vec3(1.0f, 0.9f, 0.8f),
+            200.0f);
     shared_ptr<Material> spacePart = make_shared<Material>(vec3(0.2f, 0.2f, 0.2f),
             vec3(1.0f, 1.0f, 0.0f),
             vec3(1.0f, 0.9f, 0.8f),
@@ -674,11 +692,11 @@ void GameManager::importLevel(string level) {
         }
         if (getline(file, line)) {
             /*get spaceship positions*/
-            parseObject(line, greyBox, magnetSurface, spacePart);
+            parseObject(line, greyBox, magnetSurface, doorSurface, spacePart);
         }
         while (getline(file, line)) {
             /*objects here*/
-            parseObject(line, greyBox, magnetSurface, spacePart);
+            parseObject(line, greyBox, magnetSurface, doorSurface, spacePart);
         }
         cout << "Level '" << level << "' successfully imported." << endl;
         file.close();
@@ -747,7 +765,7 @@ void GameManager::createEnvironment() {
             building = make_shared<Cuboid>(vec3(currLoc + (x / 2), minY + (y / 2), (minZ - gap) - (z)), vec3(0, 0, 0), vec3(0, 0, 0),
                 CUBE_HALF_EXTENTS,
                 vec3(x, y, z), 0, shapes["skyscraper"],
-                nullptr, false);
+                nullptr, false, false);
             fakeBuildings.push_back(building);
             spaceLeft -= x + 5;
             currLoc += x + 5;
@@ -763,7 +781,7 @@ void GameManager::createEnvironment() {
             building = make_shared<Cuboid>(vec3(currLoc + (x / 2), minY + (y / 2), (maxZ + gap) + (z)), vec3(0, 0, 0), vec3(0, 0, 0),
                 CUBE_HALF_EXTENTS,
                 vec3(x, y, z), 0, shapes["skyscraper"],
-                nullptr, false);
+                nullptr, false, false);
             fakeBuildings.push_back(building);
             spaceLeft -= x + 5;
             currLoc += x + 5;
@@ -779,7 +797,7 @@ void GameManager::createEnvironment() {
             building = make_shared<Cuboid>(vec3((minX - gap) - x, minY + (y / 2), currLoc + (z / 2)), vec3(0, 0, 0), vec3(0, 0, 0),
                 CUBE_HALF_EXTENTS,
                 vec3(x, y, z), 0, shapes["skyscraper"],
-                nullptr, false);
+                nullptr, false, false);
             fakeBuildings.push_back(building);
             spaceLeft -= z + 5;
             currLoc += z + 5;
@@ -795,7 +813,7 @@ void GameManager::createEnvironment() {
             building = make_shared<Cuboid>(vec3((maxX + gap) + x, minY + (y / 2), currLoc + (z / 2)), vec3(0, 0, 0), vec3(0, 0, 0),
                 CUBE_HALF_EXTENTS,
                 vec3(x, y, z), 0, shapes["skyscraper"],
-                nullptr, false);
+                nullptr, false, false);
             fakeBuildings.push_back(building);
             spaceLeft -= z + 5;
             currLoc += z + 5;
@@ -1994,7 +2012,16 @@ void GameManager::resolveMagneticInteractions() {
     //shared_ptr<GameObject> obj = RayTrace::rayTrace(startLoc, endLoc, objects);
     shared_ptr<GameObject> obj = bvh->findClosestHitObject(startLoc, endLoc, &dist);
     drawBeam = false;
-    if (obj && obj->isMagnetic()) {
+    std::shared_ptr<Cuboid> cube = dynamic_pointer_cast<Cuboid>(obj);
+    if (obj && cube->isDoor()) {
+        camera->setLookingAtMagnet(true);
+        if (Mouse::isLeftMouseButtonPressed()) {
+            cube->setCanMove(true);
+            if (!fmod->isPlaying("magnet")) {
+                fmod->playSound("magnet", false, 0.4);
+            }
+        }
+    } else if (obj && obj->isMagnetic()) {
         camera->setLookingAtMagnet(true);
         if (Mouse::isLeftMouseButtonPressed()) {
             if (!fmod->isPlaying("magnet")) {

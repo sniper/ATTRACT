@@ -83,6 +83,7 @@ private:
     void parseCamera(std::string level);
     void parseObject(std::string level, std::shared_ptr<Material> greyBox,
             std::shared_ptr<Material> magnetSurface,
+            std::shared_ptr<Material> doorSurface,
             std::shared_ptr<Material> spacePart);
     void createEnvironment();
 

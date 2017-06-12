@@ -21,7 +21,7 @@ public:
     Cuboid(const glm::vec3 &position, const glm::vec3 &position2, const glm::vec3 &direction,
            const glm::vec3 &halfExtents, const glm::vec3 &scale, float velocity,
            const std::shared_ptr<Shape> &shape,
-           const std::shared_ptr<Material> &material, bool magnetic);
+           const std::shared_ptr<Material> &material, bool magnetic, bool door);
     virtual ~Cuboid();
     
     bool isCollidingWithBoundingSphere(const std::shared_ptr<BoundingSphere> &sphere);
@@ -34,6 +34,9 @@ public:
     
     bool isCuboid() const {return true;}
     bool isMagnetic() const {return magnetic;}
+    bool isDoor() const {return door;}
+    bool getCanMove() const {return canMove;}
+    void setCanMove(bool b) {canMove = b; waiting = 0;}
     
     void update(float dt);
     glm::vec3 getMins() const {return boundingBox->getMins();}
@@ -42,7 +45,7 @@ public:
 protected:
     glm::vec3 position1, position2, dir;
     std::shared_ptr<AABoundingBox> boundingBox;
-    bool magnetic;
+    bool magnetic, door, canMove;
     float waiting;
 };
 
